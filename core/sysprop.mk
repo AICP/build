@@ -106,7 +106,8 @@ $(2): $(POST_PROCESS_PROPS) $(INTERNAL_BUILD_ID_MAKEFILE) $(3) $(6)
 	$(hide) mkdir -p $$(dir $$@)
 	$(hide) rm -f $$@ && touch $$@
 ifneq ($(strip $(7)), true)
-	$(hide) $$(call generate-common-build-props,$(call to-lower,$(strip $(1))),$$@)
+	$(hide) $(PRODUCT_BUILD_PROP_OVERRIDES) \
+	        $$(call generate-common-build-props,$(call to-lower,$(strip $(1))),$$@)
 endif
 	$(hide) $(foreach file,$(strip $(3)),\
 	    if [ -f "$(file)" ]; then\
