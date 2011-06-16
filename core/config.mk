@@ -161,6 +161,9 @@ else
 JAVA_TMPDIR_ARG :=
 endif
 
+# Default shell is mksh. Other possible value is ash.
+TARGET_SHELL := mksh
+
 # ###############################################################
 # Include sub-configuration files
 # ###############################################################
