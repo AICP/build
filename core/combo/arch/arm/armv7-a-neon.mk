@@ -18,7 +18,11 @@ else
 ifeq ($(strip $(TARGET_$(combo_2nd_arch_prefix)CPU_VARIANT)),cortex-a7)
 	arch_variant_cflags := -mcpu=cortex-a7
 else
+ifeq ($(strip $(TARGET_$(combo_2nd_arch_prefix)CPU_VARIANT)),cortex-a75
+	arch_variant_cflags := -mcpu=cortex-a5
+else
 	arch_variant_cflags := -march=armv7-a
+endif
 endif
 endif
 endif
