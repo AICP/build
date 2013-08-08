@@ -1,83 +1,131 @@
-#!/bin/bash
+#!/usr/bin/env python
+#
+# Copyright (C) 2008 The Android Open Source Project
+# Copyright (C) 2013 SlimRoms
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-FSTAB=$1
-OUT=$2
-DEVICE=$3
-DEFCONFIG=$4
-SOURCE=$PWD
-UPDATER=$OUT/obj/EXECUTABLES/updater_intermediates/updater
+from sys import argv
+from os import getcwd, environ, remove, path, listdir, makedirs, walk
+from re import search, sub
+from shutil import rmtree, copy2, copytree
+from subprocess import call
+from zipfile import ZipFile
+from hashlib import md5
 
-LINENUMBER=`sed -n "/\/boot/ =" $FSTAB | head -1`
-LINE=`sed -n "${LINENUMBER}p" $FSTAB`
-stringarray=(${LINE})
-bootpartition=${stringarray[2]}
-partition_type=${stringarray[1]}
-KERNELVERSION=`sed -n -e "/CONFIG_LOCALVERSION/s/^.*=//p" $4`
-SYSTEMNUMBER=`sed -n '/\/system/ =' $FSTAB`
-SYSTEMLINE=`sed -n "${SYSTEMNUMBER}p" $FSTAB`
-systemarray=(${SYSTEMLINE})
-systemtype=${systemarray[1]}
-systemmount=${systemarray[2]}
+# declare all the variables needed
+fstab = open(argv[1], 'r').read()
+out = argv[2]
+device = argv[3]
+defconfig = "%s/obj/KERNEL_OBJ/.config" % out
+source = getcwd() # PWD
 
-rm -r $OUT/*kernel*
+try:
+    bootline = search('(\S|\t| )+/boot\s.*\n*', fstab).group(0)
+    boot_partition = search('(/\S+){2,}', bootline).group(0)
+    bpt = search('\s((?!/)\S)+\s', bootline).group(0)
+    boot_partition_type = sub(r'(\s)+', "", bpt)
 
-if [ ! -f "$UPDATER" ]
-then
-    make updater &>> /dev/null
-fi
-if [ ! -f "${ANDROID_HOST_OUT}/framework/signapk.jar" ]
-then
-    make signapk &>> /dev/null
-fi
+    sysline = search('(\S|\t| )+/system\s.*\n*', fstab).group(0)
+    system_partition = search('(/\S+){2,}', sysline).group(0)
+    spt = search('\s((?!/)\S)+\s', sysline).group(0)
+    system_partition_type = sub(r'(\s)+', "", spt)
+except:
+    raise ValueError("malformed recovery.fstab")
 
-if [ "$KERNELVERSION" != "" ]
-then
-    VERSION=`echo $KERNELVERSION | cut -d '-' -f2 | cut -d '"' -f1`
-    KERNEL_VERSION=$VERSION-kernel
-else
-    KERNEL_VERSION=Slim-$DEVICE-kernel
-fi
-#rm $OUT/$KERNEL_VERSION
-ZIP_DIR=$OUT/$KERNEL_VERSION
-mkdir $ZIP_DIR
+if path.exists(defconfig):
+    prekernel_version = search('CONFIG_LOCALVERSION=.*\n', open(defconfig, 'r').read())
+    if prekernel_version:
+        kernel_version = sub(r'(CONFIG_LOCALVERSION=)|\"|\n|-', "", prekernel_version.group(0))
+        kernel_version = "%s-%s-kernel" % (kernel_version, device)
+    else:
+        kernel_version = "Slim-%s-kernel" % device
+else:
+    kernel_version = "Slim-%s-kernel" % device
 
-# Make the updater-script
-UPDATER_DIR=$ZIP_DIR/META-INF/com/google/android
-mkdir -p $UPDATER_DIR
-cp $OUT/obj/EXECUTABLES/updater_intermediates/updater $UPDATER_DIR/update-binary
-echo 'ui_print("Installing Slim Kernel...");' > $UPDATER_DIR/updater-script
-if [ "$partition_type" = "mtd" ]
-then
-    echo 'package_extract_file("boot.img", "/tmp/boot.img");' >> $UPDATER_DIR/updater-script
-    echo "write_raw_image("'"/tmp/boot.img"'", "'"'$bootpartition'"'");" >> $UPDATER_DIR/updater-script
-elif [ "$partition_type" = "emmc" ]
-then
-    echo "package_extract_file("'"boot.img"'", "'"'$bootpartition'"'");" >> $UPDATER_DIR/updater-script
-elif [ "$partition_type" = "bml" ]
-then
-    echo 'assert(package_extract_file("boot.img", "/tmp/boot.img")' >> $UPDATER_DIR/updater-script
-    echo "       write_raw_image("'"/tmp/boot.img"'", "'"'$bootpartition'"'")" >> $UPDATER_DIR/updater-script
-    echo '       delete("/tmp/boot.img"));' >> $UPDATER_DIR/updater-script
-fi
-echo "mount("'"'$systemtype'"'", "'"EMMC"'", "'"'$systemmount'"'", "'"system"'");" >> $UPDATER_DIR/updater-script
-echo 'package_extract_dir("system", "/system");' >> $UPDATER_DIR/updater-script
-echo 'unmount("/system");' >> $UPDATER_DIR/updater-script
-echo 'ui_print(" ");' >> $UPDATER_DIR/updater-script
-echo 'ui_print("Done!");' >> $UPDATER_DIR/updater-script
+updater = "%s/obj/EXECUTABLES/updater_intermediates/updater" % out
+signer = "%s/framework/signapk.jar" % environ['ANDROID_HOST_OUT']
 
-# Copy the kernel and libs
-cp $OUT/boot.img $ZIP_DIR/boot.img
-mkdir -p $ZIP_DIR/system/lib/modules
-cp -r $OUT/system/lib/modules/* $ZIP_DIR/system/lib/modules
+# rm -r $OUT/*kernel*
+for f in listdir(out):
+    if "-kernel" in f:
+        file = "%s/%s" % (out, f)
+        if path.isfile(file):
+            remove(file)
+        else:
+            rmtree(file)
 
-#zip package
-cd $ZIP_DIR
-zip -qr ../$KERNEL_VERSION.zip ./
-cd $OUT
-rm -rf $ZIP_DIR
+if not path.exists(updater):
+    with open("dump", "w") as dump:
+        silencer = call('make updater'.split(), stdout = dump)
+    remove("dump")
+if not path.exists(signer):
+    with open("dump", "w") as dump:
+        silencer = call('make signapk'.split(), stdout = dump)
+    remove("dump")
 
-#sign package
-java -jar ${ANDROID_HOST_OUT}/framework/signapk.jar ${SOURCE}/build/target/product/security/testkey.x509.pem ${SOURCE}/build/target/product/security/testkey.pk8 $KERNEL_VERSION.zip $KERNEL_VERSION-signed.zip
-rm ./$KERNEL_VERSION.zip
-md5sum $KERNEL_VERSION-signed.zip
-cd $SOURCE
+zip_dir = "%s/%s" % (out, kernel_version)
+if path.exists(zip_dir):
+    rmtree(zip_dir)
+makedirs(zip_dir)
+
+# updater-script
+updater_dir = "%s/META-INF/com/google/android" % zip_dir
+if not path.exists(updater_dir):
+    makedirs(updater_dir)
+copy2(updater, "%s/update-binary" % updater_dir)
+
+updater_script = "%s/updater-script" % updater_dir
+
+# create the contents
+contents = "ui_print(\"installing Slim Kernel...\");\n"
+if boot_partition_type == "mtd":
+    contents += "package_extract_file(\"boot.img\", \"/tmp/boot.img\");\n"
+    contents += "write_raw_image(\"/tmp/boot.img\", \"%s\");\n" % boot_partition
+elif boot_partition_type == "emmc":
+    contents += "package_extract_file(\"boot.img\", \"%s\");\n" % boot_partition
+elif boot_partition_type == "bml":
+    contents += "assert(package_extract_file(\"boot.img\", \"/tmp/boot.img\")\n"
+    contents += "\twrite_raw_image(\"/tmp/boot.img\", \"%s\")\n" % boot_partition
+    contents += "\tdelete(\"/tmp/boot.img\"));\n"
+contents += "mount(\"%s\", \"EMMC\", \"%s\", \"system\");\n" % (system_partition_type, system_partition)
+contents += "package_extract_dir(\"system\", \"/system\");\n"
+contents += "unmount(\"/system\");\n"
+contents += "ui_print(\" \");\n"
+contents += "ui_print(\"Done!\");"
+with open(updater_script, "w") as f:
+    f.write(contents)
+
+# copy the kernel and libs
+copy2("%s/boot.img" % out, "%s/boot.img" % zip_dir)
+if path.exists("%s/system/lib/modules" % out):
+    if not path.exists("%s/system/lib" % zip_dir):
+        makedirs("%s/system/lib" % zip_dir)
+    copytree("%s/system/lib/modules" % out, "%s/system/lib/modules" % zip_dir)
+
+# zip package
+with ZipFile("%s.zip" % zip_dir, "w") as zipper:
+    rootlen = len(zip_dir) + 1
+    for root, dirs, files in walk(zip_dir):
+        for file in files:
+            fn = path.join(root, file)
+            zipper.write(fn, fn[rootlen:])
+
+# sign it
+testkey_x = "%s/build/target/product/security/testkey.x509.pem" % source
+testkey_p = "%s/build/target/product/security/testkey.pk8" % source
+call(['java', '-jar', signer, testkey_x, testkey_p, "%s.zip" % zip_dir, "%s-signed.zip" % zip_dir])
+remove("%s.zip" % zip_dir)
+#rmtree(zip_dir)
+print md5(open("%s-signed.zip" % zip_dir, "rb").read()).hexdigest() + " %s-signed.zip" % (kernel_version)
+print "kernel saved to %s-signed.zip" % zip_dir
