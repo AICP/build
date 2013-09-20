@@ -15,8 +15,8 @@ Invoke ". build/envsetup.sh" from your shell to add the following functions to y
 - mka:      Builds using SCHED_BATCH on all processors
 - mbot:     Builds for all devices using the psuedo buildbot
 - mkapush:  Same as mka with the addition of adb pushing to the device.
-- pstest:   cherry pick a patch from the AOKP gerrit instance.
-- pspush:   push commit to AOKP gerrit instance.
+- pstest:   cherry pick a patch from the AICP gerrit instance.
+- pspush:   push commit to AICP gerrit instance.
 - taco:     Builds for a single device using the pseudo buildbot
 - reposync: Parallel repo sync using ionice and SCHED_BATCH
 
@@ -64,12 +64,12 @@ function check_product()
         return
     fi
 
-    if (echo -n $1 | grep -q -e "^aokp_") ; then
-       AOKP_PRODUCT=$(echo -n $1 | sed -e 's/^aokp_//g')
+    if (echo -n $1 | grep -q -e "^aicp_") ; then
+       AICP_PRODUCT=$(echo -n $1 | sed -e 's/^aicp_//g')
     else
-       AOKP_PRODUCT=
+       AICP_PRODUCT=
     fi
-      export AOKP_PRODUCT
+      export AICP_PRODUCT
 
     CALLED_FROM_SETUP=true BUILD_SYSTEM=build/core \
         TARGET_PRODUCT=$1 \
@@ -451,7 +451,7 @@ function print_lunch_menu()
     echo
     echo "You're building on" $uname
     echo
-    if [ "z${AOKP_DEVICES_ONLY}" != "z" ]; then
+    if [ "z${AICP_DEVICES_ONLY}" != "z" ]; then
        echo "Breakfast menu... pick a combo:"
     else
        echo "Lunch menu... pick a combo:"
@@ -465,7 +465,7 @@ function print_lunch_menu()
         i=$(($i+1))
     done
 
-    if [ "z${AOKP_DEVICES_ONLY}" != "z" ]; then
+    if [ "z${AICP_DEVICES_ONLY}" != "z" ]; then
        echo "... and don't forget the bacon!"
     fi
 
@@ -487,10 +487,10 @@ function brunch()
 function breakfast()
 {
     target=$1
-    AOKP_DEVICES_ONLY="true"
+    AICP_DEVICES_ONLY="true"
     unset LUNCH_MENU_CHOICES
     add_lunch_combo full-eng
-    for f in `/bin/ls vendor/aokp/vendorsetup.sh 2> /dev/null`
+    for f in `/bin/ls vendor/aicp/vendorsetup.sh 2> /dev/null`
         do
             echo "including $f"
             . $f
@@ -506,8 +506,8 @@ function breakfast()
             # A buildtype was specified, assume a full device name
             lunch $target
         else
-            # This is probably just the AOKP model name
-            lunch aokp_$target-userdebug
+            # This is probably just the AICP model name
+            lunch aicp_$target-userdebug
         fi
     fi
     return $?
@@ -1358,7 +1358,7 @@ function mka() {
 function mbot() {
     unset LUNCH_MENU_CHOICES
     croot
-    ./vendor/aokp/bot/deploy.sh
+    ./vendor/aicp/bot/deploy.sh
 }
 
 function mkapush() {
@@ -1420,8 +1420,8 @@ function pstest() {
         echo "to use: pstest PATCH_ID/PATCH_SET"
         echo "example: pstest 5555/5"
     else
-        gerrit=gerrit.aokp.co
-        project=`git config --get remote.aokp.projectname`
+        gerrit=gerrit.zips.net
+        project=`git config --get remote.aicp.projectname`
         patch="$1"
         submission=`echo $patch | cut -f1 -d "/" | tail -c 3`
         git fetch http://$gerrit/$project refs/changes/$submission/$patch && git cherry-pick FETCH_HEAD
@@ -1431,7 +1431,7 @@ function pstest() {
 function pspush_error() {
         echo "Requires ~/.ssh/config setup with the the following info:"
         echo "      Host gerrit"
-        echo "        HostName gerrit.aokp.co"
+        echo "        HostName gerrit.zips.net"
         echo "        User <your username>"
         echo "        Port 29418"
 }
@@ -1443,10 +1443,10 @@ function pspush() {
         echo "where STATUS: for=regular; drafts=draft; heads=pushed to github"
         echo "example: pspush for"
     else
-        checkSshConfig=` grep -rH "gerrit.aokp.co" ~/.ssh/config `
+        checkSshConfig=` grep -rH "gerrit.zips.net" ~/.ssh/config `
         if [ "$checkSshConfig" != "" ]; then
-            gerrit=gerrit.aokp.co
-            project=` git config --get remote.aokp.projectname`
+            gerrit=gerrit.zips.net
+            project=` git config --get remote.aicp.projectname`
             status="$1"
             git push gerrit:/$project HEAD:refs/$status/jb-mr2
         else
@@ -1461,7 +1461,7 @@ function taco() {
         breakfast $sauce
         if [ $? -eq 0 ]; then
             croot
-            ./vendor/aokp/bot/build_device.sh aokp_$sauce-userdebug $sauce
+            ./vendor/aicp/bot/build_device.sh aicp_$sauce-userdebug $sauce
         else
             echo "No such item in brunch menu. Try 'breakfast'"
         fi
