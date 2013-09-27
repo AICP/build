@@ -465,16 +465,17 @@ def WriteFullOTAPackage(input_zip, output_zip):
   if OPTIONS.wipe_user_data:
     script.FormatPartition("/data")
 
-  script.Print("******************************************");
-  script.Print("*    ______  _____   __  __   _____      *");
-  script.Print("*   /\\  _  \\/\\  __`\\/\\ \\/\\ \\ /\\  _ `\\    *");
-  script.Print("*   \\ \\ \\L\\ \\ \\ \\/\\ \\ \\ \\/'/'\\ \\ \\L\\ \\   *");
-  script.Print("*    \\ \\  __ \\ \\ \\ \\ \\ \\ , <  \\ \\ ,__/   *");
-  script.Print("*     \\ \\ \\/\\ \\ \\ \\_\\ \\ \\ \\\\\\`\\ \\ \\ \\/    *");
-  script.Print("*      \\ \\_\\ \\_\\ \\_____\\ \\_\\ \\_\\\\\\ \\_\\    *");
-  script.Print("*       \\/_/\\/_/\\/_____/\\/_/\\/_/ \\/_/    *");
-  script.Print("*                                        *");
-  script.Print("******************************************");
+  script.Print("***********************************************");
+  script.Print("*      ___       ___       ___       ___      *") 
+  script.Print("*     /\  \     /\  \     /\  \     /\  \     *") 
+  script.Print("*    /::\  \   _\:\  \   /::\  \   /::\  \    *")
+  script.Print("*   /::\:\__\ /\/::\__\ /:/\:\__\ /::\:\__\   *")
+  script.Print("*   \/\::/  / \::/\/__/ \:\ \/__/ \/\::/  /   *")
+  script.Print("*     /:/  /   \:\__\    \:\__\      \/__/    *") 
+  script.Print("*     \/__/     \/__/     \/__/               *") 
+  script.Print("*                                             *");
+  script.Print("***********************************************");
+
 
   aicpv = GetBuildProp("ro.aicp.version", OPTIONS.info_dict)
   if os.getenv("AOKP_BUILD") is not None:
@@ -485,15 +486,15 @@ def WriteFullOTAPackage(input_zip, output_zip):
     script.Print("*   Version: %s"%(build));
   else:
     build = GetBuildProp("ro.build.date", OPTIONS.info_dict)
-    script.Print("******************************************");
-    script.Print("************ UNOFFICIAL BUILD ************");
-    script.Print("******************************************");
-    script.Print("*   Compiled: %s"%(build));
+    script.Print("***********************************************");
+    script.Print("**************    AICP   BUILD   **************");
+    script.Print("***********************************************"); 
+    script.Print("*       Compiled: %s"%(build));
 
   device = GetBuildProp("ro.product.device", OPTIONS.info_dict)
   model = GetBuildProp("ro.product.model", OPTIONS.info_dict)
-  script.Print("*   Device: %s (%s)"%(model, device));
-  script.Print("******************************************");
+  script.Print("*       Device: %s (%s)"%(model, device));
+  script.Print("***********************************************"); 
 
   if "selinux_fc" in OPTIONS.info_dict:
     WritePolicyConfig(OPTIONS.info_dict["selinux_fc"], output_zip)
