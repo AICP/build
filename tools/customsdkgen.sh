@@ -2,7 +2,7 @@
 
 SDK_VER=19
 CUSTOM_VER=119
-CUSTOM_NAME=aokp
+CUSTOM_NAME=aicp
 
 if [ -z "$OUT" ]; then
     echo "Please lunch a product before using this command"
@@ -59,7 +59,7 @@ cp -rf ${ANDROID_HOME}/platforms/android-${SDK_VER} ${ANDROID_HOME}/platforms/an
 rm -f ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTOM_NAME}/android.jar
 cp -f ${OUTDIR}/android.jar ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTOM_NAME}/android.jar
 sed -i 's/^ro\.build\.version\.sdk=.*/ro.build.version.sdk=119/g' ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTOM_NAME}/build.prop
-sed -i 's/^ro\.build\.version\.release=.*/ro.build.version.release=4.4-aokp/g' ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTOM_NAME}/build.prop
+sed -i 's/^ro\.build\.version\.release=.*/ro.build.version.release=4.4-aicp/g' ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTOM_NAME}/build.prop
 sed -i 's/AndroidVersion.ApiLevel=19/AndroidVersion.ApiLevel=119/' ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTOM_NAME}/source.properties
 sed -i 's/Pkg.Desc=/Pkg.Desc=AOKP /' ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTOM_NAME}/source.properties
 
