@@ -1423,7 +1423,7 @@ ifneq ($(TARGET_CUSTOM_RELEASETOOL),)
 	@echo "Running releasetool"
 	$(hide) OTAPACKAGE=$(INTERNAL_OTA_PACKAGE_TARGET) $(TARGET_CUSTOM_RELEASETOOL)
 else
-	$(hide) ./vendor/aicp/tools/squisher
+	$(hide) ./vendor/aokp/tools/squisher
 endif
 
 # -----------------------------------------------------------------
