@@ -61,5 +61,5 @@ cp -f ${OUTDIR}/android.jar ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTO
 sed -i 's/^ro\.build\.version\.sdk=.*/ro.build.version.sdk=119/g' ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTOM_NAME}/build.prop
 sed -i 's/^ro\.build\.version\.release=.*/ro.build.version.release=4.4-aicp/g' ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTOM_NAME}/build.prop
 sed -i 's/AndroidVersion.ApiLevel=19/AndroidVersion.ApiLevel=119/' ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTOM_NAME}/source.properties
-sed -i 's/Pkg.Desc=/Pkg.Desc=AOKP /' ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTOM_NAME}/source.properties
+sed -i 's/Pkg.Desc=/Pkg.Desc=AICP /' ${ANDROID_HOME}/platforms/android-${SDK_VER}-${CUSTOM_NAME}/source.properties
 

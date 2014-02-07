@@ -16,8 +16,8 @@ Invoke ". build/envsetup.sh" from your shell to add the following functions to y
 - mka:      Builds using SCHED_BATCH on all processors
 - mbot:     Builds for all devices using the psuedo buildbot
 - mkapush:  Same as mka with the addition of adb pushing to the device.
-- pstest:   cherry pick a patch from the AOKP gerrit instance.
-- pspush:   push commit to AOKP gerrit instance.
+- pstest:   cherry pick a patch from the AICP gerrit instance.
+- pspush:   push commit to AICP gerrit instance.
 - taco:     Builds for a single device using the pseudo buildbot
 - reposync: Parallel repo sync using ionice and SCHED_BATCH
 - addaosp:  Add git remote for the AOSP repository
@@ -67,11 +67,11 @@ function check_product()
     fi
 
     if (echo -n $1 | grep -q -e "^aicp_") ; then
-       AOKP_PRODUCT=$(echo -n $1 | sed -e 's/^aicp_//g')
+       AICP_PRODUCT=$(echo -n $1 | sed -e 's/^aicp_//g')
     else
-       AOKP_PRODUCT=
+       AICP_PRODUCT=
     fi
-      export AOKP_PRODUCT
+      export AICP_PRODUCT
 
     CALLED_FROM_SETUP=true BUILD_SYSTEM=build/core \
         TARGET_PRODUCT=$1 \
@@ -453,7 +453,7 @@ function print_lunch_menu()
     echo
     echo "You're building on" $uname
     echo
-    if [ "z${AOKP_DEVICES_ONLY}" != "z" ]; then
+    if [ "z${AICP_DEVICES_ONLY}" != "z" ]; then
        echo "Breakfast menu... pick a combo:"
     else
        echo "Lunch menu... pick a combo:"
@@ -467,7 +467,7 @@ function print_lunch_menu()
         i=$(($i+1))
     done
 
-    if [ "z${AOKP_DEVICES_ONLY}" != "z" ]; then
+    if [ "z${AICP_DEVICES_ONLY}" != "z" ]; then
        echo "... and don't forget the bacon!"
     fi
 
@@ -489,7 +489,7 @@ function brunch()
 function breakfast()
 {
     target=$1
-    AOKP_DEVICES_ONLY="true"
+    AICP_DEVICES_ONLY="true"
     unset LUNCH_MENU_CHOICES
     add_lunch_combo full-eng
     for f in `/bin/ls vendor/aicp/vendorsetup.sh 2> /dev/null`
@@ -508,7 +508,7 @@ function breakfast()
             # A buildtype was specified, assume a full device name
             lunch $target
         else
-            # This is probably just the AOKP model name
+            # This is probably just the AICP model name
             lunch aicp_$target-userdebug
         fi
     fi
@@ -1593,14 +1593,14 @@ function sdkgen() {
 function reposync() {
     case `uname -s` in
         Darwin)
-            if [[ $AOKP_REPOSYNC_QUIET = true ]]; then
+            if [[ $AICP_REPOSYNC_QUIET = true ]]; then
                 repo sync -j 4 "$@" | awk '!/Fetching\ project\ /'
             else
                 repo sync -j 4 "$@"
             fi
             ;;
         *)
-            if [[ $AOKP_REPOSYNC_QUIET = true ]]; then
+            if [[ $AICP_REPOSYNC_QUIET = true ]]; then
                 schedtool -B -n 1 -e ionice -n 1 repo sync -j 4 "$@" | awk '!/Fetching\ project\ /'
             else
                 schedtool -B -n 1 -e ionice -n 1 repo sync -j 4 "$@"

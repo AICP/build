@@ -487,10 +487,10 @@ def WriteFullOTAPackage(input_zip, output_zip):
 
 
   aicpv = GetBuildProp("ro.aicp.version", OPTIONS.info_dict)
-  if os.getenv("AOKP_BUILD") is not None:
+  if os.getenv("AICP_BUILD") is not None:
     build = ' '.join(aicpv.split('_')[3].split('-')).title()
     script.Print("*   Version: %s"%(build));
-  elif os.getenv("AOKP_NIGHTLY") is not None:
+  elif os.getenv("AICP_NIGHTLY") is not None:
     build = ' '.join(aicpv.split('_')[2:]).title()
     script.Print("*   Version: %s"%(build));
   else:
