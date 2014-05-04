@@ -879,6 +879,9 @@ define build-systemimage-target
 endef
 
 $(BUILT_SYSTEMIMAGE): $(FULL_SYSTEMIMAGE_DEPS) $(INSTALLED_FILES_FILE)
+ifneq ($(PRODUCT_REMOVE_FILES),)
+	rm -rf $(addprefix $(PRODUCT_OUT)/,$(PRODUCT_REMOVE_FILES))
+endif
 	$(call build-systemimage-target,$@)
 
 INSTALLED_SYSTEMIMAGE := $(PRODUCT_OUT)/system.img
