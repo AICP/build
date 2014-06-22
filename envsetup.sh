@@ -533,6 +533,7 @@ function mka() {
 function breakfast()
 {
     target=$1
+    local variant=$2
     CM_DEVICES_ONLY="true"
     unset LUNCH_MENU_CHOICES
     add_lunch_combo full-eng
@@ -553,7 +554,10 @@ echo "z$target" | grep -q "-"
             lunch $target
         else
             # This is probably just the AICP model name
-            lunch aicp_$target-userdebug
+            if [ -z "$variant" ]; then
+                variant="userdebug"
+            fi
+            lunch aicp_$target-$variant
         fi
 fi
 return $?
