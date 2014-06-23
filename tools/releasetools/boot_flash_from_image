@@ -20,7 +20,7 @@ from os import getcwd, environ, remove, path, listdir, makedirs, walk
 from re import search, sub
 from shutil import rmtree, copy2, copytree
 from subprocess import call
-from zipfile import ZipFile
+from zipfile import ZipFile, ZipInfo
 from hashlib import md5
 
 # declare all the variables needed
@@ -47,7 +47,7 @@ if path.exists(defconfig):
     prekernel_version = search('CONFIG_LOCALVERSION=.*\n', open(defconfig, 'r').read())
     if prekernel_version:
         kernel_version = sub(r'(CONFIG_LOCALVERSION=)|\"|\n|-', "", prekernel_version.group(0))
-        kernel_version = "%s-%s-kernel" % (kernel_version, device)
+        kernel_version = "%s-%s-kernel" % (kernel_version or "Slim", device)
     else:
         kernel_version = "Slim-%s-kernel" % device
 else:
@@ -111,14 +111,15 @@ copy2("%s/boot.img" % out, "%s/boot.img" % zip_dir)
 if path.exists("%s/system/lib/modules" % out):
     if not path.exists("%s/system/lib" % zip_dir):
         makedirs("%s/system/lib" % zip_dir)
-    copytree("%s/system/lib/modules" % out, "%s/system/lib/modules" % zip_dir)
+    copytree("%s/system/lib/modules" % out, "%s/system/lib/modules" % zip_dir, symlinks=True)
 
 # strip kernel modules
 kernel_modules = "%s/system/lib/modules" % zip_dir
 for root, dirs, files in walk(kernel_modules):
     for file in files:
         fn = path.join(root, file)
-        call(['arm-eabi-strip', '--strip-unneeded', fn])
+        if not path.islink(fn):
+            call(['arm-eabi-strip', '--strip-unneeded', fn])
 
 # zip package
 with ZipFile("%s.zip" % zip_dir, "w") as zipper:
@@ -126,7 +127,13 @@ with ZipFile("%s.zip" % zip_dir, "w") as zipper:
     for root, dirs, files in walk(zip_dir):
         for file in files:
             fn = path.join(root, file)
-            zipper.write(fn, fn[rootlen:])
+            if path.islink(fn):
+                sym = ZipInfo(file)
+                sym.create_system = 3
+                sym.external_attr = 2716663808L
+                zipper.writestr(sym, fn)
+            else:
+                zipper.write(fn, fn[rootlen:])
 
 # sign it
 testkey_x = "%s/build/target/product/security/testkey.x509.pem" % source
