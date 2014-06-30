@@ -128,7 +128,7 @@ with ZipFile("%s.zip" % zip_dir, "w") as zipper:
         for file in files:
             fn = path.join(root, file)
             if path.islink(fn):
-                sym = ZipInfo(file)
+                sym = ZipInfo(fn[rootlen:])
                 sym.create_system = 3
                 sym.external_attr = 2716663808L
                 zipper.writestr(sym, fn)
