@@ -140,6 +140,9 @@ class EdifyGenerator(object):
     cmd = ("assert(" +
            " ||\0".join(['getprop("ro.baseband") == "%s"' % (b,)
                          for b in basebands]) +
+           ' || abort("This package supports baseband(s): ' +
+           ", ".join(["%s" % (b,) for b in basebands]) +
+           '; this device has baseband " + getprop("ro.baseband") + ".");' +
            ");")
     self.script.append(self._WordWrap(cmd))
 
