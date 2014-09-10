@@ -158,6 +158,7 @@ include $(BUILD_SYSTEM)/envsetup.mk
 # be device and hardware independent.
 $(call project-set-path-variant,recovery,RECOVERY_VARIANT,bootable/recovery)
 
+-include vendor/extra/BoardConfigExtra.mk
 # The build system exposes several variables for where to find the kernel
 # headers:
 #   TARGET_DEVICE_KERNEL_HEADERS is automatically created for the current
