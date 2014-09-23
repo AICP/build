@@ -539,15 +539,15 @@ else if get_stage("%(bcb_dev)s", "stage") == "3/3" then
     script.Print("*   Version: %s"%(build));
   else:
     build = GetBuildProp("ro.build.date", OPTIONS.info_dict)
-    script.Print("***********************************************");
-    script.Print("**************    AICP   BUILD   **************");
-    script.Print("***********************************************"); 
-    script.Print("*       Compiled: %s"%(build));
+    script.Print("*********************************************");
+    script.Print("*************    AICP   BUILD   *************");
+    script.Print("*********************************************"); 
+    script.Print("*   Compiled: %s"%(build));
 
   device = GetBuildProp("ro.product.device", OPTIONS.info_dict)
   model = GetBuildProp("ro.product.model", OPTIONS.info_dict)
-  script.Print("*       Device: %s (%s)"%(model, device));
-  script.Print("***********************************************"); 
+  script.Print("*   Device: %s (%s)"%(model, device));
+  script.Print("*********************************************"); 
 
   if "selinux_fc" in OPTIONS.info_dict:
     WritePolicyConfig(OPTIONS.info_dict["selinux_fc"], output_zip)
