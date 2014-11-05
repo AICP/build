@@ -57,12 +57,12 @@ $(error Error: Product "$(TARGET_PRODUCT)" cannot have overlay in vendor tree: \
     $(filter vendor/%, $(PRODUCT_PACKAGE_OVERLAYS) $(DEVICE_PACKAGE_OVERLAYS)))
 endif
 _vendor_check_copy_files := $(filter vendor/%, $(PRODUCT_COPY_FILES))
-ifneq (,$(_vendor_check_copy_files))
-$(foreach c, $(_vendor_check_copy_files), \
-  $(if $(filter $(_vendor_owner_whitelist), $(call word-colon,3,$(c))),,\
-    $(error Error: vendor PRODUCT_COPY_FILES file "$(c)" has unknown owner))\
-  $(eval _vendor_module_owner_info += $(call word-colon,2,$(c)):$(call word-colon,3,$(c))))
-endif
+#ifneq (,$(_vendor_check_copy_files))
+#$(foreach c, $(_vendor_check_copy_files), \
+#  $(if $(filter $(_vendor_owner_whitelist), $(call word-colon,3,$(c))),,\
+#    $(error Error: vendor PRODUCT_COPY_FILES file "$(c)" has unknown owner))\
+#  $(eval _vendor_module_owner_info += $(call word-colon,2,$(c)):$(call word-colon,3,$(c))))
+#endif
 _vendor_check_copy_files :=
 
 $(foreach m, $(_vendor_check_modules), \
