@@ -79,6 +79,10 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
       Specifies the number of worker-threads that will be used when
       generating patches for incremental updates (defaults to 3).
 
+  --backup <boolean>
+      Enable or disable the execution of backuptool.sh.
+      Disabled by default.
+
 """
 
 import sys
@@ -125,6 +129,7 @@ OPTIONS.block_based = False
 OPTIONS.updater_binary = None
 OPTIONS.oem_source = None
 OPTIONS.fallback_to_full = True
+OPTIONS.backuptool = False
 
 def MostPopularKey(d, default):
   """Given a dict, return the key corresponding to the largest
@@ -138,7 +143,7 @@ def MostPopularKey(d, default):
 def IsSymlink(info):
   """Return true if the zipfile.ZipInfo object passed in represents a
   symlink."""
-  return (info.external_attr >> 16) == 0120777
+  return (info.external_attr >> 16) & 0770000 == 0120000
 
 def IsRegular(info):
   """Return true if the zipfile.ZipInfo object passed in represents a
@@ -335,6 +340,29 @@ class Item:
     recurse(self, (-1, -1, -1, -1, None, None))
 
 
+def CopyDataFiles(input_zip, output_zip=None, substitute=None):
+  """Copies files underneathe data/ in the input zip to the output
+  zip. Populates the Item class with their metadata, and returns a
+  skipped (but the other side effects still happen). substitute is an
+  optional dict of {output filename: contents} to be output instead of
+  certain input files.
+  """
+
+  for info in input_zip.infolist():
+    if info.filename.startswith("DATA/"):
+      basefilename = info.filename[5:]
+      info2 = copy.copy(info)
+      fn = info2.filename = "data/" + basefilename
+      if output_zip is not None:
+        data = input_zip.read(info.filename)
+        output_zip.writestr(info2, data)
+        if fn.endswith("/"):
+          Item.Get(fn[:-1], dir=True)
+        else:
+          Item.Get(fn, dir=False)
+  return
+
+
 def CopyPartitionFiles(itemset, input_zip, output_zip=None, substitute=None):
   """Copies files for the partition in the input zip to the output
   zip.  Populates the Item class with their metadata, and returns a
@@ -495,12 +523,6 @@ def WriteFullOTAPackage(input_zip, output_zip):
   has_recovery_patch = HasRecoveryPatch(input_zip)
   block_based = OPTIONS.block_based and has_recovery_patch
 
-  if not OPTIONS.omit_prereq:
-    ts = GetBuildProp("ro.build.date.utc", OPTIONS.info_dict)
-    ts_text = GetBuildProp("ro.build.date", OPTIONS.info_dict)
-    script.AssertOlderBuild(ts, ts_text)
-
-  AppendAssertions(script, OPTIONS.info_dict, oem_dict)
   device_specific.FullOTA_Assertions()
 
   # Two-step package strategy (in chronological order, which is *not*
@@ -544,7 +566,19 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
   device_specific.FullOTA_InstallBegin()
 
+  if false and OPTIONS.backuptool:  # disabled for now
+    script.Mount("/system")
+    script.RunBackup("backup")
+    script.Unmount("/system")
+
   system_progress = 0.75
+
+  script.Print("")
+  script.Print("")
+  script.Print("Slim Roms")
+  script.Print("")
+  script.Print(" www.slimroms.net  ")
+  script.Print("")
 
   if OPTIONS.wipe_user_data:
     system_progress -= 0.1
@@ -568,12 +602,17 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
     system_diff = common.BlockDifference("system", system_tgt, src=None)
     system_diff.WriteScript(script, output_zip)
   else:
+    script.Print("")
+    script.Print("Format and Mount System, Mount Data...")
     script.FormatPartition("/system")
     script.Mount("/system", recovery_mount_options)
+    script.Mount("/data")
     if not has_recovery_patch:
       script.UnpackPackageDir("recovery", "/system")
     script.UnpackPackageDir("system", "/system")
+    script.UnpackPackageDir("data", "/data")
 
+    script.Print("Symlinks and permissions...")
     symlinks = CopyPartitionFiles(system_items, input_zip, output_zip)
     script.MakeSymlinks(symlinks)
 
@@ -585,8 +624,8 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
       common.ZipWriteStr(output_zip, "recovery/" + fn, data)
       system_items.Get("system/" + fn, dir=False)
 
-    common.MakeRecoveryPatch(OPTIONS.input_tmp, output_sink,
-                             recovery_img, boot_img)
+    #common.MakeRecoveryPatch(OPTIONS.input_tmp, output_sink,
+    #                         recovery_img, boot_img)
 
     system_items.GetMetadata(input_zip)
     system_items.Get("system").SetPermissions(script)
@@ -614,7 +653,12 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   common.CheckSize(boot_img.data, "boot.img", OPTIONS.info_dict)
   common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
 
+  if false and OPTIONS.backuptool:
+    script.ShowProgress(0.2, 10)
+    script.RunBackup("restore")
+
   script.ShowProgress(0.05, 5)
+  script.Print("Flashing Boot Image...")
   script.WriteRawImage("/boot", "boot.img")
 
   script.ShowProgress(0.2, 10)
@@ -1086,12 +1130,12 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   target_fp = CalculateFingerprint(oem_props, oem_dict, OPTIONS.target_info_dict)
   source_fp = CalculateFingerprint(oem_props, oem_dict, OPTIONS.source_info_dict)
 
-  if oem_props is None:
-    script.AssertSomeFingerprint(source_fp, target_fp)
-  else:
-    script.AssertSomeThumbprint(
-        GetBuildProp("ro.build.thumbprint", OPTIONS.target_info_dict),
-        GetBuildProp("ro.build.thumbprint", OPTIONS.source_info_dict))
+  #if oem_props is None:
+  #  script.AssertSomeFingerprint(source_fp, target_fp)
+  #else:
+  #  script.AssertSomeThumbprint(
+  #      GetBuildProp("ro.build.thumbprint", OPTIONS.target_info_dict),
+  #      GetBuildProp("ro.build.thumbprint", OPTIONS.source_info_dict))
 
   metadata["pre-build"] = source_fp
   metadata["post-build"] = target_fp
@@ -1104,12 +1148,13 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   updating_boot = (not OPTIONS.two_step and
                    (source_boot.data != target_boot.data))
 
-  source_recovery = common.GetBootableImage(
-      "/tmp/recovery.img", "recovery.img", OPTIONS.source_tmp, "RECOVERY",
-      OPTIONS.source_info_dict)
-  target_recovery = common.GetBootableImage(
-      "/tmp/recovery.img", "recovery.img", OPTIONS.target_tmp, "RECOVERY")
-  updating_recovery = (source_recovery.data != target_recovery.data)
+  #source_recovery = common.GetBootableImage(
+  #    "/tmp/recovery.img", "recovery.img", OPTIONS.source_tmp, "RECOVERY",
+  #    OPTIONS.source_info_dict)
+  #target_recovery = common.GetBootableImage(
+  #    "/tmp/recovery.img", "recovery.img", OPTIONS.target_tmp, "RECOVERY")
+  #updating_recovery = (source_recovery.data != target_recovery.data)
+  updating_recovery = false
 
   # Here's how we divide up the progress bar:
   #  0.1 for verifying the start state (PatchCheck calls)
@@ -1117,7 +1162,7 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   #  0.1 for unpacking verbatim files, symlinking, and doing the
   #      device-specific commands.
 
-  AppendAssertions(script, OPTIONS.target_info_dict, oem_dict)
+  #AppendAssertions(script, OPTIONS.target_info_dict, oem_dict)
   device_specific.IncrementalOTA_Assertions()
 
   # Two-step incremental package strategy (in chronological order,
@@ -1419,6 +1464,8 @@ def main(argv):
       OPTIONS.updater_binary = a
     elif o in ("--no_fallback_to_full",):
       OPTIONS.fallback_to_full = False
+    elif o in ("--backup"):
+      OPTIONS.backuptool = bool(a.lower() == 'true')
     else:
       return False
     return True
@@ -1440,6 +1487,7 @@ def main(argv):
                                               "oem_settings=",
                                               "verify",
                                               "no_fallback_to_full",
+                                              "backup=",
                                               ],
                              extra_option_handler=option_handler)
 

@@ -481,6 +481,7 @@ endif
 cleantarget := clean-$(my_register_name)
 $(cleantarget) : PRIVATE_MODULE := $(my_register_name)
 $(cleantarget) : PRIVATE_CLEAN_FILES := \
+    $(PRIVATE_CLEAN_FILES) \
     $(LOCAL_BUILT_MODULE) \
     $(LOCAL_INSTALLED_MODULE) \
     $(intermediates)

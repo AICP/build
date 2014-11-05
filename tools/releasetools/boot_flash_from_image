@@ -1,0 +1,83 @@
+#!/bin/bash
+
+FSTAB=$1
+OUT=$2
+DEVICE=$3
+DEFCONFIG=$4
+SOURCE=$PWD
+UPDATER=$OUT/obj/EXECUTABLES/updater_intermediates/updater
+
+LINENUMBER=`sed -n "/\/boot/ =" $FSTAB | head -1`
+LINE=`sed -n "${LINENUMBER}p" $FSTAB`
+stringarray=(${LINE})
+bootpartition=${stringarray[2]}
+partition_type=${stringarray[1]}
+KERNELVERSION=`sed -n -e "/CONFIG_LOCALVERSION/s/^.*=//p" $4`
+SYSTEMNUMBER=`sed -n '/\/system/ =' $FSTAB`
+SYSTEMLINE=`sed -n "${SYSTEMNUMBER}p" $FSTAB`
+systemarray=(${SYSTEMLINE})
+systemtype=${systemarray[1]}
+systemmount=${systemarray[2]}
+
+rm -r $OUT/*kernel*
+
+if [ ! -f "$UPDATER" ]
+then
+    make updater &>> /dev/null
+fi
+if [ ! -f "${ANDROID_HOST_OUT}/framework/signapk.jar" ]
+then
+    make signapk &>> /dev/null
+fi
+
+if [ "$KERNELVERSION" != "" ]
+then
+    VERSION=`echo $KERNELVERSION | cut -d '-' -f2 | cut -d '"' -f1`
+    KERNEL_VERSION=$VERSION-kernel
+else
+    KERNEL_VERSION=Slim-$DEVICE-kernel
+fi
+#rm $OUT/$KERNEL_VERSION
+ZIP_DIR=$OUT/$KERNEL_VERSION
+mkdir $ZIP_DIR
+
+# Make the updater-script
+UPDATER_DIR=$ZIP_DIR/META-INF/com/google/android
+mkdir -p $UPDATER_DIR
+cp $OUT/obj/EXECUTABLES/updater_intermediates/updater $UPDATER_DIR/update-binary
+echo 'ui_print("Installing Slim Kernel...");' > $UPDATER_DIR/updater-script
+if [ "$partition_type" = "mtd" ]
+then
+    echo 'package_extract_file("boot.img", "/tmp/boot.img");' >> $UPDATER_DIR/updater-script
+    echo "write_raw_image("'"/tmp/boot.img"'", "'"'$bootpartition'"'");" >> $UPDATER_DIR/updater-script
+elif [ "$partition_type" = "emmc" ]
+then
+    echo "package_extract_file("'"boot.img"'", "'"'$bootpartition'"'");" >> $UPDATER_DIR/updater-script
+elif [ "$partition_type" = "bml" ]
+then
+    echo 'assert(package_extract_file("boot.img", "/tmp/boot.img")' >> $UPDATER_DIR/updater-script
+    echo "       write_raw_image("'"/tmp/boot.img"'", "'"'$bootpartition'"'")" >> $UPDATER_DIR/updater-script
+    echo '       delete("/tmp/boot.img"));' >> $UPDATER_DIR/updater-script
+fi
+echo "mount("'"'$systemtype'"'", "'"EMMC"'", "'"'$systemmount'"'", "'"system"'");" >> $UPDATER_DIR/updater-script
+echo 'package_extract_dir("system", "/system");' >> $UPDATER_DIR/updater-script
+echo 'unmount("/system");' >> $UPDATER_DIR/updater-script
+echo 'ui_print(" ");' >> $UPDATER_DIR/updater-script
+echo 'ui_print("Done!");' >> $UPDATER_DIR/updater-script
+
+# Copy the kernel and libs
+cp $OUT/boot.img $ZIP_DIR/boot.img
+mkdir -p $ZIP_DIR/system/lib/modules
+cp -r $OUT/system/lib/modules/* $ZIP_DIR/system/lib/modules
+
+#zip package
+cd $ZIP_DIR
+zip -qr ../$KERNEL_VERSION.zip ./
+cd $OUT
+rm -rf $ZIP_DIR
+
+#sign package
+java -jar ${ANDROID_HOST_OUT}/framework/signapk.jar ${SOURCE}/build/target/product/security/testkey.x509.pem ${SOURCE}/build/target/product/security/testkey.pk8 $KERNEL_VERSION.zip $KERNEL_VERSION-signed.zip
+rm ./$KERNEL_VERSION.zip
+md5sum $KERNEL_VERSION-signed.zip
+cd $SOURCE
