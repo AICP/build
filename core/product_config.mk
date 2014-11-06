@@ -184,8 +184,8 @@ ifneq ($(strip $(TARGET_BUILD_APPS)),)
 all_product_configs := $(call get-product-makefiles,\
     $(SRC_TARGET_DIR)/product/AndroidProducts.mk)
 else
-  ifneq ($(SLIM_BUILD),)
-    all_product_configs := $(shell ls device/*/$(SLIM_BUILD)/slim.mk)
+  ifneq ($(AICP_PRODUCT),)
+    all_product_configs := $(shell ls vendor/aicp/products/${AICP_PRODUCT}.mk)
   else
     # Read in all of the product definitions specified by the AndroidProducts.mk
     # files in the tree.
@@ -193,7 +193,7 @@ else
   endif
 endif
 
-ifeq ($(SLIM_BUILD),)
+ifeq ($(AICP_PRODUCT),)
 # Find the product config makefile for the current product.
 # all_product_configs consists items like:
 # <product_name>:<path_to_the_product_makefile>

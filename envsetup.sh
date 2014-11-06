@@ -64,12 +64,12 @@ function check_product()
         return
     fi
 
-    if (echo -n $1 | grep -q -e "^slim_") ; then
-       SLIM_BUILD=$(echo -n $1 | sed -e 's/^slim_//g')
+    if (echo -n $1 | grep -q -e "^aicp_") ; then
+       AICP_PRODUCT=$(echo -n $1 | sed -e 's/^aicp_//g')
     else
-       SLIM_BUILD=
+       AICP_PRODUCT=
     fi
-    export SLIM_BUILD
+    export AICP_PRODUCT
 
         TARGET_PRODUCT=$1 \
         TARGET_BUILD_VARIANT= \
@@ -517,7 +517,7 @@ function breakfast()
     CM_DEVICES_ONLY="true"
     unset LUNCH_MENU_CHOICES
     add_lunch_combo full-eng
-    for f in `/bin/ls vendor/slim/vendorsetup.sh 2> /dev/null`
+    for f in `/bin/ls vendor/aicp/vendorsetup.sh 2> /dev/null`
         do
 echo "including $f"
             . $f
@@ -533,8 +533,8 @@ echo "z$target" | grep -q "-"
             # A buildtype was specified, assume a full device name
             lunch $target
         else
-            # This is probably just the SLIM model name
-            lunch slim_$target-userdebug
+            # This is probably just the AICP model name
+            lunch aicp_$target-userdebug
         fi
 fi
 return $?
@@ -581,7 +581,7 @@ function lunch()
     check_product $product
     if [ $? -ne 0 ]
     then
-        # if we can't find a product, try to grab it off the SlimRoms github
+        # if we can't find a product, try to grab it off the AICP github
         T=$(gettop)
         pushd $T > /dev/null
         build/tools/roomservice.py $product
