@@ -1605,7 +1605,7 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(DISTTOOLS)
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
 
 bacon: otapackage
-ifneq ($(TARGET_CUSTOM_RELEASETOOL),)
+
 	$(hide) find $(PRODUCT_OUT) -maxdepth 1 -xdev -samefile $(INTERNAL_OTA_PACKAGE_TARGET) | grep -v ota-eng | xargs rm -f
 	$(hide) rm -f $(PRODUCT_OUT)/*.md5sum
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
@@ -1629,7 +1629,6 @@ ifneq ($(TARGET_CUSTOM_RELEASETOOL),)
 	@echo -e ${CL_CYN}"size:"${CL_MAG}" `ls -lah $(AICP_TARGET_PACKAGE) | cut -d ' ' -f 5`"${CL_RST}
 	@echo -e ${CL_CYN}"========================================"${CL_RST}
 	@echo -e ""
-endif
 
 bootzip: bootimage
 	$(BOOT_ZIP_FROM_IMAGE_SCRIPT) \
