@@ -1421,9 +1421,9 @@ $(BUILT_TARGET_FILES_PACKAGE): \
 ifdef INSTALLED_KERNEL_TARGET
 	$(hide) $(ACP) $(INSTALLED_KERNEL_TARGET) $(zip_root)/RECOVERY/kernel
 endif
-ifdef INSTALLED_RAMDISK_TARGET
-	$(hide) $(ACP) $(INSTALLED_RAMDISK_TARGET) $(zip_root)/BOOT/ramdisk.img
-endif
+#ifdef INSTALLED_RAMDISK_TARGET
+#	$(hide) $(ACP) $(INSTALLED_RAMDISK_TARGET) $(zip_root)/BOOT/ramdisk.img
+#endif
 ifdef INSTALLED_BOOTLOADER_MODULE
 	$(hide) $(ACP) \
 		$(INSTALLED_BOOTLOADER_MODULE) $(zip_root)/BOOT/bootloader
@@ -1445,6 +1445,9 @@ endif
 	$(hide) mkdir -p $(zip_root)/BOOT
 	$(hide) $(call package_files-copy-root, \
 		$(TARGET_ROOT_OUT),$(zip_root)/BOOT/RAMDISK)
+#ifdef INSTALLED_RAMDISK_TARGET
+#       $(hide) $(ACP) $(INSTALLED_RAMDISK_TARGET) $(zip_root)/BOOT/ramdisk.img
+#endif
 ifdef INSTALLED_KERNEL_TARGET
 	$(hide) $(ACP) $(INSTALLED_KERNEL_TARGET) $(zip_root)/BOOT/kernel
 endif
@@ -1570,7 +1573,7 @@ BOOT_ZIP_FROM_IMAGE_SCRIPT := ./build/tools/releasetools/boot_flash_from_image
 KERNEL_PATH := $(TARGET_KERNEL_SOURCE)/arch/arm/configs/$(TARGET_KERNEL_CONFIG)
 
 ifneq ($(AICP_PRODUCT),)
-    $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := true
+    $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false   # disabled for now
 else
     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
 endif

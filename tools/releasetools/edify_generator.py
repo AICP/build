@@ -293,14 +293,15 @@ class EdifyGenerator(object):
           args["map"] = mapfn
           self.script.append(
               'package_extract_file("%(fn)s", "%(device)s", "%(map)s");' % args)
+        else:
+          self.script.append(
+              'package_extract_file("%(fn)s", "%(device)s");' % args)
+
       elif partition_type == "BML":
         self.script.append(
             ('assert(package_extract_file("%(fn)s", "/tmp/%(device)s.img"),\n'
              '       write_raw_image("/tmp/%(device)s.img", "%(device)s"),\n'
              '       delete("/tmp/%(device)s.img"));') % args)
-        else:
-          self.script.append(
-              'package_extract_file("%(fn)s", "%(device)s");' % args)
       else:
         raise ValueError("don't know how to write \"%s\" partitions" % (p.fs_type,))
 
