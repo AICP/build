@@ -575,7 +575,7 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
   device_specific.FullOTA_InstallBegin()
 
-  if OPTIONS.backuptool:
+  if false and OPTIONS.backuptool:  # disabled for now
     script.Mount("/system")
     script.RunBackup("backup")
     script.Unmount("/system")
@@ -686,7 +686,7 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   common.CheckSize(boot_img.data, "boot.img", OPTIONS.info_dict)
   common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
 
-  if OPTIONS.backuptool:
+  if false and OPTIONS.backuptool:
     script.ShowProgress(0.2, 10)
     script.RunBackup("restore")
 
@@ -891,7 +891,7 @@ else if get_stage("%(bcb_dev)s") != "3/3" then
 
   device_specific.IncrementalOTA_VerifyBegin()
 
-  if not OPTIONS.override_prop:
+  if not OPTIONS.override_prop
     if oem_props is None:
       if not OPTIONS.override_prop:
         script.AssertSomeFingerprint(source_fp, target_fp)
