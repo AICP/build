@@ -1585,7 +1585,7 @@ BOOT_ZIP_FROM_IMAGE_SCRIPT := ./build/tools/releasetools/boot_flash_from_image
 KERNEL_PATH := $(TARGET_KERNEL_SOURCE)/arch/arm/configs/$(TARGET_KERNEL_CONFIG)
 
 ifneq ($(AICP_PRODUCT),)
-    $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false   # disabled for now
+    $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := true
 else
     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
 endif
