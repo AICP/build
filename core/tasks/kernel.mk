@@ -106,6 +106,10 @@ else
     endif
 endif
 
+ifeq ($(TARGET_KERNEL_CUSTOM_RAMDISK),true)
+    $(shell sed -i "s;CONFIG_INITRAMFS_SOURCE=\"\.\.;CONFIG_INITRAMFS_SOURCE=\"source/\.\.;" $(KERNEL_PATH))
+endif
+
 ifeq ($(FULL_KERNEL_BUILD),true)
 
 KERNEL_HEADERS_INSTALL := $(KERNEL_OUT)/usr
@@ -147,7 +151,15 @@ ifeq ($(TARGET_ARCH),arm)
         endif
       endif
     endif
-    ARM_CROSS_COMPILE:=CROSS_COMPILE="$(ccache) $(ARM_EABI_TOOLCHAIN)/arm-eabi-"
+    ifneq ($(TARGET_KERNEL_CUSTOM_TOOLCHAIN),)
+        ifeq ($(HOST_OS),darwin)
+            ARM_CROSS_COMPILE:=CROSS_COMPILE="$(ccache) $(ANDROID_BUILD_TOP)/prebuilt/darwin-x86/toolchain/$(TARGET_KERNEL_CUSTOM_TOOLCHAIN)"
+        else
+            ARM_CROSS_COMPILE:=CROSS_COMPILE="$(ccache) $(ANDROID_BUILD_TOP)/prebuilt/linux-x86/toolchain/$(TARGET_KERNEL_CUSTOM_TOOLCHAIN)"
+        endif
+    else
+        ARM_CROSS_COMPILE:=CROSS_COMPILE="$(ccache) $(ARM_EABI_TOOLCHAIN)/arm-eabi-"
+    endif
     ccache = 
 endif
 
