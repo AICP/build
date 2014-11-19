@@ -89,13 +89,7 @@ ifeq ($(strip $(BUILD_TINY_ANDROID)),true)
 include device/qcom/common/dtbtool/Android.mk
 endif
 
-ifeq ($(strip $(TARGET_CUSTOM_DTBTOOL)),)
-DTBTOOL_NAME := dtbTool
-else
-DTBTOOL_NAME := $(TARGET_CUSTOM_DTBTOOL)
-endif
-
-DTBTOOL := $(HOST_OUT_EXECUTABLES)/$(DTBTOOL_NAME)$(HOST_EXECUTABLE_SUFFIX)
+DTBTOOL := $(HOST_OUT_EXECUTABLES)/dtbTool$(HOST_EXECUTABLE_SUFFIX)
 
 INSTALLED_DTIMAGE_TARGET := $(PRODUCT_OUT)/dt.img
 
