@@ -423,7 +423,10 @@ def AppendAssertions(script, info_dict, oem_dict = None):
   oem_props = info_dict.get("oem_fingerprint_properties")
   if oem_props is None or len(oem_props) == 0:
     if OPTIONS.override_device == "auto":
-      device = GetBuildProp("ro.product.device", info_dict)
+      if OPTIONS.override_prop:
+        device = GetBuildProp("ro.build.product", info_dict)
+      else:
+        device = GetBuildProp("ro.product.device", info_dict)
     else:
       device = OPTIONS.override_device
     script.AssertDevice(device)
@@ -513,6 +516,7 @@ def WriteFullOTAPackage(input_zip, output_zip):
       raise common.ExternalError("OEM source required for this build")
     script.Mount("/oem", recovery_mount_options)
     oem_dict = common.LoadDictionaryFromLines(open(OPTIONS.oem_source).readlines())
+
   if OPTIONS.override_prop:
     metadata = {"post-timestamp": GetBuildProp("ro.build.date.utc",
                                                OPTIONS.info_dict),
@@ -523,7 +527,7 @@ def WriteFullOTAPackage(input_zip, output_zip):
                 "pre-device": GetOemProperty("ro.product.device", oem_props, oem_dict,
                                            OPTIONS.info_dict),
                 "post-timestamp": GetBuildProp("ro.build.date.utc",
-                                               OPTIONS.info_dict),
+                                             OPTIONS.info_dict),
                 }
 
   device_specific = common.DeviceSpecificParams(
@@ -1199,7 +1203,6 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   #      GetBuildProp("ro.build.thumbprint", OPTIONS.target_info_dict),
   #      GetBuildProp("ro.build.thumbprint", OPTIONS.source_info_dict))
 
-  if not OPTIONS.override_prop:
     metadata["pre-build"] = source_fp
     metadata["post-build"] = target_fp
 
