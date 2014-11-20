@@ -87,6 +87,10 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
       Override build.prop items with custom vendor init.
       Enabled when TARGET_UNIFIED_DEVICE is defined in BoardConfig
 
+  --override_prop <boolean>
+      Override build.prop items with custom vendor init.
+      Enabled when TARGET_UNIFIED_DEVICE is defined in BoardConfig
+
 """
 
 import sys
@@ -134,6 +138,7 @@ OPTIONS.updater_binary = None
 OPTIONS.oem_source = None
 OPTIONS.fallback_to_full = True
 OPTIONS.backuptool = False
+OPTIONS.override_device = 'auto'
 OPTIONS.override_prop = False
 
 def MostPopularKey(d, default):
@@ -418,7 +423,13 @@ def SignOutput(temp_zip_name, output_zip_name):
 def AppendAssertions(script, info_dict, oem_dict = None):
   oem_props = info_dict.get("oem_fingerprint_properties")
   if oem_props is None or len(oem_props) == 0:
-    device = GetBuildProp("ro.product.device", info_dict)
+    if OPTIONS.override_device == "auto":
+      if OPTIONS.override_prop:
+        device = GetBuildProp("ro.build.product", info_dict)
+      else:
+        device = GetBuildProp("ro.product.device", info_dict)
+    else:
+      device = OPTIONS.override_device
     script.AssertDevice(device)
   else:
     if oem_dict is None:
@@ -507,6 +518,8 @@ def WriteFullOTAPackage(input_zip, output_zip):
       raise common.ExternalError("OEM source required for this build")
     script.Mount("/oem", recovery_mount_options)
     oem_dict = common.LoadDictionaryFromLines(open(OPTIONS.oem_source).readlines())
+
+
   if OPTIONS.override_prop:
     metadata = {"post-timestamp": GetBuildProp("ro.build.date.utc",
                                                OPTIONS.info_dict),
@@ -517,7 +530,7 @@ def WriteFullOTAPackage(input_zip, output_zip):
                 "pre-device": GetOemProperty("ro.product.device", oem_props, oem_dict,
                                            OPTIONS.info_dict),
                 "post-timestamp": GetBuildProp("ro.build.date.utc",
-                                               OPTIONS.info_dict),
+                                             OPTIONS.info_dict),
                 }
 
   device_specific = common.DeviceSpecificParams(
@@ -1185,15 +1198,13 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
     target_fp = CalculateFingerprint(oem_props, oem_dict, OPTIONS.target_info_dict)
     source_fp = CalculateFingerprint(oem_props, oem_dict, OPTIONS.source_info_dict)
 
-  #if oem_props is None:
-  #  if not OPTIONS.override_prop:
-  #    script.AssertSomeFingerprint(source_fp, target_fp)
-  #else:
-  #  script.AssertSomeThumbprint(
-  #      GetBuildProp("ro.build.thumbprint", OPTIONS.target_info_dict),
-  #      GetBuildProp("ro.build.thumbprint", OPTIONS.source_info_dict))
+    if oem_props is None:
+      script.AssertSomeFingerprint(source_fp, target_fp)
+    else:
+      script.AssertSomeThumbprint(
+          GetBuildProp("ro.build.thumbprint", OPTIONS.target_info_dict),
+          GetBuildProp("ro.build.thumbprint", OPTIONS.source_info_dict))
 
-  if not OPTIONS.override_prop:
     metadata["pre-build"] = source_fp
     metadata["post-build"] = target_fp
 
@@ -1523,6 +1534,8 @@ def main(argv):
       OPTIONS.fallback_to_full = False
     elif o in ("--backup"):
       OPTIONS.backuptool = bool(a.lower() == 'true')
+    elif o in ("--override_device"):
+      OPTIONS.override_device = a
     elif o in ("--override_prop"):
       OPTIONS.override_prop = bool(a.lower() == 'true')
     else:
@@ -1547,6 +1560,7 @@ def main(argv):
                                               "verify",
                                               "no_fallback_to_full",
                                               "backup=",
+                                              "override_device=",
                                               "override_prop="],
                              extra_option_handler=option_handler)
 
