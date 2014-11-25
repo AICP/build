@@ -26,7 +26,8 @@ PRODUCT_PACKAGES := \
     OneTimeInitializer \
     Provision \
     SystemUI \
-    WallpaperCropper
+    WallpaperCropper \
+    Email
 
 PRODUCT_PACKAGES += \
     clatd \
