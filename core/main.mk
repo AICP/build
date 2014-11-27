@@ -163,20 +163,21 @@ $(info The required version is: $(required_version))
 $(info $(space))
 $(info Please follow the machine setup instructions at)
 $(info $(space)$(space)$(space)$(space)https://source.android.com/source/initializing.html)
+$(info $(space))
+$(info Continue at your own peril!)
 $(info ************************************************************)
-$(error stop)
 endif
 
 # Check for the current JDK.
 #
 # For Java 1.7, we require OpenJDK on linux and Oracle JDK on Mac OS.
 # For Java 1.6, we require Oracle for all host OSes.
-# requires_openjdk := false
-# ifeq ($(LEGACY_USE_JAVA6),)
-# ifeq ($(HOST_OS), linux)
-# requires_openjdk := true
-# endif
-# endif
+requires_openjdk := false
+ifeq ($(LEGACY_USE_JAVA6),)
+ifeq ($(HOST_OS), linux)
+requires_openjdk := true
+endif
+endif
 
 
 # Check for the current jdk
@@ -188,7 +189,6 @@ $(info ************************************************************)
 $(info You asked for an OpenJDK 7 build but your version is)
 $(info $(java_version_str).)
 $(info ************************************************************)
-$(error stop)
 endif # java version is not OpenJdk
 else # if requires_openjdk
 ifneq ($(shell echo '$(java_version_str)' | grep -i openjdk),)
@@ -199,7 +199,6 @@ $(info You use OpenJDK but only Sun/Oracle JDK is supported.)
 $(info Please follow the machine setup instructions at)
 $(info $(space)$(space)$(space)$(space)https://source.android.com/source/download.html)
 $(info ************************************************************)
-$(error stop)
 endif # java version is not Sun Oracle JDK
 endif # if requires_openjdk
 
@@ -215,7 +214,6 @@ $(info $(space))
 $(info Please follow the machine setup instructions at)
 $(info $(space)$(space)$(space)$(space)https://source.android.com/source/download.html)
 $(info ************************************************************)
-$(error stop)
 endif
 
 
