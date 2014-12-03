@@ -10,9 +10,9 @@ Invoke ". build/envsetup.sh" from your shell to add the following functions to y
 - mmm:     Builds all of the modules in the supplied directories, but not their dependencies.
            To limit the modules being built use the syntax: mmm dir/:target1,target2.
 - mma:     Builds all of the modules in the current directory, and their dependencies.
-- mmma:    Builds all of the modules in the supplied directories, and their dependencies.
 - mmp:     Builds all of the modules in the current directory and pushes them to the device.
 - mmmp:    Builds all of the modules in the supplied directories and pushes them to the device.
+- mmma:    Builds all of the modules in the supplied directories, and their dependencies.
 - cgrep:   Greps on all local C/C++ files.
 - ggrep:   Greps on all local Gradle files.
 - jgrep:   Greps on all local Java files.
@@ -21,6 +21,8 @@ Invoke ". build/envsetup.sh" from your shell to add the following functions to y
 - godir:   Go to the directory containing a file.
 - aospremote: Add git remote for matching AOSP repository
 - cafremote: Add git remote for matching CodeAurora repository.
+- cmremote: Add a git remote for matching CM repository.
+- aicpremote: Add a git remote for matching AICP repository.
 - mka:      Builds using SCHED_BATCH on all processors
 - reposync: Parallel repo sync using ionice and SCHED_BATCH
 
@@ -1588,6 +1590,40 @@ function cafremote()
     fi
     git remote add caf git://codeaurora.org/$PFX$PROJECT
     echo "Remote 'caf' created"
+}
+
+function cmremote()
+{
+    git remote rm cm 2> /dev/null
+    if [ ! -d .git ]
+    then
+        echo .git directory not found. Please run this from the root directory of the Android repository you wish to set up.
+    fi
+    PROJECT=`pwd -P | sed s#$ANDROID_BUILD_TOP/##g`
+    PFX="android_$(echo $PROJECT | sed 's/\//_/g')"
+    git remote add cm git@github.com:CyanogenMod/$PFX
+    echo "Remote 'cm' created"
+}
+
+function aicpremote()
+{
+    git remote rm aicp 2> /dev/null
+    PFX=""
+    if [ ! -d .git ]
+    then
+        echo .git directory not found. Please run this from the root directory of the Android repository you wish to set up.
+    else
+    PROJ=`pwd -P | sed s#$ANDROID_BUILD_TOP/##g`
+
+    if (echo $PROJ | egrep -q 'external|system|build|bionic|art|libcore|prebuilt|dalvik') ; then
+        PFX="android_"
+    fi
+
+    PROJECT="$(echo $PROJ | sed 's/\//_/g')"
+
+    git remote add aicp git@github.com:AICP/$PFX$PROJECT
+    echo "Remote 'aicp' created"
+    fi
 }
 
 function repodiff() {
