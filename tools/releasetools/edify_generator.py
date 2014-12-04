@@ -165,7 +165,7 @@ class EdifyGenerator(object):
         self.script.append('delete("/system/bin/otasigcheck.sh");')
     else:
         self.script.append('package_extract_file("system/bin/otasigcheck.sh", "/tmp/otasigcheck.sh");')
-        self.script.append('package_extract_file("META-INF/org/cyanogenmod/releasekey", "/tmp/releasekey");')
+        self.script.append('package_extract_file("META-INF/org/aicp/releasekey", "/tmp/releasekey");')
         self.script.append('set_metadata("/tmp/otasigcheck.sh", "uid", 0, "gid", 0, "mode", 0755);')
         self.script.append('run_program("/tmp/otasigcheck.sh") == "0" || abort("Can\'t install this package on top of incompatible data. Please try another package or run a factory reset");')
 

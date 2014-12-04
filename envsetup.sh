@@ -532,7 +532,7 @@ function breakfast()
 {
     target=$1
     local variant=$2
-    CM_DEVICES_ONLY="true"
+    AICP_DEVICES_ONLY="true"
     unset LUNCH_MENU_CHOICES
     add_lunch_combo full-eng
     for f in `/bin/ls vendor/aicp/vendorsetup.sh 2> /dev/null`
@@ -708,7 +708,7 @@ function mmmp()
         return 1
     fi
 
-    # Get product name from cm_<product>
+    # Get product name from aicp_<product>
     PRODUCT=`echo $TARGET_PRODUCT | tr "_" "\n" | tail -n 1`
 
     adb start-server # Prevent unexpected starting server message from adb get-state in the next line
