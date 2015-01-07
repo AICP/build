@@ -1692,17 +1692,16 @@ bacon: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
 	$(hide) (cd `dirname $(AICP_TARGET_PACKAGE)` && $(MD5SUM) `basename $(AICP_TARGET_PACKAGE)` > $(AICP_TARGET_PACKAGE).md5sum)
 	@echo -e ""
-	@echo -e ${CL_RED}"      ___"${CL_CYN}"                        ___"${CL_BLU}"            ___"${CL_RST}
-	@echo -e ${CL_RED}"     /\  \ "${CL_CYN}"                     /\__\ "${CL_BLU}"         /\  \ "${CL_RST}
-	@echo -e ${CL_RED}"    /::\  \ "${CL_MAG}"       ___"${CL_CYN}"         /:/  / "${CL_BLU}"        /::\  \ "${CL_RST}
-	@echo -e ${CL_RED}"   /:/\:\  \ "${CL_MAG}"     /\__\ "${CL_CYN}"      /:/  / "${CL_BLU}"        /:/\:\__\ "${CL_RST}
-	@echo -e ${CL_RED}"  /:/ /::\  \ "${CL_MAG}"   /:/__/ "${CL_CYN}"     /:/  /  ___"${CL_BLU}"    /:/ /:/  / "${CL_RST}
-	@echo -e ${CL_RED}" /:/_/:/\:\__\ "${CL_MAG}" /::\  \ "${CL_CYN}"    /:/__/  /\__\ "${CL_BLU}" /:/_/:/  /  "${CL_RST}
-	@echo -e ${CL_RED}" \:\/:/  \/__/ "${CL_MAG}" \/\:\  \__ "${CL_CYN}" \:\  \ /:/  /"${CL_BLU}"  \:\/:/  / "${CL_RST}
-	@echo -e ${CL_RED}"  \::/__/     "${CL_MAG}"     \:\/\__\ "${CL_CYN}" \:\  /:/  /"${CL_BLU}"    \::/__/ "${CL_RST}
-	@echo -e ${CL_RED}"   \:\  \ "${CL_MAG}"          \::/  /"${CL_CYN}"   \:\/:/  /"${CL_BLU}"      \:\  \ "${CL_RST}
-	@echo -e ${CL_RED}"    \:\__\ "${CL_MAG}"         /:/  /"${CL_CYN}"     \::/  /"${CL_BLU}"        \:\__\ "${CL_RST}
-	@echo -e ${CL_RED}"     \/__/"${CL_MAG}"          \/__/"${CL_CYN}"       \/__/"${CL_BLU}"          \/__/"${CL_RST}
+	@echo -e ${CL_RED}" ▄▄▄·  "${CL_CYN}" ▪   "${CL_BLU}"  ▄▄·  "${CL_RED}"  ▄▄▄·  "${CL_RST}
+	@echo -e ${CL_RED}"▐█ ▀█  "${CL_CYN}" ██  "${CL_BLU}" ▐█ ▌▪ "${CL_RED}" ▐█ ▄█  "${CL_RST}
+	@echo -e ${CL_RED}"▄█▀▀█  "${CL_CYN}" ▐█· "${CL_BLU}" ██ ▄▄ "${CL_RED}"  ██▀·  "${CL_RST}
+	@echo -e ${CL_RED}"▐█ ▪▐▌ "${CL_CYN}" ▐█▌ "${CL_BLU}" ▐███▌ "${CL_RED}" ▐█▪·•  "${CL_RST}
+	@echo -e ${CL_RED}" ▀  ▀  "${CL_CYN}" ▀▀▀ "${CL_BLU}"  ▀▀▀  "${CL_RED}" .▀     "${CL_RST}
+	@echo -e ${CL_MAG}"▄▄▄        • ▌ ▄ ·.  "${CL_RST}
+	@echo -e ${CL_MAG}"▀▄ █·▪     ·██ ▐███▪ "${CL_RST}
+	@echo -e ${CL_MAG}"▐▀▀▄  ▄█▀▄ ▐█ ▌▐▌▐█· "${CL_RST}
+	@echo -e ${CL_MAG}"▐█•█▌▐█▌.▐▌██ ██▌▐█▌ "${CL_RST}
+	@echo -e ${CL_MAG}".▀  ▀ ▀█▄▀▪▀▀  █▪▀▀▀ "${CL_RST}
 	@echo -e ""
 	@echo -e ${CL_CYN}"===========-Package complete-==========="${CL_RST}
 	@echo -e ${CL_CYN}"zip: "${CL_MAG} $(AICP_TARGET_PACKAGE)${CL_RST}
