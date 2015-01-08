@@ -1697,11 +1697,11 @@ bacon: otapackage
 	@echo -e ${CL_RED}"▄█▀▀█  "${CL_CYN}" ▐█· "${CL_BLU}" ██ ▄▄ "${CL_RED}"  ██▀·  "${CL_RST}
 	@echo -e ${CL_RED}"▐█ ▪▐▌ "${CL_CYN}" ▐█▌ "${CL_BLU}" ▐███▌ "${CL_RED}" ▐█▪·•  "${CL_RST}
 	@echo -e ${CL_RED}" ▀  ▀  "${CL_CYN}" ▀▀▀ "${CL_BLU}"  ▀▀▀  "${CL_RED}" .▀     "${CL_RST}
-	@echo -e ${CL_MAG}"▄▄▄        • ▌ ▄ ·.  "${CL_RST}
-	@echo -e ${CL_MAG}"▀▄ █·▪     ·██ ▐███▪ "${CL_RST}
-	@echo -e ${CL_MAG}"▐▀▀▄  ▄█▀▄ ▐█ ▌▐▌▐█· "${CL_RST}
-	@echo -e ${CL_MAG}"▐█•█▌▐█▌.▐▌██ ██▌▐█▌ "${CL_RST}
-	@echo -e ${CL_MAG}".▀  ▀ ▀█▄▀▪▀▀  █▪▀▀▀ "${CL_RST}
+	@echo -e ${CL_MAG}"▄▄▄   "${CL_YLW}"       "${CL_CYN}"• ▌ ▄ ·.  "${CL_RST}
+	@echo -e ${CL_MAG}"▀▄ █· "${CL_YLW}"▪      "${CL_CYN}"·██ ▐███▪ "${CL_RST}
+	@echo -e ${CL_MAG}"▐▀▀▄  "${CL_YLW}" ▄█▀▄  "${CL_CYN}"▐█ ▌▐▌▐█· "${CL_RST}
+	@echo -e ${CL_MAG}"▐█•█▌ "${CL_YLW}"▐█▌.▐▌ "${CL_CYN}"██ ██▌▐█▌ "${CL_RST}
+	@echo -e ${CL_MAG}".▀  ▀ "${CL_YLW}" ▀█▄▀▪ "${CL_CYN}"▀▀  █▪▀▀▀ "${CL_RST}
 	@echo -e ""
 	@echo -e ${CL_CYN}"===========-Package complete-==========="${CL_RST}
 	@echo -e ${CL_CYN}"zip: "${CL_MAG} $(AICP_TARGET_PACKAGE)${CL_RST}
