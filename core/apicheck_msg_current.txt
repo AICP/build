@@ -7,10 +7,10 @@ To make these errors go away, you have two choices:
       errors above.
 
    2) You can update current.txt by executing the following command:
-         make %UPDATE_API%
+         make update-api
       ^^^^^^^^^^^^^^^^^^
       NO. NO. STOP BEING LAZY. SERIOUSLY.
-      DO NOT DO THIS in CM. THIS IS A LIE. IT WILL BREAK THINGS.
+      DO NOT DO THIS in AICP. THIS IS A LIE. IT WILL BREAK THINGS.
 
       To submit the revised current.txt to the main Android repository,
       you will need approval.
