@@ -191,11 +191,11 @@ def AddUserdata(output_zip, prefix="IMAGES/"):
   os.rmdir(temp_dir)
 
 
-def AddUserdataExtra(output_zip, prefix="IMAGES/"):
+def AddUserdataExtra(output_zip):
   """Create extra userdata image and store it in output_zip."""
 
   image_props = build_image.ImagePropFromGlobalDict(OPTIONS.info_dict,
-                                                    "data_extra")
+                                                  "data_extra")
   # If no userdataextra_size is provided for extfs, skip userdata_extra.img.
   if (image_props.get("fs_type", "").startswith("ext") and
       not image_props.get("partition_size")):
@@ -221,7 +221,7 @@ def AddUserdataExtra(output_zip, prefix="IMAGES/"):
 
   # Disable size check since this fetches original data partition size
   #common.CheckSize(img.name, "userdata_extra.img", OPTIONS.info_dict)
-  output_zip.write(img.name, prefix + "userdata_%s.img" % extra_name)
+  output_zip.write(img.name, "userdata_%s.img" % extra_name)
   img.close()
   os.rmdir(user_dir)
   os.rmdir(temp_dir)
@@ -326,7 +326,7 @@ def AddImagesToTargetFiles(filename):
     AddVendor(output_zip)
   banner("userdata")
   AddUserdata(output_zip)
-  banner("userdata_extra")
+  banner("extrauserdata")
   AddUserdataExtra(output_zip)
   banner("cache")
   AddCache(output_zip)
