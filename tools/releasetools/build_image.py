@@ -239,7 +239,7 @@ def BuildImage(in_dir, prop_dict, out_file,
       #run_fsck = True
     if "is_userdataextra" in prop_dict:
       build_command.extend([in_dir, out_file, fs_type,
-                            "data"])
+                           "data"])
     else:
       build_command.extend([in_dir, out_file, fs_type,
                             prop_dict["mount_point"]])
