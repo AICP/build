@@ -10,6 +10,11 @@ ifneq ($(BUILD_WITH_COLORS),0)
   CL_MAG="\033[35m"
   CL_CYN="\033[36m"
   CL_RST="\033[0m"
+
+  # Random color that gets re-initialized each time it is used.
+  # The first value is 0 or 1 (normal or highlighted)
+  # The second value is 31..36, which maps to one of the above colors.
+  CL_RAN="\033[$$(( RANDOM % 2 ));$$(( (RANDOM % 6) + 31 ))m"
 endif
 
 # HACK: clear LOCAL_PATH from including last build target before calling
@@ -1713,16 +1718,17 @@ bacon: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
 	$(hide) (cd `dirname $(AICP_TARGET_PACKAGE)` && $(MD5SUM) `basename $(AICP_TARGET_PACKAGE)` > $(AICP_TARGET_PACKAGE).md5sum)
 	@echo -e ""
-	@echo -e ${CL_RED}" ▄▄▄·  "${CL_CYN}" ▪   "${CL_BLU}"  ▄▄·  "${CL_RED}"  ▄▄▄·  "${CL_RST}
-	@echo -e ${CL_RED}"▐█ ▀█  "${CL_CYN}" ██  "${CL_BLU}" ▐█ ▌▪ "${CL_RED}" ▐█ ▄█  "${CL_RST}
-	@echo -e ${CL_RED}"▄█▀▀█  "${CL_CYN}" ▐█· "${CL_BLU}" ██ ▄▄ "${CL_RED}"  ██▀·  "${CL_RST}
-	@echo -e ${CL_RED}"▐█ ▪▐▌ "${CL_CYN}" ▐█▌ "${CL_BLU}" ▐███▌ "${CL_RED}" ▐█▪·•  "${CL_RST}
-	@echo -e ${CL_RED}" ▀  ▀  "${CL_CYN}" ▀▀▀ "${CL_BLU}"  ▀▀▀  "${CL_RED}" .▀     "${CL_RST}
-	@echo -e ${CL_MAG}"▄▄▄   "${CL_YLW}"       "${CL_CYN}"• ▌ ▄ ·.  "${CL_RST}
-	@echo -e ${CL_MAG}"▀▄ █· "${CL_YLW}"▪      "${CL_CYN}"·██ ▐███▪ "${CL_RST}
-	@echo -e ${CL_MAG}"▐▀▀▄  "${CL_YLW}" ▄█▀▄  "${CL_CYN}"▐█ ▌▐▌▐█· "${CL_RST}
-	@echo -e ${CL_MAG}"▐█•█▌ "${CL_YLW}"▐█▌.▐▌ "${CL_CYN}"██ ██▌▐█▌ "${CL_RST}
-	@echo -e ${CL_MAG}".▀  ▀ "${CL_YLW}" ▀█▄▀▪ "${CL_CYN}"▀▀  █▪▀▀▀ "${CL_RST}
+	@echo -e ${CL_RAN}" ▄▄▄·  "${CL_RAN}" ▪   "${CL_RAN}"  ▄▄·  "${CL_RAN}"  ▄▄▄·  "${CL_RST}
+	@echo -e ${CL_RAN}"▐█ ▀█  "${CL_RAN}" ██  "${CL_RAN}" ▐█ ▌▪ "${CL_RAN}" ▐█ ▄█  "${CL_RST}
+	@echo -e ${CL_RAN}"▄█▀▀█  "${CL_RAN}" ▐█· "${CL_RAN}" ██ ▄▄ "${CL_RAN}"  ██▀·  "${CL_RST}
+	@echo -e ${CL_RAN}"▐█ ▪▐▌ "${CL_RAN}" ▐█▌ "${CL_RAN}" ▐███▌ "${CL_RAN}" ▐█▪·•  "${CL_RST}
+	@echo -e ${CL_RAN}" ▀  ▀  "${CL_RAN}" ▀▀▀ "${CL_RAN}"  ▀▀▀  "${CL_RAN}" .▀     "${CL_RST}
+	@echo -e ""
+	@echo -e ${CL_RAN}"▄▄▄   "${CL_RAN}"       "${CL_RAN}"• ▌ ▄ ·.  "${CL_RST}
+	@echo -e ${CL_RAN}"▀▄ █· "${CL_RAN}"▪      "${CL_RAN}"·██ ▐███▪ "${CL_RST}
+	@echo -e ${CL_RAN}"▐▀▀▄  "${CL_RAN}" ▄█▀▄  "${CL_RAN}"▐█ ▌▐▌▐█· "${CL_RST}
+	@echo -e ${CL_RAN}"▐█•█▌ "${CL_RAN}"▐█▌.▐▌ "${CL_RAN}"██ ██▌▐█▌ "${CL_RST}
+	@echo -e ${CL_RAN}".▀  ▀ "${CL_RAN}" ▀█▄▀▪ "${CL_RAN}"▀▀  █▪▀▀▀ "${CL_RST}
 	@echo -e ""
 	@echo -e ${CL_CYN}"===========-Package complete-==========="${CL_RST}
 	@echo -e ${CL_CYN}"zip: "${CL_MAG} $(AICP_TARGET_PACKAGE)${CL_RST}
