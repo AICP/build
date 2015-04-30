@@ -570,6 +570,7 @@ function lunch()
     if [ "$1" ] ; then
         answer=$1
     else
+        LUNCH_MENU_CHOICES=($(for l in ${LUNCH_MENU_CHOICES[@]}; do echo "$l"; done | sort))
         print_lunch_menu
         echo -n "Which would you like? [aosp_arm-eng] "
         read answer
