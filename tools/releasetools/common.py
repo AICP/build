@@ -210,7 +210,7 @@ def LoadRecoveryFSTab(read_helper, fstab_version, type):
       line = line.strip()
       if not line or line.startswith("#"): continue
       pieces = line.split()
-      if not (3 <= len(pieces) <= 9):
+      if not (3 <= len(pieces) <= 4):
         raise ValueError("malformed recovery.fstab line: \"%s\"" % (line,))
 
       p = Partition()
@@ -219,7 +219,7 @@ def LoadRecoveryFSTab(read_helper, fstab_version, type):
       p.device = pieces[2]
       p.length = 0
       options = None
-      if len(pieces) >= 4 and pieces[3] != 'NULL':
+      if len(pieces) >= 4:
         if pieces[3].startswith("/"):
           p.device2 = pieces[3]
           if len(pieces) >= 5:
@@ -296,6 +296,7 @@ def BuildBootableImage(sourcedir, fs_config_file, info_dict=None):
 
   ramdisk_img = tempfile.NamedTemporaryFile()
   img = tempfile.NamedTemporaryFile()
+  bootimg_key = os.getenv("PRODUCT_PRIVATE_KEY", None)
 
   if os.access(fs_config_file, os.F_OK):
     cmd = ["mkbootfs", "-f", fs_config_file, os.path.join(sourcedir, "RAMDISK")]
@@ -362,8 +363,9 @@ def BuildBootableImage(sourcedir, fs_config_file, info_dict=None):
 
     fn = os.path.join(sourcedir, "pagesize")
     if os.access(fn, os.F_OK):
+      kernel_pagesize=open(fn).read().rstrip("\n")
       cmd.append("--pagesize")
-      cmd.append(open(fn).read().rstrip("\n"))
+      cmd.append(kernel_pagesize)
 
     args = info_dict.get("mkbootimg_args", None)
     if args and args.strip():
@@ -375,6 +377,42 @@ def BuildBootableImage(sourcedir, fs_config_file, info_dict=None):
   p.communicate()
   assert p.returncode == 0, "mkbootimg of %s image failed" % (
       os.path.basename(sourcedir),)
+
+  if bootimg_key and os.path.exists(bootimg_key) and kernel_pagesize > 0:
+    print "Signing bootable image..."
+    bootimg_key_passwords = {}
+    bootimg_key_passwords.update(PasswordManager().GetPasswords(bootimg_key.split()))
+    bootimg_key_password = bootimg_key_passwords[bootimg_key]
+    if bootimg_key_password is not None:
+        bootimg_key_password += "\n"
+    img_sha256 = tempfile.NamedTemporaryFile()
+    img_sig = tempfile.NamedTemporaryFile()
+    img_sig_padded = tempfile.NamedTemporaryFile()
+    img_secure = tempfile.NamedTemporaryFile()
+    p = Run(["openssl", "dgst", "-sha256", "-binary", "-out", img_sha256.name, img.name],
+        stdout=subprocess.PIPE)
+    p.communicate()
+    assert p.returncode == 0, "signing of bootable image failed"
+    p = Run(["openssl", "rsautl", "-sign", "-in", img_sha256.name, "-inkey", bootimg_key, "-out",
+        img_sig.name, "-passin", "stdin"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    p.communicate(bootimg_key_password)
+    assert p.returncode == 0, "signing of bootable image failed"
+    p = Run(["dd", "if=/dev/zero", "of=%s" % img_sig_padded.name, "bs=%s" % kernel_pagesize,
+        "count=1"], stdout=subprocess.PIPE)
+    p.communicate()
+    assert p.returncode == 0, "signing of bootable image failed"
+    p = Run(["dd", "if=%s" % img_sig.name, "of=%s" % img_sig_padded.name, "conv=notrunc"],
+        stdout=subprocess.PIPE)
+    p.communicate()
+    assert p.returncode == 0, "signing of bootable image failed"
+    p = Run(["cat", img.name, img_sig_padded.name], stdout=img_secure.file.fileno())
+    p.communicate()
+    assert p.returncode == 0, "signing of bootable image failed"
+    shutil.copyfile(img_secure.name, img.name)
+    img_sha256.close()
+    img_sig.close()
+    img_sig_padded.close()
+    img_secure.close()
 
   if info_dict.get("verity_key", None):
     path = "/" + os.path.basename(sourcedir).lower()
@@ -401,13 +439,6 @@ def GetBootableImage(name, prebuilt_name, unpack_dir, tree_subdir,
   'unpack_dir'/'tree_subdir'."""
 
   prebuilt_path = os.path.join(unpack_dir, "BOOTABLE_IMAGES", prebuilt_name)
-  prebuilt_dir = os.path.join(unpack_dir, "BOOTABLE_IMAGES")
-  prebuilt_path = os.path.join(prebuilt_dir, prebuilt_name)
-  custom_bootimg_mk = os.getenv('CUSTOM_BOOTIMG_MK')
-  if custom_bootimg_mk:
-    bootimage_path = os.path.join(os.getenv('OUT'), "boot.img")
-    os.mkdir(prebuilt_dir)
-    shutil.copyfile(bootimage_path, prebuilt_path)
   if os.path.exists(prebuilt_path):
     print "using prebuilt %s from BOOTABLE_IMAGES..." % (prebuilt_name,)
     return File.FromLocalFile(name, prebuilt_path)
@@ -1154,8 +1185,10 @@ DataImage = blockimgdiff.DataImage
 PARTITION_TYPES = { "yaffs2": "MTD", "mtd": "MTD",
                     "ext4": "EMMC", "emmc": "EMMC",
                     "f2fs": "EMMC",
-                    "bml": "BML", "ext2": "EMMC",
-                    "ext3": "EMMC", "vfat": "EMMC"}
+                    "ext2": "EMMC",
+                    "ext3": "EMMC",
+                    "vfat": "EMMC" }
+
 def GetTypeAndDevice(mount_point, info):
   fstab = info["fstab"]
   if fstab:
