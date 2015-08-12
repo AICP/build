@@ -23,6 +23,8 @@ echo "ro.build.version.sdk=$PLATFORM_SDK_VERSION"
 echo "ro.build.version.codename=$PLATFORM_VERSION_CODENAME"
 echo "ro.build.version.all_codenames=$PLATFORM_VERSION_ALL_CODENAMES"
 echo "ro.build.version.release=$PLATFORM_VERSION"
+echo "ro.build.version.security_patch=$PLATFORM_SECURITY_PATCH"
+echo "ro.build.version.base_os=$PLATFORM_BASE_OS"
 
 if [ "$USER_BUILD_DATE" != "" ] ; then
   # Allow the user to specify a custom value, perhaps something other than
