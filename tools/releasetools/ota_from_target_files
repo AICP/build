@@ -83,10 +83,6 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
       Specifies the number of worker-threads that will be used when
       generating patches for incremental updates (defaults to 3).
 
-  --stash_threshold <float>
-      Specifies the threshold that will be used to compute the maximum
-      allowed stash size (defaults to 0.8).
-
   --backup <boolean>
       Enable or disable the execution of backuptool.sh.
       Disabled by default.
@@ -1608,12 +1604,6 @@ def main(argv):
       OPTIONS.updater_binary = a
     elif o in ("--no_fallback_to_full",):
       OPTIONS.fallback_to_full = False
-    elif o == "--stash_threshold":
-      try:
-        OPTIONS.stash_threshold = float(a)
-      except ValueError:
-        raise ValueError("Cannot parse value %r for option %r - expecting "
-                         "a float" % (a, o))
     elif o in ("--backup"):
       OPTIONS.backuptool = bool(a.lower() == 'true')
     elif o in ("--override_device"):
@@ -1645,7 +1635,6 @@ def main(argv):
                                               "oem_settings=",
                                               "verify",
                                               "no_fallback_to_full",
-                                              "stash_threshold=",
                                               "backup=",
                                               "override_device=",
                                               "override_prop=",
@@ -1704,11 +1693,6 @@ def main(argv):
       temp_zip_file = tempfile.NamedTemporaryFile()
       output_zip = zipfile.ZipFile(temp_zip_file, "w",
                                    compression=zipfile.ZIP_DEFLATED)
-
-    cache_size = OPTIONS.info_dict.get("cache_size", None)
-    if cache_size is None:
-      print "--- can't determine the cache partition size ---"
-    OPTIONS.cache_size = cache_size
 
     if OPTIONS.incremental_source is None:
       WriteFullOTAPackage(input_zip, output_zip)

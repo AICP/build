@@ -67,10 +67,6 @@ OPTIONS.device_specific = None
 OPTIONS.extras = {}
 OPTIONS.info_dict = None
 
-# Stash size cannot exceed cache_size * threshold.
-OPTIONS.cache_size = None
-OPTIONS.stash_threshold = 0.8
-
 
 # Values for "certificate" in apkcerts that mean special things.
 SPECIAL_CERT_STRINGS = ("PRESIGNED", "EXTERNAL")
@@ -1109,23 +1105,21 @@ def ComputeDifferences(diffs):
 
 
 class BlockDifference:
-  def __init__(self, partition, tgt, src=None, check_first_block=False, version=None, use_lzma=False):
+  def __init__(self, partition, tgt, src=None, check_first_block=False, use_lzma=False):
     self.tgt = tgt
     self.src = src
     self.partition = partition
     self.check_first_block = check_first_block
     self.use_lzma = use_lzma
 
-    if version is None:
-      version = 1
-      if OPTIONS.info_dict:
-        version = max(
-            int(i) for i in
-            OPTIONS.info_dict.get("blockimgdiff_versions", "1").split(","))
-    self.version = version
+    version = 1
+    if OPTIONS.info_dict:
+      version = max(
+          int(i) for i in
+          OPTIONS.info_dict.get("blockimgdiff_versions", "1").split(","))
 
     b = blockimgdiff.BlockImageDiff(tgt, src, threads=OPTIONS.worker_threads,
-                                    version=self.version, use_lzma=use_lzma)
+                                    version=version, use_lzma=use_lzma)
     tmpdir = tempfile.mkdtemp()
     OPTIONS.tempfiles.append(tmpdir)
     self.path = os.path.join(tmpdir, partition)
@@ -1144,41 +1138,22 @@ class BlockDifference:
     self._WriteUpdate(script, output_zip)
 
   def WriteVerifyScript(self, script):
-    partition = self.partition
     if not self.src:
-      script.Print("Image %s will be patched unconditionally." % (partition,))
+      script.Print("Image %s will be patched unconditionally." % (self.partition,))
     else:
-      if self.version >= 3:
-        script.AppendExtra(('if (range_sha1("%s", "%s") == "%s" || '
-                            'block_image_verify("%s", '
-                            'package_extract_file("%s.transfer.list"), '
-                            '"%s.new.dat", "%s.patch.dat")) then') % (
-                            self.device, self.src.care_map.to_string_raw(),
-                            self.src.TotalSha1(),
-                            self.device, partition, partition, partition))
-      else:
-        script.AppendExtra('if range_sha1("%s", "%s") == "%s" then' %
-                            (self.device, self.src.care_map.to_string_raw(),
-                            self.src.TotalSha1()))
-      script.Print('Verified %s image...' % (partition,))
-      script.AppendExtra('else');
-
-      # When generating incrementals for the system and vendor partitions,
-      # explicitly check the first block (which contains the superblock) of
-      # the partition to see if it's what we expect. If this check fails,
-      # give an explicit log message about the partition having been
-      # remounted R/W (the most likely explanation) and the need to flash to
-      # get OTAs working again.
       if self.check_first_block:
         self._CheckFirstBlock(script)
 
-      # Abort the OTA update. Note that the incremental OTA cannot be applied
-      # even if it may match the checksum of the target partition.
-      # a) If version < 3, operations like move and erase will make changes
-      #    unconditionally and damage the partition.
-      # b) If version >= 3, it won't even reach here.
-      script.AppendExtra(('abort("%s partition has unexpected contents");\n'
-                          'endif;') % (partition,))
+      script.AppendExtra('if range_sha1("%s", "%s") == "%s" then' %
+                         (self.device, self.src.care_map.to_string_raw(),
+                          self.src.TotalSha1()))
+      script.Print("Verified %s image..." % (self.partition,))
+      script.AppendExtra(('else\n'
+                          '  (range_sha1("%s", "%s") == "%s") ||\n'
+                          '  abort("%s partition has unexpected contents");\n'
+                          'endif;') %
+                         (self.device, self.tgt.care_map.to_string_raw(),
+                          self.tgt.TotalSha1(), self.partition))
 
   def _WriteUpdate(self, script, output_zip):
     partition = self.partition
@@ -1204,24 +1179,18 @@ class BlockDifference:
             (self.device, partition, partition, suffix, partition))
     script.AppendExtra(script._WordWrap(call))
 
-  def _HashBlocks(self, source, ranges):
-    data = source.ReadRangeSet(ranges)
-    ctx = sha1()
-
-    for p in data:
-      ctx.update(p)
-
-    return ctx.hexdigest()
-
   def _CheckFirstBlock(self, script):
     r = RangeSet((0, 1))
-    srchash = self._HashBlocks(self.src, r);
+    h = sha1()
+    for data in self.src.ReadRangeSet(r):
+      h.update(data)
+    h = h.hexdigest()
 
     script.AppendExtra(('(range_sha1("%s", "%s") == "%s") || '
                         'abort("%s has been remounted R/W; '
                         'reflash device to reenable OTA updates");')
-                       % (self.device, r.to_string_raw(), srchash,
-                          self.device))
+                       % (self.device, r.to_string_raw(), h, self.device))
+
 
 DataImage = blockimgdiff.DataImage
 

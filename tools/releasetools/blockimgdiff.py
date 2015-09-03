@@ -16,7 +16,6 @@ from __future__ import print_function
 
 from collections import deque, OrderedDict
 from hashlib import sha1
-import common
 import heapq
 import itertools
 import multiprocessing
@@ -160,12 +159,6 @@ class Transfer(object):
     return (sum(sr.size() for (_, sr) in self.stash_before) -
             sum(sr.size() for (_, sr) in self.use_stash))
 
-  def ConvertToNew(self):
-    assert self.style != "new"
-    self.use_stash = []
-    self.style = "new"
-    self.src_ranges = RangeSet()
-
   def __str__(self):
     return (str(self.id) + ": <" + str(self.src_ranges) + " " + self.style +
             " to " + str(self.tgt_ranges) + ">")
@@ -203,7 +196,7 @@ class Transfer(object):
 # original image.
 
 class BlockImageDiff(object):
-  def __init__(self, tgt, src=None, threads=None, version=3, use_lzma=False):
+  def __init__(self, tgt, src=None, threads=None, version=2, use_lzma=False):
     if threads is None:
       threads = multiprocessing.cpu_count() // 2
       if threads == 0: threads = 1
@@ -211,7 +204,7 @@ class BlockImageDiff(object):
     self.version = version
     self.use_lzma = use_lzma
 
-    assert version in (1, 2, 3)
+    assert version in (1, 2)
 
     self.tgt = tgt
     if src is None:
@@ -252,24 +245,11 @@ class BlockImageDiff(object):
       self.ReverseBackwardEdges()
       self.ImproveVertexSequence()
 
-    # Ensure the runtime stash size is under the limit.
-    if self.version >= 2 and common.OPTIONS.cache_size is not None:
-      self.ReviseStashSize()
-
     # Double-check our work.
     self.AssertSequenceGood()
 
     self.ComputePatches(prefix)
     self.WriteTransfers(prefix)
-
-  def HashBlocks(self, source, ranges):
-    data = source.ReadRangeSet(ranges)
-    ctx = sha1()
-
-    for p in data:
-      ctx.update(p)
-
-    return ctx.hexdigest()
 
   def WriteTransfers(self, prefix):
     out = []
@@ -299,24 +279,14 @@ class BlockImageDiff(object):
           next_stash_id += 1
         stashes[s] = sid
         stashed_blocks += sr.size()
-        if self.version == 2:
-          out.append("stash %d %s\n" % (sid, sr.to_string_raw()))
-        else:
-          sh = self.HashBlocks(self.src, sr)
-          if sh in stashes:
-            stashes[sh] += 1
-          else:
-            stashes[sh] = 1
-            out.append("stash %s %s\n" % (sh, sr.to_string_raw()))
+        out.append("stash %d %s\n" % (sid, sr.to_string_raw()))
 
       if stashed_blocks > max_stashed_blocks:
         max_stashed_blocks = stashed_blocks
 
-      free_string = []
-
       if self.version == 1:
         src_string = xf.src_ranges.to_string_raw()
-      elif self.version >= 2:
+      elif self.version == 2:
 
         #   <# blocks> <src ranges>
         #     OR
@@ -333,24 +303,9 @@ class BlockImageDiff(object):
           sid = stashes.pop(s)
           stashed_blocks -= sr.size()
           unstashed_src_ranges = unstashed_src_ranges.subtract(sr)
-          sh = self.HashBlocks(self.src, sr)
           sr = xf.src_ranges.map_within(sr)
           mapped_stashes.append(sr)
-          if self.version == 2:
-            src_string.append("%d:%s" % (sid, sr.to_string_raw()))
-            # A stash will be used only once. We need to free the stash
-            # immediately after the use, instead of waiting for the automatic
-            # clean-up at the end. Because otherwise it may take up extra space
-            # and lead to OTA failures.
-            # Bug: 23119955
-            free_string.append("free %d\n" % (sid,))
-          else:
-            assert sh in stashes
-            src_string.append("%s:%s" % (sh, sr.to_string_raw()))
-            stashes[sh] -= 1
-            if stashes[sh] == 0:
-              free_string.append("free %s\n" % (sh))
-              stashes.pop(sh)
+          src_string.append("%d:%s" % (sid, sr.to_string_raw()))
           heapq.heappush(free_stash_ids, sid)
 
         if unstashed_src_ranges:
@@ -366,7 +321,7 @@ class BlockImageDiff(object):
 
         src_string = " ".join(src_string)
 
-      # all versions:
+      # both versions:
       #   zero <rangeset>
       #   new <rangeset>
       #   erase <rangeset>
@@ -380,11 +335,6 @@ class BlockImageDiff(object):
       #   bsdiff patchstart patchlen <tgt rangeset> <src_string>
       #   imgdiff patchstart patchlen <tgt rangeset> <src_string>
       #   move <tgt rangeset> <src_string>
-      #
-      # version 3:
-      #   bsdiff patchstart patchlen srchash tgthash <tgt rangeset> <src_string>
-      #   imgdiff patchstart patchlen srchash tgthash <tgt rangeset> <src_string>
-      #   move hash <tgt rangeset> <src_string>
 
       tgt_size = xf.tgt_ranges.size()
 
@@ -405,17 +355,6 @@ class BlockImageDiff(object):
             out.append("%s %s %s\n" % (
                 xf.style,
                 xf.tgt_ranges.to_string_raw(), src_string))
-          elif self.version >= 3:
-            # take into account automatic stashing of overlapping blocks
-            if xf.src_ranges.overlaps(xf.tgt_ranges):
-              temp_stash_usage = stashed_blocks + xf.src_ranges.size();
-              if temp_stash_usage > max_stashed_blocks:
-                max_stashed_blocks = temp_stash_usage
-
-            out.append("%s %s %s %s\n" % (
-                xf.style,
-                self.HashBlocks(self.tgt, xf.tgt_ranges),
-                xf.tgt_ranges.to_string_raw(), src_string))
           total += tgt_size
       elif xf.style in ("bsdiff", "imgdiff"):
         performs_read = True
@@ -429,19 +368,6 @@ class BlockImageDiff(object):
           out.append("%s %d %d %s %s\n" % (
               xf.style, xf.patch_start, xf.patch_len,
               xf.tgt_ranges.to_string_raw(), src_string))
-        elif self.version >= 3:
-          # take into account automatic stashing of overlapping blocks
-          if xf.src_ranges.overlaps(xf.tgt_ranges):
-            temp_stash_usage = stashed_blocks + xf.src_ranges.size();
-            if temp_stash_usage > max_stashed_blocks:
-              max_stashed_blocks = temp_stash_usage
-
-          out.append("%s %d %d %s %s %s %s\n" % (
-              xf.style,
-              xf.patch_start, xf.patch_len,
-              self.HashBlocks(self.src, xf.src_ranges),
-              self.HashBlocks(self.tgt, xf.tgt_ranges),
-              xf.tgt_ranges.to_string_raw(), src_string))
         total += tgt_size
       elif xf.style == "zero":
         assert xf.tgt_ranges
@@ -452,23 +378,10 @@ class BlockImageDiff(object):
       else:
         raise ValueError, "unknown transfer style '%s'\n" % (xf.style,)
 
-      if free_string:
-        out.append("".join(free_string))
 
-      if self.version >= 2 and common.OPTIONS.cache_size is not None:
-        # Sanity check: abort if we're going to need more stash space than
-        # the allowed size (cache_size * threshold). There are two purposes
-        # of having a threshold here. a) Part of the cache may have been
-        # occupied by some recovery logs. b) It will buy us some time to deal
-        # with the oversize issue.
-        cache_size = common.OPTIONS.cache_size
-        stash_threshold = common.OPTIONS.stash_threshold
-        max_allowed = cache_size * stash_threshold
-        assert max_stashed_blocks * self.tgt.blocksize < max_allowed, \
-               'Stash size %d (%d * %d) exceeds the limit %d (%d * %.2f)' % (
-                   max_stashed_blocks * self.tgt.blocksize, max_stashed_blocks,
-                   self.tgt.blocksize, max_allowed, cache_size,
-                   stash_threshold)
+      # sanity check: abort if we're going to need more than 512 MB if
+      # stash space
+      assert max_stashed_blocks * self.tgt.blocksize < (512 << 20)
 
     all_tgt = RangeSet(data=(0, self.tgt.total_blocks))
     if performs_read:
@@ -496,84 +409,8 @@ class BlockImageDiff(object):
         f.write(i)
 
     if self.version >= 2:
-      max_stashed_size = max_stashed_blocks * self.tgt.blocksize
-      OPTIONS = common.OPTIONS
-      if OPTIONS.cache_size is not None:
-        max_allowed = OPTIONS.cache_size * OPTIONS.stash_threshold
-        print("max stashed blocks: %d  (%d bytes), "
-              "limit: %d bytes (%.2f%%)\n" % (
-              max_stashed_blocks, max_stashed_size, max_allowed,
-              max_stashed_size * 100.0 / max_allowed))
-      else:
-        print("max stashed blocks: %d  (%d bytes), limit: <unknown>\n" % (
-              max_stashed_blocks, max_stashed_size))
-
-  def ReviseStashSize(self):
-    print("Revising stash size...")
-    stashes = {}
-
-    # Create the map between a stash and its def/use points. For example, for a
-    # given stash of (idx, sr), stashes[idx] = (sr, def_cmd, use_cmd).
-    for xf in self.transfers:
-      # Command xf defines (stores) all the stashes in stash_before.
-      for idx, sr in xf.stash_before:
-        stashes[idx] = (sr, xf)
-
-      # Record all the stashes command xf uses.
-      for idx, _ in xf.use_stash:
-        stashes[idx] += (xf,)
-
-    # Compute the maximum blocks available for stash based on /cache size and
-    # the threshold.
-    cache_size = common.OPTIONS.cache_size
-    stash_threshold = common.OPTIONS.stash_threshold
-    max_allowed = cache_size * stash_threshold / self.tgt.blocksize
-
-    stashed_blocks = 0
-
-    # Now go through all the commands. Compute the required stash size on the
-    # fly. If a command requires excess stash than available, it deletes the
-    # stash by replacing the command that uses the stash with a "new" command
-    # instead.
-    for xf in self.transfers:
-      replaced_cmds = []
-
-      # xf.stash_before generates explicit stash commands.
-      for idx, sr in xf.stash_before:
-        if stashed_blocks + sr.size() > max_allowed:
-          # We cannot stash this one for a later command. Find out the command
-          # that will use this stash and replace the command with "new".
-          use_cmd = stashes[idx][2]
-          replaced_cmds.append(use_cmd)
-          print("  %s replaced due to an explicit stash of %d blocks." % (
-              use_cmd, sr.size()))
-        else:
-          stashed_blocks += sr.size()
-
-      # xf.use_stash generates free commands.
-      for _, sr in xf.use_stash:
-        stashed_blocks -= sr.size()
-
-      # "move" and "diff" may introduce implicit stashes in BBOTA v3. Prior to
-      # ComputePatches(), they both have the style of "diff".
-      if xf.style == "diff" and self.version >= 3:
-        assert xf.tgt_ranges and xf.src_ranges
-        if xf.src_ranges.overlaps(xf.tgt_ranges):
-          if stashed_blocks + xf.src_ranges.size() > max_allowed:
-            replaced_cmds.append(xf)
-            print("  %s replaced due to an implicit stash of %d blocks." % (
-                xf, xf.src_ranges.size()))
-
-      # Replace the commands in replaced_cmds with "new"s.
-      for cmd in replaced_cmds:
-        # It no longer uses any commands in "use_stash". Remove the def points
-        # for all those stashes.
-        for idx, sr in cmd.use_stash:
-          def_cmd = stashes[idx][1]
-          assert (idx, sr) in def_cmd.stash_before
-          def_cmd.stash_before.remove((idx, sr))
-
-        cmd.ConvertToNew()
+      print("max stashed blocks: %d  (%d bytes)\n" % (
+          max_stashed_blocks, max_stashed_blocks * self.tgt.blocksize))
 
   def ComputePatches(self, prefix):
     print("Reticulating splines...")
