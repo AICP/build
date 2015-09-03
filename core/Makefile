@@ -1103,13 +1103,13 @@ INTERNAL_SYSTEMIMAGE_FILES := $(filter $(TARGET_OUT)/%, \
     $(PDK_FUSION_SYSIMG_FILES) \
     $(RECOVERY_RESOURCE_ZIP))
 
-systemimage-squisher: $(INTERNAL_SYSTEMIMAGE_FILES)
-	@echo -e "Optimizing PNGs to Shrink ROM Size!"
-	$(hide) APKCERTS=$(APKCERTS_FILE) ./vendor/aicp/tools/squisher
+systemimage-changelog: $(INTERNAL_SYSTEMIMAGE_FILES)
+	@echo -e "Making changelog!"
+	$(hide) APKCERTS=$(APKCERTS_FILE) ./vendor/aicp/tools/changelog
 
-.PHONY: systemimage-squisher
+.PHONY: systemimage-changelog
 
-FULL_SYSTEMIMAGE_DEPS := $(INTERNAL_SYSTEMIMAGE_FILES) $(INTERNAL_USERIMAGES_DEPS) systemimage-squisher
+FULL_SYSTEMIMAGE_DEPS := $(INTERNAL_SYSTEMIMAGE_FILES) $(INTERNAL_USERIMAGES_DEPS) systemimage-changelog
 
 # -----------------------------------------------------------------
 # installed file list
