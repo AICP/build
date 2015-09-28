@@ -87,6 +87,9 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
       Enable or disable the execution of backuptool.sh.
       Disabled by default.
 
+  --persist <true|false>
+      Specify whether to enable persistence across installs (on by default).
+
   --override_device <device>
       Override device-specific asserts. Can be a comma-separated list.
 
@@ -141,6 +144,7 @@ OPTIONS.updater_binary = None
 OPTIONS.oem_source = None
 OPTIONS.fallback_to_full = True
 OPTIONS.backuptool = False
+OPTIONS.persist = True
 OPTIONS.override_device = 'auto'
 OPTIONS.override_prop = False
 OPTIONS.use_lzma = False
@@ -658,6 +662,11 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   if "selinux_fc" in OPTIONS.info_dict:
     WritePolicyConfig(OPTIONS.info_dict["selinux_fc"], output_zip)
 
+  if OPTIONS.persist:
+    script.Mount("/system")
+    script.RunPersist("save")
+    script.Unmount("/system")
+
   recovery_mount_options = OPTIONS.info_dict.get("recovery_mount_options")
 
   system_items = ItemSet("system", "META/filesystem_config.txt")
@@ -720,6 +729,9 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
       vendor_items.GetMetadata(input_zip)
       vendor_items.Get("vendor").SetPermissions(script)
+
+  if OPTIONS.persist:
+    script.RunPersist("restore")
 
   common.CheckSize(boot_img.data, "boot.img", OPTIONS.info_dict)
   common.ZipWriteStr(output_zip, "boot.img", boot_img.data)
@@ -1635,6 +1647,8 @@ def main(argv):
       OPTIONS.backuptool = bool(a.lower() == 'true')
     elif o in ("--override_device"):
       OPTIONS.override_device = a
+    elif o in ("--persist"):
+      OPTIONS.persist = a
     elif o in ("--override_prop"):
       OPTIONS.override_prop = bool(a.lower() == 'true')
     elif o in ("-z", "--use_lzma"):
@@ -1663,6 +1677,7 @@ def main(argv):
                                               "verify",
                                               "no_fallback_to_full",
                                               "backup=",
+                                              "persist=",
                                               "override_device=",
                                               "override_prop=",
                                               "use_lzma"],

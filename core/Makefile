@@ -1778,6 +1778,7 @@ KERNEL_PATH := $(TARGET_KERNEL_SOURCE)/arch/arm/configs/$(TARGET_KERNEL_CONFIG)
 
 ifneq ($(AICP_PRODUCT),)
     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := true
+    $(INTERNAL_OTA_PACKAGE_TARGET): persist := true
 else
     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
 endif
@@ -1808,6 +1809,7 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(DISTTOOLS)
 	   -k $(KEY_CERT_PAIR) \
 	   $(if $(OEM_OTA_CONFIG), -o $(OEM_OTA_CONFIG)) \
 	   --backup=$(backuptool) \
+           --persist=$(persist) \
 	   --override_device=$(override_device) $(override_prop) \
 	   $(BUILT_TARGET_FILES_PACKAGE) $@
 

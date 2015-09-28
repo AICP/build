@@ -149,6 +149,9 @@ class EdifyGenerator(object):
   def RunBackup(self, command):
     self.script.append(('run_program("/tmp/install/bin/backuptool.sh", "%s");' % command))
 
+  def RunPersist(self, arg):
+    self.script.append('run_program("/tmp/install/bin/persist.sh", "%s");' % arg)
+
   def ValidateSignatures(self, command):
     self.script.append('package_extract_file("META-INF/org/cyanogenmod/releasekey", "/tmp/releasekey");')
     # Exit code 124 == abort. run_program returns raw, so left-shift 8bit
