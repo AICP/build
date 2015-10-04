@@ -163,7 +163,7 @@ $(full_target): $(full_src_files) $(droiddoc_templates) $(droiddoc) $(html_dir_f
 		javadoc \
                 -encoding UTF-8 \
                 \@$(PRIVATE_SRC_LIST_FILE) \
-                -J-Xmx1280m \
+                -J-Xmx2048m \
                 -XDignore.symbol.file \
                 $(PRIVATE_PROFILING_OPTIONS) \
                 -quiet \
