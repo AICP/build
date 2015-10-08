@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1acb0d3e_e0d088f9",
+        "filename": "tools/device/cm.mk.template",
+        "patchSetId": 6
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 174
+      },
+      "writtenOn": "2015-10-08T15:27:16Z",
+      "side": 1,
+      "message": "shouldn\u0027t it be aicp___DEVICE__?",
+      "range": {
+        "startLine": 15,
+        "startChar": 16,
+        "endLine": 15,
+        "endChar": 27
+      },
+      "revId": "0353b2657d5669b3ee61ca8f2bb902c444c7130c",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
+      "unresolved": false
+    }
+  ]
+}
