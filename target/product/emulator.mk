@@ -26,7 +26,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     egl.cfg \
     gralloc.goldfish \
-    libGLESv1_CM_emulation \
+    libGLESv1_AICP_emulation \
     lib_renderControl_enc \
     libEGL_emulation \
     libGLES_android \
