@@ -52,7 +52,7 @@ except:
     device = product
 
 if not depsonly:
-    print "Device %s not found. Attempting to retrieve device repository from AICP Github (http://github.com/AICP)." % device
+    print("Device %s not found. Attempting to retrieve device repository from AICP Github (http://github.com/AICP)." % device)
 
 repositories = []
 
@@ -146,16 +146,16 @@ def add_to_manifest_dependencies(repositories):
         existing_project = exists_in_tree(lm, repo_target)
         if existing_project != None:
             if existing_project.attrib['name'] != repository['repository']:
-                print 'Updating dependency %s' % (repo_name)
+                print ('Updating dependency %s' % (repo_name))
                 existing_project.set('name', repository['repository'])
             if existing_project.attrib['revision'] == repository['branch']:
-                print 'AICP/%s already exists' % (repo_name)
+                print ('AICP/%s already exists' % (repo_name))
             else:
-                print 'updating branch for %s to %s' % (repo_name, repository['branch'])
+                print ('updating branch for %s to %s' % (repo_name, repository['branch']))
                 existing_project.set('revision', repository['branch'])
             continue
 
-        print 'Adding dependency: %s -> %s' % (repo_name, repo_target)
+        print ('Adding dependency: %s -> %s' % (repo_name, repo_target))
         project = ElementTree.Element("project", attrib = { "path": repo_target,
             "remote": "aicp", "name": repo_name, "revision": "mm6.0" })
 
@@ -227,8 +227,8 @@ def fetch_dependencies(repo_path, fallback_branch = None):
 
         if len(fetch_list) > 0:
             print('Adding dependencies to manifest')
-            add_to_manifest(fetch_list, fallback_branch)
- else:
+            add_to_manifest_dependencies(fetch_list)
+    else:
         print('Dependencies file not found, bailing out.')
 
     if len(syncable_repos) > 0:
@@ -259,47 +259,15 @@ else:
 
             manufacturer = repo_name.replace("device_", "").replace("_" + device, "")
 
-            default_revision = get_default_revision()
-            print("Default revision: %s" % default_revision)
-            print("Checking branch info")
-            githubreq = urllib.request.Request(repository['branches_url'].replace('{/branch}', ''))
-            add_auth(githubreq)
-            result = json.loads(urllib.request.urlopen(githubreq).read().decode())
-
-            ## Try tags, too, since that's what releases use
-            if not has_branch(result, default_revision):
-                githubreq = urllib.request.Request(repository['tags_url'].replace('{/tag}', ''))
-                add_auth(githubreq)
-                result.extend (json.loads(urllib.request.urlopen(githubreq).read().decode()))
-
             repo_path = "device/%s/%s" % (manufacturer, device)
-            adding = {'repository':repo_name,'target_path':repo_path}
 
-            fallback_branch = None
-            if not has_branch(result, default_revision):
-                if os.getenv('ROOMSERVICE_BRANCHES'):
-                    fallbacks = list(filter(bool, os.getenv('ROOMSERVICE_BRANCHES').split(' ')))
-                    for fallback in fallbacks:
-                        if has_branch(result, fallback):
-                            print("Using fallback branch: %s" % fallback)
-                            fallback_branch = fallback
-                            break
-
-                if not fallback_branch:
-                    print("Default revision %s not found in %s. Bailing." % (default_revision, repo_name))
-                    print("Branches found:")
-                    for branch in [branch['name'] for branch in result]:
-                        print(branch)
-                    print("Use the ROOMSERVICE_BRANCHES environment variable to specify a list of fallback branches.")
-                    sys.exit()
-
-            add_to_manifest([adding], fallback_branch)
+            add_to_manifest([{'repository':repo_name,'target_path':repo_path,'branch':'mm6.0'}])
 
             print("Syncing repository to retrieve project.")
             os.system('repo sync --force-sync %s' % repo_path)
             print("Repository synced!")
 
-            fetch_dependencies(repo_path, fallback_branch)
+            fetch_dependencies(repo_path)
             print("Done")
             sys.exit()
 
