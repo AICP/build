@@ -180,7 +180,7 @@ include $(BUILD_SYSTEM)/product.mk
 include $(BUILD_SYSTEM)/device.mk
 
 # A AICP build needs only the AICP product makefiles.
-ifneq ($(CM_BUILD),)
+ifneq ($(AICP_BUILD),)
   all_product_configs := $(shell find device -path "*/$(AICP_BUILD)/aicp.mk")
 else
   ifneq ($(strip $(TARGET_BUILD_APPS)),)
