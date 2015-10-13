@@ -1858,10 +1858,30 @@ bootzip: bootimage
 	   $(TARGET_DEVICE)
 
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
+
 bacon: otapackage
+
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
 	$(hide) $(MD5SUM) $(AICP_TARGET_PACKAGE) > $(AICP_TARGET_PACKAGE).md5sum
-	@echo -e ${CL_CYN}"Package Complete: $(AICP_TARGET_PACKAGE)"${CL_RST}
+	@echo  ""                                                                                        
+	@echo -e $(CL_CHAR1)" ▄▄▄·  "${CL_CHAR2}" ▪   "${CL_CHAR3}"  ▄▄·  "${CL_CHAR4}"  ▄▄▄·  "${CL_RST}
+	@echo -e $(CL_CHAR1)"▐█ ▀█  "${CL_CHAR2}" ██  "${CL_CHAR3}" ▐█ ▌▪ "${CL_CHAR4}" ▐█ ▄█  "${CL_RST}
+	@echo -e $(CL_CHAR1)"▄█▀▀█  "${CL_CHAR2}" ▐█· "${CL_CHAR3}" ██ ▄▄ "${CL_CHAR4}"  ██▀·  "${CL_RST}
+	@echo -e $(CL_CHAR1)"▐█ ▪▐▌ "${CL_CHAR2}" ▐█▌ "${CL_CHAR3}" ▐███▌ "${CL_CHAR4}" ▐█▪·•  "${CL_RST}
+	@echo -e $(CL_CHAR1)" ▀  ▀  "${CL_CHAR2}" ▀▀▀ "${CL_CHAR3}"  ▀▀▀  "${CL_CHAR4}" .▀     "${CL_RST}
+	@echo  ""                                                                                        
+	@echo -e ${CL_CHAR5}"▄▄▄   "${CL_CHAR6}"       "${CL_CHAR7}"• ▌ ▄ ·.  "${CL_RST}                 
+	@echo -e ${CL_CHAR5}"▀▄ █· "${CL_CHAR6}"▪      "${CL_CHAR7}"·██ ▐███▪ "${CL_RST}                 
+	@echo -e ${CL_CHAR5}"▐▀▀▄  "${CL_CHAR6}" ▄█▀▄  "${CL_CHAR7}"▐█ ▌▐▌▐█· "${CL_RST}                 
+	@echo -e ${CL_CHAR5}"▐█•█▌ "${CL_CHAR6}"▐█▌.▐▌ "${CL_CHAR7}"██ ██▌▐█▌ "${CL_RST}                 
+	@echo -e ${CL_CHAR5}".▀  ▀ "${CL_CHAR6}" ▀█▄▀▪ "${CL_CHAR7}"▀▀  █▪▀▀▀ "${CL_RST}                 
+	@echo  ""                                                                                        
+	@echo -e ${CL_CYN}"===========-Package complete-==========="${CL_RST}
+	@echo -e ${CL_CYN}"zip: "${CL_MAG} $(AICP_TARGET_PACKAGE)${CL_RST}
+	@echo -e ${CL_CYN}"md5: "${CL_MAG}" `cat $(AICP_TARGET_PACKAGE).md5sum | cut -d ' ' -f 1`"${CL_RST}
+	@echo -e ${CL_CYN}"size:"${CL_MAG}" `ls -lah $(AICP_TARGET_PACKAGE) | cut -d ' ' -f 5`"${CL_RST}
+	@echo -e ${CL_CYN}"========================================"${CL_RST}
+	@echo -e ""
 
 # -----------------------------------------------------------------
 # The factory package
