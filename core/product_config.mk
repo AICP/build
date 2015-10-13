@@ -180,8 +180,8 @@ include $(BUILD_SYSTEM)/product.mk
 include $(BUILD_SYSTEM)/device.mk
 
 # A AICP build needs only the AICP product makefiles.
-ifneq ($(AICP_BUILD),)
-  all_product_configs := $(shell ls vendor/aicp/products/${AICP_BUILD}.mk)
+ifneq ($(AICP_PRODUCT),)
+  all_product_configs := $(shell ls vendor/aicp/products/${AICP_PRODUCT}.mk)
 else
   ifneq ($(strip $(TARGET_BUILD_APPS)),)
   # An unbundled app build needs only the core product makefiles.
@@ -192,9 +192,9 @@ else
     # files in the tree.
     all_product_configs := $(get-all-product-makefiles)
   endif # TARGET_BUILD_APPS
-endif # AICP_BUILD
+endif # AICP_PRODUCT
 
-ifeq ($(AICP_BUILD),)
+ifeq ($(AICP_PRODUCT),)
 # Find the product config makefile for the current product.
 # all_product_configs consists items like:
 # <product_name>:<path_to_the_product_makefile>
