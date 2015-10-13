@@ -18,9 +18,13 @@ ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
 
     qcom_flags := -DQCOM_HARDWARE
     qcom_flags += -DQCOM_BSP
+    qcom_flags += -DQTI_BSP
 
     TARGET_USES_QCOM_BSP := true
     TARGET_ENABLE_QC_AV_ENHANCEMENTS := true
+
+    # Tell HALs that we're compiling an AOSP build with an in-line kernel
+    TARGET_COMPILE_WITH_MSM_KERNEL := true
 
     # Enable DirectTrack for legacy targets
     ifneq ($(filter msm7x30 msm8660 msm8960,$(TARGET_BOARD_PLATFORM)),)
