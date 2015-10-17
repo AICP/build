@@ -57,6 +57,7 @@ PRODUCT_PACKAGES += \
     libinput \
     libinputflinger \
     libiprouteutil \
+    libjni_latinime \
     libjnigraphics \
     libldnhncr \
     libmedia \
