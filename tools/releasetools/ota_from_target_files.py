@@ -633,7 +633,7 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
 
   aicpv = GetBuildProp("ro.aicp.version", OPTIONS.info_dict)
-  if os.getenv("AICP_BUILD") is not None:
+  if os.getenv("AICP_BUILDTYPE") is not None:
     build = ' '.join(aicpv.split('_')[3].split('-')).title()
     script.Print("*   Version: %s"%(build));
   elif os.getenv("AICP_NIGHTLY") is not None:
