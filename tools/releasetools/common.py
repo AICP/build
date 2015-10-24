@@ -1299,7 +1299,7 @@ class BlockDifference(object):
                          self.device, ranges_str,
                          self._HashZeroBlocks(self.tgt.extended.size())))
       script.Print(" ")
-      script.Print("Verified AICP System files...")
+      script.Print("AICP System files verified.")
       script.AppendExtra(
           'else\n'
           '  abort("%s partition has unexpected non-zero contents after OTA '
@@ -1307,7 +1307,7 @@ class BlockDifference(object):
           'endif;' % (partition,))
     else:
       script.Print(" ")
-      script.Print("Verified AICP System files...")
+      script.Print("AICP System files verified.")
 
     script.AppendExtra(
         'else\n'
