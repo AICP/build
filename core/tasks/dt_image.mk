@@ -2,6 +2,7 @@
 # Generate device tree image (dt.img)
 #----------------------------------------------------------------------
 ifeq ($(strip $(BOARD_KERNEL_SEPARATED_DT)),true)
+ifneq ($(strip $(BOARD_KERNEL_PREBUILT_DT)),true)
 ifeq ($(strip $(BUILD_TINY_ANDROID)),true)
 include device/qcom/common/dtbtool/Android.mk
 endif
