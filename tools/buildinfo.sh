@@ -48,8 +48,10 @@ fi
 echo "ro.build.host=`hostname`"
 echo "ro.build.tags=$BUILD_VERSION_TAGS"
 echo "ro.build.flavor=$TARGET_BUILD_FLAVOR"
+echo "ro.product.model=$PRODUCT_MODEL"
 echo "ro.product.brand=$PRODUCT_BRAND"
 echo "ro.product.name=$PRODUCT_NAME"
+echo "ro.product.device=$TARGET_DEVICE"
 echo "ro.product.board=$TARGET_BOOTLOADER_BOARD_NAME"
 
 # These values are deprecated, use "ro.product.cpu.abilist"
@@ -74,10 +76,9 @@ fi
 echo "ro.wifi.channels=$PRODUCT_DEFAULT_WIFI_CHANNELS"
 echo "ro.board.platform=$TARGET_BOARD_PLATFORM"
 
-echo "# ro.build.product is obsolete; use ro.product.device"
-echo "ro.build.product=$TARGET_DEVICE"
-
 if [ "$TARGET_UNIFIED_DEVICE" == "" ] ; then
+  echo "# ro.build.product is obsolete; use ro.product.device"
+  echo "ro.build.product=$TARGET_DEVICE"
   echo "ro.product.model=$PRODUCT_MODEL"
   echo "ro.product.device=$TARGET_DEVICE"
   echo "# Do not try to parse description, fingerprint, or thumbprint"
