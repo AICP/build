@@ -324,7 +324,7 @@ def AddImagesToTargetFiles(filename):
   def banner(s):
     print "\n\n++++ " + s + " ++++\n\n"
 
-  banner("boot")
+  #banner("boot")
   prebuilt_path = os.path.join(OPTIONS.input_tmp, "IMAGES", "boot.img")
   boot_image = None
   if os.path.exists(prebuilt_path):
@@ -338,7 +338,7 @@ def AddImagesToTargetFiles(filename):
     if boot_image:
       boot_image.AddToZip(output_zip)
 
-  banner("recovery")
+  #banner("recovery")
   recovery_image = None
   prebuilt_path = os.path.join(OPTIONS.input_tmp, "IMAGES", "recovery.img")
   if os.path.exists(prebuilt_path):
@@ -352,16 +352,16 @@ def AddImagesToTargetFiles(filename):
     if recovery_image:
       recovery_image.AddToZip(output_zip)
 
-  banner("system")
+  #banner("system")
   AddSystem(output_zip, recovery_img=recovery_image, boot_img=boot_image)
   if has_vendor:
-    banner("vendor")
+    #banner("vendor")
     AddVendor(output_zip)
-  banner("userdata")
+  #banner("userdata")
   AddUserdata(output_zip)
-  banner("extrauserdata")
+  #banner("extrauserdata")
   AddUserdataExtra(output_zip)
-  banner("cache")
+  #banner("cache")
   AddCache(output_zip)
 
   common.ZipClose(output_zip)
