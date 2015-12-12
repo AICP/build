@@ -513,36 +513,6 @@ def main(argv):
       print >> sys.stderr, "error: unknown image file name ", image_filename
       exit(1)
 
-  #
-  # If environment has defined USER_BUILD_IMAGE_HOOK then it is expected to
-  # be the name of an executable script that the user has written to make
-  # customization before we build the image. For example, before building
-  # system.img the user might want to delete various apps from
-  #   out/target/product/<phone>/system/app/
-  # When we invoke the script we pass the mount_point for the script to
-  # test. This allows the script to do operations only when a specific image
-  # is being built.
-  #
-  # Here is an example
-  #  - You are building for HTC One (M7)
-  #  - Your source is located at ${HOME}/android/aicp50/
-  #  - For some reason you want to delete VisualizationWallpapers from your build
-  # Then your script might look like this
-  #
-  #   #!/bin/bash
-  #   if [ "$1" == "system" ]; then
-  #     rm -rf ${HOME}/android/aicp50/out/target/product/m7/system/app/VisualizationWallpapers
-  #   else
-  #     # Nothing to do because we are building userdata.img or cache.img, etc.
-  #   fi
-  #
-  # IMPORTANT: Make sure that your script has execute permissions otherwise it will not be called.
-  #
-  user_script_name = os.environ.get("USER_BUILD_IMAGE_HOOK", "")
-  # If USER_BUILD_IMAGE_HOOK is not empty and it specifies a file that is executable then call it
-  if user_script_name != "" and os.path.isfile(user_script_name) and os.access(user_script_name, os.X_OK):
-    subprocess.call([user_script_name, mount_point])
-
     image_properties = ImagePropFromGlobalDict(glob_dict, mount_point)
 
   if not BuildImage(in_dir, image_properties, out_file, target_out):
