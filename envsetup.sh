@@ -542,6 +542,18 @@ function brunch()
     return $?
 }
 
+function brunchnemo()
+{
+    breakfast $*
+    if [ $? -eq 0 ]; then
+        mka bacon && cd $ANDROID_PRODUCT_OUT && nemo .
+    else
+        echo "No such item in brunch menu. Try 'breakfast'"
+        return 1
+    fi
+    return $?
+}
+
 function breakfast()
 {
     target=$1
