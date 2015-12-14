@@ -542,6 +542,18 @@ function brunch()
     return $?
 }
 
+function brunchopen()
+{
+    breakfast $*
+    if [ $? -eq 0 ]; then
+        mka bacon && cd $ANDROID_PRODUCT_OUT && xdg-open .
+    else
+        echo "No such item in brunch menu. Try 'breakfast'"
+        return 1
+    fi
+    return $?
+}
+
 function breakfast()
 {
     target=$1
