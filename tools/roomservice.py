@@ -58,7 +58,7 @@ repositories = []
 
 page = 1
 while not depsonly:
-    result = json.loads(urllib2.urlopen("https://api.github.com/users/AICP/repos?page=%d" % page).read())
+    result = json.loads(urllib.request.urlopen("https://api.github.com/users/AICP/repos?page=%d" % page).read().decode())
     if len(result) == 0:
         break
     for res in result:
@@ -165,7 +165,7 @@ def add_to_manifest_dependencies(repositories):
         lm.append(project)
 
     indent(lm, 0)
-    raw_xml = ElementTree.tostring(lm)
+    raw_xml = ElementTree.tostring(lm).decode()
     raw_xml = '<?xml version="1.0" encoding="UTF-8"?>\n' + raw_xml
 
     f = open('.repo/local_manifests/aicp_manifest.xml', 'w')
