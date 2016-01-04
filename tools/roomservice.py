@@ -58,7 +58,7 @@ repositories = []
 
 page = 1
 while not depsonly:
-    result = json.loads(urllib2.urlopen("https://api.github.com/users/AICP/repos?page=%d" % page).read())
+    result = json.loads(urllib.request.urlopen("https://api.github.com/users/AICP/repos?page=%d" % page).read().decode())
     if len(result) == 0:
         break
     for res in result:
