@@ -516,7 +516,12 @@ ifneq ($(dont_bother),true)
 subdir_makefiles := \
 	$(shell build/tools/findleaves.py $(FIND_LEAVES_EXCLUDES) $(subdirs) Android.mk)
 
-$(foreach mk, $(subdir_makefiles), $(eval include $(mk)))
+#$(foreach mk, $(subdir_makefiles), $(eval include $(mk)))
+$(foreach subdir_makefile, $(subdir_makefiles), \
+		  $(info Including $(subdir_makefile)) \
+		    $(eval include $(subdir_makefile)) \
+			 )
+subdir_makefile :=
 
 endif # dont_bother
 
