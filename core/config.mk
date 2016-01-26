@@ -129,7 +129,7 @@ SHOW_COMMANDS:= $(filter showcommands,$(MAKECMDGOALS))
 # ###############################################################
 
 # These can be changed to modify both host and device modules.
-COMMON_GLOBAL_CFLAGS:= -DANDROID -fmessage-length=0 -W -Wall -Wno-unused -Winit-self -Wpointer-arith
+COMMON_GLOBAL_CFLAGS:= -DANDROID -fmessage-length=0 -W -Wall -Wno-unused -Winit-self -Wpointer-arith -pipe
 COMMON_RELEASE_CFLAGS:= -DNDEBUG -UDEBUG
 
 COMMON_GLOBAL_CPPFLAGS:= $(COMMON_GLOBAL_CFLAGS) -Wsign-promo -std=gnu++11
