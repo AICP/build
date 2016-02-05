@@ -68,17 +68,11 @@ while not depsonly:
 local_manifests = r'.repo/local_manifests'
 if not os.path.exists(local_manifests): os.makedirs(local_manifests)
 
-def exists_in_tree(lm, repository):
+def exists_in_tree(lm, path):
     for child in lm.getchildren():
-        if child.attrib['path'].endswith(repository):
-            return child
-    return None
-
-def exists_in_tree_device(lm, repository):
-    for child in lm.getchildren():
-        if child.attrib['name'].endswith(repository):
-            return child
-    return None
+        if child.attrib['path'] == path:
+            return True
+    return False
 
 # in-place prettyprint formatter
 def indent(elem, level=0):
@@ -120,7 +114,7 @@ def get_from_manifest(devicename):
 
     return None
 
-def is_in_manifest(projectname, branch):
+def is_in_manifest(projectpath):
     try:
         lm = ElementTree.parse(".repo/local_manifests/aicp_manifest.xml")
         lm = lm.getroot()
@@ -128,10 +122,21 @@ def is_in_manifest(projectname, branch):
         lm = ElementTree.Element("manifest")
 
     for localpath in lm.findall("project"):
-        if localpath.get("name") == projectname and localpath.get("revision") == branch:
-            return 1
+        if localpath.get("path") == projectpath:
+            return True
 
-    return None
+    ## Search in main manifest, too
+    try:
+        lm = ElementTree.parse(".repo/manifest.xml")
+        lm = lm.getroot()
+    except:
+        lm = ElementTree.Element("manifest")
+
+    for localpath in lm.findall("project"):
+        if localpath.get("path") == projectpath:
+            return True
+
+    return False
 
 def add_to_manifest_dependencies(repositories):
     try:
@@ -219,7 +224,7 @@ def fetch_dependencies(repo_path, fallback_branch = None):
         fetch_list = []
 
         for dependency in dependencies:
-            if not is_in_manifest("%s" % dependency['repository'], "%s" % dependency['branch']):
+            if not is_in_manifest(dependency['target_path']):
                 fetch_list.append(dependency)
                 syncable_repos.append(dependency['target_path'])
 
