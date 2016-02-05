@@ -68,17 +68,11 @@ while not depsonly:
 local_manifests = r'.repo/local_manifests'
 if not os.path.exists(local_manifests): os.makedirs(local_manifests)
 
-def exists_in_tree(lm, repository):
+def exists_in_tree(lm, path):
     for child in lm.getchildren():
-        if child.attrib['path'].endswith(repository):
-            return child
-    return None
-
-def exists_in_tree_device(lm, repository):
-    for child in lm.getchildren():
-        if child.attrib['name'].endswith(repository):
-            return child
-    return None
+        if child.attrib['path'] == path:
+            return True
+    return False
 
 # in-place prettyprint formatter
 def indent(elem, level=0):
@@ -120,7 +114,7 @@ def get_from_manifest(devicename):
 
     return None
 
-def is_in_manifest(projectname, branch):
+def is_in_manifest(projectpath):
     try:
         lm = ElementTree.parse(".repo/local_manifests/aicp_manifest.xml")
         lm = lm.getroot()
@@ -128,8 +122,8 @@ def is_in_manifest(projectname, branch):
         lm = ElementTree.Element("manifest")
 
     for localpath in lm.findall("project"):
-        if localpath.get("name") == projectname and localpath.get("revision") == branch:
-            return 1
+        if localpath.get("path") == projectpath:
+            return True
 
     return None
 
@@ -140,29 +134,11 @@ def add_to_manifest_dependencies(repositories):
     except:
         lm = ElementTree.Element("manifest")
 
-    for repository in repositories:
-        repo_name = repository['repository']
-        repo_target = repository['target_path']
-        existing_project = exists_in_tree(lm, repo_target)
-        if existing_project != None:
-            if existing_project.attrib['name'] != repository['repository']:
-                print ('Updating dependency %s' % (repo_name))
-                existing_project.set('name', repository['repository'])
-            if existing_project.attrib['revision'] == repository['branch']:
-                print ('AICP/%s already exists' % (repo_name))
-            else:
-                print ('updating branch for %s to %s' % (repo_name, repository['branch']))
-                existing_project.set('revision', repository['branch'])
-            continue
+    for localpath in lm.findall("project"):
+        if localpath.get("path") == projectpath:
+            return True
 
-        print ('Adding dependency: %s -> %s' % (repo_name, repo_target))
-        project = ElementTree.Element("project", attrib = { "path": repo_target,
-            "remote": "aicp", "name": repo_name, "revision": "mm6.0" })
-
-        if 'branch' in repository:
-            project.set('revision',repository['branch'])
-
-        lm.append(project)
+    return False
 
     indent(lm, 0)
     raw_xml = ElementTree.tostring(lm).decode()
@@ -182,8 +158,9 @@ def add_to_manifest(repositories):
     for repository in repositories:
         repo_name = repository['repository']
         repo_target = repository['target_path']
-        if exists_in_tree(lm, repo_name):
-            print('AICP/%s already exists' % (repo_name))
+        print('Checking if %s is fetched from %s' % (repo_target, repo_name))
+        if is_in_manifest(repo_target):
+            print('AICP/%s already fetched to %s' % (repo_name, repo_target))
             continue
 
         print('Adding dependency: AICP/%s -> %s' % (repo_name, repo_target))
@@ -219,7 +196,7 @@ def fetch_dependencies(repo_path, fallback_branch = None):
         fetch_list = []
 
         for dependency in dependencies:
-            if not is_in_manifest("%s" % dependency['repository'], "%s" % dependency['branch']):
+            if not is_in_manifest(dependency['target_path']):
                 fetch_list.append(dependency)
                 syncable_repos.append(dependency['target_path'])
 
