@@ -1,7 +1,4 @@
-NINJA ?= $(shell which ninja)
-ifeq ($(NINJA),)
-  NINJA := prebuilts/ninja/$(HOST_PREBUILT_TAG)/ninja
-endif
+NINJA ?= prebuilts/build-tools/$(HOST_PREBUILT_TAG)/bin/ninja
 
 ifeq ($(USE_SOONG),true)
 USE_SOONG_FOR_KATI := true
