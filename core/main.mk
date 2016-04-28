@@ -89,6 +89,9 @@ endif
 ifeq ($(MAKECMDGOALS),dirty)
 dont_bother := true
 endif
+ifeq ($(MAKECMDGOALS),targetclean)
+dont_bother := true
+endif
 
 # Targets that provide quick help on the build system.
 include $(BUILD_SYSTEM)/help.mk
@@ -1070,6 +1073,12 @@ dirty:
 	@rm -rf $(OUT_DIR)/target/product/*/*.zip
 	@rm -rf $(OUT_DIR)/target/product/*/*.md5sum
 	@echo -e ${CL_GRN}"build.prop and zip files erased"${CL_RST}
+
+# Clears out/target and subdirectories
+.PHONY: targetclean
+targetclean:
+	@rm -rf $(OUT_DIR)/target/*
+	@echo -e ${CL_GRN}"entire out/target structure erased"${CL_RST}
 
 #xxx scrape this from ALL_MODULE_NAME_TAGS
 .PHONY: modules
