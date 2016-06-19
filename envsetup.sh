@@ -2473,11 +2473,11 @@ function mk_timer()
         printf "${color_failed}#### make failed to build some targets "
     fi
     if [ $hours -gt 0 ] ; then
-        printf "%02gh:%02gm:%02gs ago" $hours $mins $secs
+        printf "in %02gh:%02gm:%02gs" $hours $mins $secs
     elif [ $mins -gt 0 ] ; then
-        printf "%02gm:%02gs ago" $mins $secs
+        printf "in %02gm:%02gs" $mins $secs
     elif [ $secs -gt 0 ] ; then
-        printf "%s seconds ago" $secs
+        printf "in %s seconds" $secs
     fi
     printf "${color_reset}\n\n"
     return $ret
