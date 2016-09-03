@@ -34,6 +34,7 @@
 #   TARGET_KERNEL_CROSS_COMPILE_PREFIX = Compiler prefix (e.g. arm-eabi-)
 #                                          defaults to arm-linux-androidkernel- for arm
 #                                                      aarch64-linux-androidkernel- for arm64
+#                                                      x86_64-linux-androidkernel- for x86
 #
 #   BOARD_KERNEL_IMAGE_NAME            = Built image name, optional,
 #                                          defaults to Image.gz on arm64
@@ -215,10 +216,15 @@ ifeq ($(TARGET_KERNEL_CROSS_COMPILE_PREFIX),)
 ifeq ($(TARGET_ARCH),arm64)
 KERNEL_TOOLCHAIN_PREFIX ?= aarch64-linux-androidkernel-
 else
+ifeq ($(TARGET_ARCH),arm)
 KERNEL_TOOLCHAIN_PREFIX ?= arm-linux-androidkernel-
-endif
+else
+ifeq $(TARGET_ARCH),x86)
+KERNEL_TOOLCHAIN_PREFIX ?= x86_64-linux-androidkernel-
 else
 KERNEL_TOOLCHAIN_PREFIX ?= $(TARGET_KERNEL_CROSS_COMPILE_PREFIX)
+endif
+endif
 endif
 
 ifeq ($(KERNEL_TOOLCHAIN),)
