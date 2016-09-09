@@ -130,6 +130,14 @@ NINJA_REMOTE_NUM_JOBS ?= 500
 NINJA_ARGS += -j$(NINJA_REMOTE_NUM_JOBS)
 else
 NINJA_MAKEPARALLEL := $(MAKEPARALLEL) --ninja
+
+# We never want Kati to see MAKEFLAGS, as forcefully overriding variables is
+# terrible. The variables in MAKEFLAGS are still available in the environment,
+# so if part of the build wants input from the user, it should be explicitly
+# checking for an environment variable or using ?=
+#
+# makeparallel already clears MAKEFLAGS, so it's not necessary in the GOMA case
+KATI_MAKEPARALLEL := MAKEFLAGS=
 endif
 
 ifeq ($(USE_SOONG),true)
