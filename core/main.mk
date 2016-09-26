@@ -145,10 +145,10 @@ endif
 include $(BUILD_SYSTEM)/cleanbuild.mk
 
 # Bring in Qualcomm helper macros
-include vendor/aicp/build/core/qcom_utils.mk
+include $(BUILD_SYSTEM)/qcom_utils.mk
 
 # Bring in Mediatek helper macros too
-include vendor/aicp/build/core/mtk_utils.mk
+include $(BUILD_SYSTEM)/mtk_utils.mk
 
 # Include the google-specific config
 -include vendor/google/build/config.mk
