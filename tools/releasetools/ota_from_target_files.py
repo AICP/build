@@ -306,7 +306,8 @@ class BuildInfo(object):
       return self.info_dict.get("build.prop", {})[prop]
     except KeyError:
       if raise_error:
-        raise common.ExternalError("couldn't find %s in build.prop" % (prop,))
+        print ("WARNING: could not find %s in build.prop" % (prop,))
+        return None
       else:
         return "Unknown"
 
