@@ -1,5 +1,76 @@
 # Put some miscellaneous rules here
 
+ifneq ($(BUILD_WITH_COLORS),0)
+  CL_RED="\033[31m"
+  CL_GRN="\033[32m"
+  CL_YLW="\033[33m"
+  CL_BLU="\033[34m"
+  CL_MAG="\033[35m"
+  CL_CYN="\033[36m"
+  CL_RST="\033[0m"
+
+  # Let's be paranoid and make sure the 'bc' command is available.
+  # It would be silly to have an unimportant make error for this
+  # after a long build has completed successfully. If this check
+  # fails then all the CL_CHARn variables will be null, which will
+  # cause the default system color to be used.
+
+  CHECK_BC := $(shell which bc > /dev/null; echo $$?)
+  ifeq ($(CHECK_BC),0)
+    # RANDOM_VAL gets a psuedo random based on the Linux $RANDOM
+    # environment variable. If that returns an empty value then we
+    # assume it is not supported and just use the current number of
+    # seconds, which works, but is not as interesting.
+
+    ifeq ($(shell echo $${RANDOM}),)
+      RANDOM_VAL := $(shell echo `date +%s`)
+    else
+      RANDOM_VAL = $(shell echo $${RANDOM})
+    endif
+
+    # Random colors for use when displaying the completion logo
+    # that says "AICP ROM" (7 characters, excluding white space).
+    # In each definition we use RANDOM_VAL twice
+    #   - The 1st gives 0 or 1 (normal or highlighted)
+    #   - The 2nd gives 31..36 (RED, GRN, YLW, BLU, MAG, CYN)
+
+    # Calculate the 2 random values (highlight and color) for each
+    # of the 7 character we will write. The only reason for the
+    # first mod (%) is in case we are using seconds instead of RANDOM.
+    # That at least makes things slightly more interesting.
+    CL_RANDOM_01 := $(shell echo ${RANDOM_VAL} % 2           | bc)
+    CL_RANDOM_02 := $(shell echo ${RANDOM_VAL} % 11 % 6 + 31 | bc )
+
+    CL_RANDOM_03 := $(shell echo ${RANDOM_VAL} % 2           | bc)
+    CL_RANDOM_04 := $(shell echo ${RANDOM_VAL} % 19 % 6 + 31 | bc )
+
+    CL_RANDOM_05 := $(shell echo ${RANDOM_VAL} % 2           | bc)
+    CL_RANDOM_06 := $(shell echo ${RANDOM_VAL} % 31 % 6 + 31 | bc )
+
+    CL_RANDOM_07 := $(shell echo ${RANDOM_VAL} % 2           | bc)
+    CL_RANDOM_08 := $(shell echo ${RANDOM_VAL} % 43 % 6 + 31 | bc )
+
+    CL_RANDOM_09 := $(shell echo ${RANDOM_VAL} % 2           | bc)
+    CL_RANDOM_10 := $(shell echo ${RANDOM_VAL} % 59 % 6 + 31 | bc )
+
+    CL_RANDOM_11 := $(shell echo ${RANDOM_VAL} % 2           | bc)
+    CL_RANDOM_12 := $(shell echo ${RANDOM_VAL} % 71 % 6 + 31 | bc )
+
+    CL_RANDOM_13 := $(shell echo ${RANDOM_VAL} % 2           | bc)
+    CL_RANDOM_14 := $(shell echo ${RANDOM_VAL} % 83 % 6 + 31 | bc )
+
+
+    # Now we finally define the color codes for each character.
+    CL_CHAR1 := "\033[$(CL_RANDOM_01);$(CL_RANDOM_02)m"
+    CL_CHAR2 := "\033[$(CL_RANDOM_03);$(CL_RANDOM_04)m"
+    CL_CHAR3 := "\033[$(CL_RANDOM_05);$(CL_RANDOM_06)m"
+    CL_CHAR4 := "\033[$(CL_RANDOM_07);$(CL_RANDOM_08)m"
+    CL_CHAR5 := "\033[$(CL_RANDOM_09);$(CL_RANDOM_10)m"
+    CL_CHAR6 := "\033[$(CL_RANDOM_11);$(CL_RANDOM_12)m"
+    CL_CHAR7 := "\033[$(CL_RANDOM_13);$(CL_RANDOM_14)m"
+  endif
+endif
+
 # HACK: clear LOCAL_PATH from including last build target before calling
 # intermedites-dir-for
 LOCAL_PATH := $(BUILD_SYSTEM)
@@ -2145,23 +2216,23 @@ bacon: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
 	$(hide) $(MD5SUM) $(AICP_TARGET_PACKAGE) > $(AICP_TARGET_PACKAGE).md5sum
 	@echo  ""
-	@echo -e " ▄▄▄·  "" ▪   ""  ▄▄·  ""  ▄▄▄·  "
-	@echo -e "▐█ ▀█  "" ██  "" ▐█ ▌▪ "" ▐█ ▄█  "
-	@echo -e "▄█▀▀█  "" ▐█· "" ██ ▄▄ ""  ██▀·  "
-	@echo -e "▐█ ▪▐▌ "" ▐█▌ "" ▐███▌ "" ▐█▪·•  "
-	@echo -e " ▀  ▀  "" ▀▀▀ ""  ▀▀▀  "" .▀     "
+	@echo -e $(CL_CHAR1)" ▄▄▄·  "${CL_CHAR2}" ▪   "${CL_CHAR3}"  ▄▄·  "${CL_CHAR4}"  ▄▄▄·  "${CL_RST}
+	@echo -e $(CL_CHAR1)"▐█ ▀█  "${CL_CHAR2}" ██  "${CL_CHAR3}" ▐█ ▌▪ "${CL_CHAR4}" ▐█ ▄█  "${CL_RST}
+	@echo -e $(CL_CHAR1)"▄█▀▀█  "${CL_CHAR2}" ▐█· "${CL_CHAR3}" ██ ▄▄ "${CL_CHAR4}"  ██▀·  "${CL_RST}
+	@echo -e $(CL_CHAR1)"▐█ ▪▐▌ "${CL_CHAR2}" ▐█▌ "${CL_CHAR3}" ▐███▌ "${CL_CHAR4}" ▐█▪·•  "${CL_RST}
+	@echo -e $(CL_CHAR1)" ▀  ▀  "${CL_CHAR2}" ▀▀▀ "${CL_CHAR3}"  ▀▀▀  "${CL_CHAR4}" .▀     "${CL_RST}
 	@echo  ""
-	@echo -e "▄▄▄   ""       ""• ▌ ▄ ·.  "
-	@echo -e "▀▄ █· ""▪      ""·██ ▐███▪ "
-	@echo -e "▐▀▀▄  "" ▄█▀▄  ""▐█ ▌▐▌▐█· "
-	@echo -e "▐█•█▌ ""▐█▌.▐▌ ""██ ██▌▐█▌ "
-	@echo -e ".▀  ▀ "" ▀█▄▀▪ ""▀▀  █▪▀▀▀ "
+	@echo -e ${CL_CHAR5}"▄▄▄   "${CL_CHAR6}"       "${CL_CHAR7}"• ▌ ▄ ·.  "${CL_RST}
+	@echo -e ${CL_CHAR5}"▀▄ █· "${CL_CHAR6}"▪      "${CL_CHAR7}"·██ ▐███▪ "${CL_RST}
+	@echo -e ${CL_CHAR5}"▐▀▀▄  "${CL_CHAR6}" ▄█▀▄  "${CL_CHAR7}"▐█ ▌▐▌▐█· "${CL_RST}
+	@echo -e ${CL_CHAR5}"▐█•█▌ "${CL_CHAR6}"▐█▌.▐▌ "${CL_CHAR7}"██ ██▌▐█▌ "${CL_RST}
+	@echo -e ${CL_CHAR5}".▀  ▀ "${CL_CHAR6}" ▀█▄▀▪ "${CL_CHAR7}"▀▀  █▪▀▀▀ "${CL_RST}
 	@echo  ""
-	@echo -e "===========-Package complete-==========="
-	@echo -e "zip: " $(AICP_TARGET_PACKAGE)
-	@echo -e "md5: "" `cat $(AICP_TARGET_PACKAGE).md5sum | cut -d ' ' -f 1`"
-	@echo -e "size:"" `ls -lah $(AICP_TARGET_PACKAGE) | cut -d ' ' -f 5`"
-	@echo -e "========================================"
+	@echo -e ${CL_CYN}"===========-Package complete-==========="${CL_RST}
+	@echo -e ${CL_CYN}"zip: "${CL_MAG} $(AICP_TARGET_PACKAGE)${CL_RST}
+	@echo -e ${CL_CYN}"md5: "${CL_MAG}" `cat $(AICP_TARGET_PACKAGE).md5sum | cut -d ' ' -f 1`"${CL_RST}
+	@echo -e ${CL_CYN}"size:"${CL_MAG}" `ls -lah $(AICP_TARGET_PACKAGE) | cut -d ' ' -f 5`"${CL_RST}
+	@echo -e ${CL_CYN}"========================================"${CL_RST}
 	@echo -e ""
 
 endif    # build_ota_package
