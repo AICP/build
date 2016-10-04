@@ -2222,24 +2222,24 @@ otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
 bacon: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
 	$(hide) $(MD5SUM) $(AICP_TARGET_PACKAGE) > $(AICP_TARGET_PACKAGE).md5sum
-	@echo  ""
-	@echo " ▄▄▄·  "" ▪   ""  ▄▄·  ""  ▄▄▄·  "
-	@echo "▐█ ▀█  "" ██  "" ▐█ ▌▪ "" ▐█ ▄█  "
-	@echo "▄█▀▀█  "" ▐█· "" ██ ▄▄ ""  ██▀·  "
-	@echo "▐█ ▪▐▌ "" ▐█▌ "" ▐███▌ "" ▐█▪·•  "
-	@echo " ▀  ▀  "" ▀▀▀ ""  ▀▀▀  "" .▀     "
-	@echo  ""
-	@echo "▄▄▄   ""       ""• ▌ ▄ ·.  "
-	@echo "▀▄ █· ""▪      ""·██ ▐███▪ "
-	@echo "▐▀▀▄  "" ▄█▀▄  ""▐█ ▌▐▌▐█· "
-	@echo "▐█•█▌ ""▐█▌.▐▌ ""██ ██▌▐█▌ "
-	@echo ".▀  ▀ "" ▀█▄▀▪ ""▀▀  █▪▀▀▀ "
-	@echo  ""
-	@echo "===========-Package complete-==========="
-	@echo "zip: " $(AICP_TARGET_PACKAGE)
-	@echo "md5: "" `cat $(AICP_TARGET_PACKAGE).md5sum | cut -d ' ' -f 1`"
-	@echo "size:"" `ls -lah $(AICP_TARGET_PACKAGE) | cut -d ' ' -f 5`"
-	@echo "========================================"
+	@echo  ""                                                                                        
+	@echo $(CL_CHAR1)" ▄▄▄·  "${CL_CHAR2}" ▪   "${CL_CHAR3}"  ▄▄·  "${CL_CHAR4}"  ▄▄▄·  "${CL_RST}
+	@echo $(CL_CHAR1)"▐█ ▀█  "${CL_CHAR2}" ██  "${CL_CHAR3}" ▐█ ▌▪ "${CL_CHAR4}" ▐█ ▄█  "${CL_RST}
+	@echo $(CL_CHAR1)"▄█▀▀█  "${CL_CHAR2}" ▐█· "${CL_CHAR3}" ██ ▄▄ "${CL_CHAR4}"  ██▀·  "${CL_RST}
+	@echo $(CL_CHAR1)"▐█ ▪▐▌ "${CL_CHAR2}" ▐█▌ "${CL_CHAR3}" ▐███▌ "${CL_CHAR4}" ▐█▪·•  "${CL_RST}
+	@echo $(CL_CHAR1)" ▀  ▀  "${CL_CHAR2}" ▀▀▀ "${CL_CHAR3}"  ▀▀▀  "${CL_CHAR4}" .▀     "${CL_RST}
+	@echo  ""                                                                                        
+	@echo ${CL_CHAR5}"▄▄▄   "${CL_CHAR6}"       "${CL_CHAR7}"• ▌ ▄ ·.  "${CL_RST}                 
+	@echo ${CL_CHAR5}"▀▄ █· "${CL_CHAR6}"▪      "${CL_CHAR7}"·██ ▐███▪ "${CL_RST}                 
+	@echo ${CL_CHAR5}"▐▀▀▄  "${CL_CHAR6}" ▄█▀▄  "${CL_CHAR7}"▐█ ▌▐▌▐█· "${CL_RST}                 
+	@echo ${CL_CHAR5}"▐█•█▌ "${CL_CHAR6}"▐█▌.▐▌ "${CL_CHAR7}"██ ██▌▐█▌ "${CL_RST}                 
+	@echo ${CL_CHAR5}".▀  ▀ "${CL_CHAR6}" ▀█▄▀▪ "${CL_CHAR7}"▀▀  █▪▀▀▀ "${CL_RST}                 
+	@echo  ""                                                                                        
+	@echo ${CL_CYN}"===========-Package complete-==========="${CL_RST}
+	@echo ${CL_CYN}"zip: "${CL_MAG} $(AICP_TARGET_PACKAGE)${CL_RST}
+	@echo ${CL_CYN}"md5: "${CL_MAG}" `cat $(AICP_TARGET_PACKAGE).md5sum | cut -d ' ' -f 1`"${CL_RST}
+	@echo ${CL_CYN}"size:"${CL_MAG}" `ls -lah $(AICP_TARGET_PACKAGE) | cut -d ' ' -f 5`"${CL_RST}
+	@echo ${CL_CYN}"========================================"${CL_RST}
 	@echo ""
 
 endif    # build_ota_package
