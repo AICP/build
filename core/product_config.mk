@@ -181,7 +181,7 @@ include $(BUILD_SYSTEM)/device.mk
 
 # A AICP build needs only the AICP product makefiles.
 ifneq ($(AICP_BUILD),)
-  all_product_configs := $(shell ls vendor/aicp/products/${AICP_BUILD}.mk)
+  all_product_configs := $(shell ls vendor/aicp/products/${AICP_BUILD}.mk 2>/dev/null)
   # easy to port AICP to unoffcial devices.
   ifeq ($(strip $(all_product_configs)),)
     all_product_configs := $(shell find device -path "*/${AICP_BUILD}/aicp.mk")
