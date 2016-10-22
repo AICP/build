@@ -2221,17 +2221,21 @@ bacon: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
 	$(hide) $(MD5SUM) $(AICP_TARGET_PACKAGE) > $(AICP_TARGET_PACKAGE).md5sum
 	@echo  ""
-	@echo -e $(CL_CHAR1)" ▄▄▄·  "${CL_CHAR2}" ▪   "${CL_CHAR3}"  ▄▄·  "${CL_CHAR4}"  ▄▄▄·  "${CL_RST}
-	@echo -e $(CL_CHAR1)"▐█ ▀█  "${CL_CHAR2}" ██  "${CL_CHAR3}" ▐█ ▌▪ "${CL_CHAR4}" ▐█ ▄█  "${CL_RST}
-	@echo -e $(CL_CHAR1)"▄█▀▀█  "${CL_CHAR2}" ▐█· "${CL_CHAR3}" ██ ▄▄ "${CL_CHAR4}"  ██▀·  "${CL_RST}
-	@echo -e $(CL_CHAR1)"▐█ ▪▐▌ "${CL_CHAR2}" ▐█▌ "${CL_CHAR3}" ▐███▌ "${CL_CHAR4}" ▐█▪·•  "${CL_RST}
-	@echo -e $(CL_CHAR1)" ▀  ▀  "${CL_CHAR2}" ▀▀▀ "${CL_CHAR3}"  ▀▀▀  "${CL_CHAR4}" .▀     "${CL_RST}
 	@echo  ""
-	@echo -e ${CL_CHAR5}"▄▄▄   "${CL_CHAR6}"       "${CL_CHAR7}"• ▌ ▄ ·.  "${CL_RST}
-	@echo -e ${CL_CHAR5}"▀▄ █· "${CL_CHAR6}"▪      "${CL_CHAR7}"·██ ▐███▪ "${CL_RST}
-	@echo -e ${CL_CHAR5}"▐▀▀▄  "${CL_CHAR6}" ▄█▀▄  "${CL_CHAR7}"▐█ ▌▐▌▐█· "${CL_RST}
-	@echo -e ${CL_CHAR5}"▐█•█▌ "${CL_CHAR6}"▐█▌.▐▌ "${CL_CHAR7}"██ ██▌▐█▌ "${CL_RST}
-	@echo -e ${CL_CHAR5}".▀  ▀ "${CL_CHAR6}" ▀█▄▀▪ "${CL_CHAR7}"▀▀  █▪▀▀▀ "${CL_RST}
+	@echo -e $(CL_CHAR3)"        ██████  █████▒▒▒▒▒        ███████▒▒▒"${CL_RST}
+	@echo -e $(CL_CHAR3)"      ███████████████▒▒▒▒▒     ██████████▒▒▒▒▒"${CL_RST}
+	@echo -e $(CL_CHAR3)"   ██████████████████▒▒▒▒▒  █████████████▒▒▒▒▒▒▒▒"${CL_RST}
+	@echo -e $(CL_CHAR3)"  ███████     ███████▒▒▒▒▒ ████████ ▒▒▒▒▒  ▒▒▒▒▒▒▒▒"${CL_RST}
+	@echo -e $(CL_CHAR3)"  ██████       ██████▒▒▒▒▒ ██████   ▒▒▒▒▒   ▒▒▒▒▒▒▒"${CL_RST}
+	@echo -e $(CL_CHAR3)" ██████         █████▒▒▒▒▒██████    ▒▒▒▒▒    ▒▒▒▒▒▒▒"${CL_RST}
+	@echo -e $(CL_CHAR3)"  ██████       ██████▒▒▒▒▒ ██████   ▒▒▒▒▒   ▒▒▒▒▒▒▒"${CL_RST}
+	@echo -e $(CL_CHAR3)"  ███████     ███████▒▒▒▒▒ ████████ ▒▒▒▒▒  ▒▒▒▒▒▒▒▒"${CL_RST}
+	@echo -e $(CL_CHAR3)"   ██████████████████▒▒▒▒▒  █████████████▒▒▒▒▒▒▒▒"${CL_RST}
+	@echo -e $(CL_CHAR3)"      ███████████████▒▒▒▒▒     ██████████▒▒▒▒▒"${CL_RST}
+	@echo -e $(CL_CHAR3)"        ██████  █████▒▒▒▒▒        ███████▒▒▒"${CL_RST}
+	@echo -e $(CL_CHAR3)"                                    ▒▒▒▒▒"${CL_RST}
+	@echo -e $(CL_CHAR1)"  C    U    S    T    O    M"${CL_CHAR3}"        ▒▒▒▒▒"${CL_CHAR1}"  R   O   M"${CL_RST}
+	@echo -e $(CL_CHAR3)"                                    ▒▒▒▒▒"${CL_RST}
 	@echo  ""
 	@echo -e ${CL_CYN}"===========-Package complete-==========="${CL_RST}
 	@echo -e ${CL_CYN}"zip: "${CL_MAG} $(AICP_TARGET_PACKAGE)${CL_RST}
