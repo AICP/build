@@ -599,6 +599,18 @@ function brunch()
     return $?
 }
 
+function noninja()
+{
+    breakfast $*
+    if [ $? -eq 0 ]; then
+        export USE_NINJA=false && mka bacon
+    else
+        echo "No such item in brunch menu. Try 'breakfast'"
+        return 1
+    fi
+    return $?
+}
+
 function brunchopen()
 {
     breakfast $*
