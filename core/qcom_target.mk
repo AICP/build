@@ -93,7 +93,6 @@ $(call set-device-specific-path,DATASERVICES,dataservices,vendor/qcom/opensource
 $(call ril-set-path-variant,ril)
 $(call wlan-set-path-variant,wlan-caf)
 $(call bt-vendor-set-path-variant,bt-caf)
-endif # AOSP_VARIANT_MAKEFILE
 
 else
 
