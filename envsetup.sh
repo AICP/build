@@ -2497,6 +2497,11 @@ if [ -d $(gettop)/prebuilts/snapdragon-llvm/toolchains ]; then
     esac
 fi
 
+# Android specific JACK args
+if [ -n "$JACK_SERVER_VM_ARGUMENTS" ] && [ -z "$ANDROID_JACK_VM_ARGS" ]; then
+    export ANDROID_JACK_VM_ARGS=$JACK_SERVER_VM_ARGUMENTS
+fi
+
 # Force JAVA_HOME to point to java 1.7/1.8 if it isn't already set.
 function set_java_home() {
     # Clear the existing JAVA_HOME value if we set it ourselves, so that
