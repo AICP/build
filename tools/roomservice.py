@@ -58,7 +58,15 @@ repositories = []
 
 page = 1
 while not depsonly:
-    result = json.loads(urllib.request.urlopen("https://api.github.com/users/AICP/repos?page=%d" % page).read().decode())
+    try:
+        request = urllib.request.Request("https://api.github.com/users/AICP/repos?page=%d" % page)
+        if os.environ.get('GITHUB_API_USERNAME') is not None and os.environ.get('GITHUB_API_TOKEN') is not None:
+            base64string = base64.encodestring('%s:%s' % (os.environ.get('GITHUB_API_USERNAME'), os.environ.get('GITHUB_API_TOKEN'))).replace('\n', '')
+            request.add_header("Authorization", "Basic %s" % base64string)
+        result = json.loads(urllib.request.urlopen(request).read().decode())
+    except:
+        print("API Error")
+        break
     if len(result) == 0:
         break
     for res in result:
