@@ -221,6 +221,8 @@ def fetch_dependencies(repo_path, fallback_branch = None):
     dependencies_path = repo_path + '/aicp.dependencies'
     syncable_repos = []
 
+    os.system('build/tools/roomcleaner.py %s' % repo_path)
+
     if os.path.exists(dependencies_path):
         dependencies_file = open(dependencies_path, 'r')
         dependencies = json.loads(dependencies_file.read())
