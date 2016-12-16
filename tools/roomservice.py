@@ -216,10 +216,13 @@ def add_to_manifest(repositories):
     f.write(raw_xml)
     f.close()
 
-def fetch_dependencies(repo_path, fallback_branch = None):
+def fetch_dependencies(repo_path, fallback_branch = None, first_dependency = False):
     print('Looking for dependencies')
     dependencies_path = repo_path + '/aicp.dependencies'
     syncable_repos = []
+
+    if first_dependency:
+        os.system('build/tools/roomcleaner.py %s' % repo_path)
 
     if os.path.exists(dependencies_path):
         dependencies_file = open(dependencies_path, 'r')
@@ -253,7 +256,7 @@ def has_branch(branches, revision):
 if depsonly:
     repo_path = get_from_manifest(device)
     if repo_path:
-        fetch_dependencies(repo_path)
+        fetch_dependencies(repo_path, None, True)
     else:
         print("Trying dependencies-only mode on a non-existing device tree?")
 
@@ -275,7 +278,7 @@ else:
             os.system('repo sync --force-sync %s' % repo_path)
             print("Repository synced!")
 
-            fetch_dependencies(repo_path)
+            fetch_dependencies(repo_path, None, True)
             print("Done")
             sys.exit()
 
