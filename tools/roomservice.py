@@ -56,6 +56,13 @@ if not depsonly:
 
 repositories = []
 
+if os.path.exists(".repo/local_manifests/00_aicp_removals.xml"):
+    print('Last build used remove-project, removing and recreating local manifest')
+    os.remove(".repo/local_manifests/00_aicp_removals.xml")
+    if os.path.exists(".repo/local_manifests/aicp_manifest.xml"):
+        os.remove(".repo/local_manifests/aicp_manifest.xml")
+    depsonly = None
+
 page = 1
 while not depsonly:
     try:
@@ -220,6 +227,8 @@ def fetch_dependencies(repo_path, fallback_branch = None):
     print('Looking for dependencies')
     dependencies_path = repo_path + '/aicp.dependencies'
     syncable_repos = []
+
+    os.system('build/tools/roomcleaner.py %s' % repo_path)
 
     if os.path.exists(dependencies_path):
         dependencies_file = open(dependencies_path, 'r')
