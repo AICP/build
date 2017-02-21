@@ -52,7 +52,7 @@ except:
     device = product
 
 if not depsonly:
-    print("Device %s not found. Attempting to retrieve device repository from AICP Github (http://github.com/AICP)." % device)
+    print("Device %s not found. Attempting to retrieve device repository from AICP Github (https://github.com/AICP)." % device)
 
 repositories = []
 
