@@ -681,6 +681,7 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   script.Print("*       ##### ####****   ########****       *")
   script.Print("*                            ****           *")
   script.Print("*                            ****           *")
+  script.Print("* www.aicp-rom.com   -   Get your flash ON  *")
   script.Print("*********************************************");
 
 
