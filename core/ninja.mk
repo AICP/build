@@ -1,6 +1,7 @@
-NINJA ?= $(shell which ninja)
-ifeq ($(NINJA),)
-  NINJA := prebuilts/ninja/$(HOST_PREBUILT_TAG)/ninja
+ifeq ($(filter address,$(SANITIZE_HOST)),)
+NINJA ?= prebuilts/build-tools/$(HOST_PREBUILT_TAG)/bin/ninja
+else
+NINJA ?= prebuilts/build-tools/$(HOST_PREBUILT_TAG)/asan/bin/ninja
 endif
 
 ifeq ($(USE_SOONG),true)
