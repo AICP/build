@@ -130,15 +130,24 @@ NINJA_REMOTE_NUM_JOBS ?= 500
 NINJA_ARGS += -j$(NINJA_REMOTE_NUM_JOBS)
 else
 NINJA_MAKEPARALLEL := $(MAKEPARALLEL) --ninja
+
+# We never want Kati to see MAKEFLAGS, as forcefully overriding variables is
+# terrible. The variables in MAKEFLAGS are still available in the environment,
+# so if part of the build wants input from the user, it should be explicitly
+# checking for an environment variable or using ?=
+#
+# makeparallel already clears MAKEFLAGS, so it's not necessary in the GOMA case
+KATI_MAKEPARALLEL := MAKEFLAGS=
 endif
 
 ifeq ($(USE_SOONG),true)
 COMBINED_BUILD_NINJA := $(OUT_DIR)/combined$(KATI_NINJA_SUFFIX).ninja
 
-$(COMBINED_BUILD_NINJA): $(KATI_BUILD_NINJA) $(SOONG_ANDROID_MK)
+$(COMBINED_BUILD_NINJA): $(KATI_BUILD_NINJA) $(SOONG_ANDROID_MK) FORCE
 	$(hide) echo "builddir = $(OUT_DIR)" > $(COMBINED_BUILD_NINJA)
 	$(hide) echo "subninja $(SOONG_BUILD_NINJA)" >> $(COMBINED_BUILD_NINJA)
 	$(hide) echo "subninja $(KATI_BUILD_NINJA)" >> $(COMBINED_BUILD_NINJA)
+	$(hide) echo "build $(COMBINED_BUILD_NINJA): phony $(SOONG_BUILD_NINJA)" >> $(COMBINED_BUILD_NINJA)
 else
 COMBINED_BUILD_NINJA := $(KATI_BUILD_NINJA)
 endif
@@ -149,7 +158,7 @@ $(sort $(DEFAULT_GOAL) $(ANDROID_GOALS)) : ninja_wrapper
 .PHONY: ninja_wrapper
 ninja_wrapper: $(COMBINED_BUILD_NINJA) $(MAKEPARALLEL)
 	@echo Starting build with ninja
-	+$(hide) export NINJA_STATUS="$(NINJA_STATUS)" && source $(KATI_ENV_SH) && $(NINJA_MAKEPARALLEL) $(NINJA) $(NINJA_GOALS) -C $(TOP) -f $(COMBINED_BUILD_NINJA) $(NINJA_ARGS)
+	+$(hide) export NINJA_STATUS="$(NINJA_STATUS)" && source $(KATI_ENV_SH) && exec $(NINJA_MAKEPARALLEL) $(NINJA) -d keepdepfile $(NINJA_GOALS) -C $(TOP) -f $(COMBINED_BUILD_NINJA) $(NINJA_ARGS)
 
 # Dummy Android.mk and CleanSpec.mk files so that kati won't recurse into the
 # out directory

@@ -161,6 +161,9 @@ else
 JAVA_TMPDIR_ARG :=
 endif
 
+# Default shell is mksh. Other possible value is ash.
+TARGET_SHELL := mksh
+
 # ###############################################################
 # Include sub-configuration files
 # ###############################################################
@@ -182,7 +185,7 @@ include $(BUILD_SYSTEM)/envsetup.mk
 
 # Pruned directory options used when using findleaves.py
 # See envsetup.mk for a description of SCAN_EXCLUDE_DIRS
-FIND_LEAVES_EXCLUDES := $(addprefix --prune=, $(OUT_DIR) $(SCAN_EXCLUDE_DIRS) .repo .git)
+FIND_LEAVES_EXCLUDES := $(addprefix --prune=, $(SCAN_EXCLUDE_DIRS) .repo .git)
 
 # General entries for project pathmap.  Any entries listed here should
 # be device and hardware independent.

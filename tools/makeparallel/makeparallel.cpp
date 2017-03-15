@@ -316,27 +316,67 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  std::string jarg = "-j" + std::to_string(tokens + 1);
+  std::string jarg;
+  if (parallel) {
+    if (tokens == 0) {
+      if (ninja) {
+        // ninja is parallel by default
+        jarg = "";
+      } else {
+        // make -j with no argument, guess a reasonable parallelism like ninja does
+        jarg = "-j" + std::to_string(sysconf(_SC_NPROCESSORS_ONLN) + 2);
+      }
+    } else {
+      jarg = "-j" + std::to_string(tokens + 1);
+    }
+  }
+
 
   if (ninja) {
     if (!parallel) {
       // ninja is parallel by default, pass -j1 to disable parallelism if make wasn't parallel
       args.push_back(strdup("-j1"));
-    } else if (tokens > 0) {
-      args.push_back(strdup(jarg.c_str()));
+    } else {
+      if (jarg != "") {
+        args.push_back(strdup(jarg.c_str()));
+      }
     }
     if (keep_going) {
       args.push_back(strdup("-k0"));
     }
   } else {
-    args.push_back(strdup(jarg.c_str()));
+    if (jarg != "") {
+      args.push_back(strdup(jarg.c_str()));
+    }
   }
 
   args.insert(args.end(), &argv[2], &argv[argc]);
 
   args.push_back(nullptr);
 
-  pid_t pid = fork();
+  static pid_t pid;
+
+  // Set up signal handlers to forward SIGHUP, SIGINT, SIGQUIT, SIGTERM, and
+  // SIGALRM to child
+  struct sigaction action = {};
+  action.sa_flags = SA_SIGINFO | SA_RESTART,
+  action.sa_sigaction = [](int signal, siginfo_t*, void*) {
+    if (pid > 0) {
+      kill(pid, signal);
+    }
+  };
+
+  int ret = 0;
+  if (!ret) ret = sigaction(SIGHUP, &action, NULL);
+  if (!ret) ret = sigaction(SIGINT, &action, NULL);
+  if (!ret) ret = sigaction(SIGQUIT, &action, NULL);
+  if (!ret) ret = sigaction(SIGTERM, &action, NULL);
+  if (!ret) ret = sigaction(SIGALRM, &action, NULL);
+  if (ret < 0) {
+    error(errno, errno, "sigaction failed");
+  }
+
+  pid = fork();
   if (pid < 0) {
     error(errno, errno, "fork failed");
   } else if (pid == 0) {
@@ -351,9 +391,10 @@ int main(int argc, char* argv[]) {
   }
 
   // parent
+
   siginfo_t status = {};
   int exit_status = 0;
-  int ret = waitid(P_PID, pid, &status, WEXITED);
+  ret = waitid(P_PID, pid, &status, WEXITED);
   if (ret < 0) {
     error(errno, errno, "waitpid failed");
   } else if (status.si_code == CLD_EXITED) {
