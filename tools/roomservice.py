@@ -52,14 +52,14 @@ except:
     device = product
 
 if not depsonly:
-    print("Device %s not found. Attempting to retrieve device repository from AICP Github (https://github.com/AICP)." % device)
+    print("Device %s not found. Attempting to retrieve device repository from mosimchah Github (https://github.com/mosimchah)." % device)
 
 repositories = []
 
 page = 1
 while not depsonly:
     try:
-        request = urllib.request.Request("https://api.github.com/users/AICP/repos?page=%d" % page)
+        request = urllib.request.Request("https://api.github.com/users/mosimchah/repos?page=%d" % page)
         if os.environ.get('GITHUB_API_USERNAME') is not None and os.environ.get('GITHUB_API_TOKEN') is not None:
             base64string = base64.encodestring(('%s:%s' % (os.environ.get('GITHUB_API_USERNAME'), os.environ.get('GITHUB_API_TOKEN'))).encode()).decode().replace('\n', '')
             request.add_header("Authorization", "Basic %s" % base64string)
@@ -157,7 +157,7 @@ def add_to_manifest_dependencies(repositories):
                 print ('Updating dependency %s' % (repo_name))
                 existing_project.set('name', repository['repository'])
             if existing_project.attrib['revision'] == repository['branch']:
-                print ('AICP/%s already exists' % (repo_name))
+                print ('mosimchah/%s already exists' % (repo_name))
             else:
                 print ('updating branch for %s to %s' % (repo_name, repository['branch']))
                 existing_project.set('revision', repository['branch'])
@@ -191,12 +191,12 @@ def add_to_manifest(repositories):
         repo_name = repository['repository']
         repo_target = repository['target_path']
         if exists_in_tree(lm, repo_name):
-            print('AICP/%s already exists' % (repo_name))
+            print('mosimchah/%s already exists' % (repo_name))
             continue
 
-        print('Adding dependency: AICP/%s -> %s' % (repo_name, repo_target))
+        print('Adding dependency: mosimchah/%s -> %s' % (repo_name, repo_target))
         project = ElementTree.Element("project", attrib = { "path": repo_target,
-            "remote": "aicp", "name": "AICP/%s" % repo_name, "revision": "n7.1" })
+            "remote": "aicp", "name": "mosimchah/%s" % repo_name, "revision": "n7.1" })
 
         if 'branch' in repository:
             project.set('revision',repository['branch'])
@@ -282,4 +282,4 @@ else:
             print("Done")
             sys.exit()
 
-print("Repository for %s not found in the AICP Github repository list. If this is in error, you may need to manually add it to your local_manifests/aicp_manifest.xml." % device)
+print("Repository for %s not found in the mosimcah Github repository list. If this is in error, you may need to manually add it to your local_manifests/aicp_manifest.xml." % device)
