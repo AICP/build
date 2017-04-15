@@ -15,13 +15,11 @@
 # limitations under the License.
 #
 
-from __future__ import print_function
-
 import json, hashlib, operator, os, sys
 
 def get_file_size(path):
   st = os.lstat(path)
-  return st.st_size
+  return st.st_size;
 
 def get_file_digest(path):
   if os.path.isfile(path) == False:
