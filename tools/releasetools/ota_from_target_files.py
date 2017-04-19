@@ -738,11 +738,11 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
     script.Print("*   Compiled: %s"%(build));
 
   device = GetBuildProp("ro.product.device", OPTIONS.info_dict)
-#  if GetBuildProp("ro.product.model", OPTIONS.info_dict) is not None:
-#    model = GetBuildProp("ro.product.model", OPTIONS.info_dict)
-#    script.Print("*   Device: %s (%s)"%(model, device));
-#  else:
-#    script.Print("*   Device: %s"%(device));
+  if GetBuildProp("ro.product.model", OPTIONS.info_dict) is not None:
+    model = GetBuildProp("ro.product.model", OPTIONS.info_dict)
+    script.Print("*   Device: %s (%s)"%(model, device));
+  else:
+    script.Print("*   Device: %s"%(device));
   script.Print("*********************************************");
 
   if OPTIONS.wipe_user_data:
