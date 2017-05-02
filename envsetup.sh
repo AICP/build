@@ -587,7 +587,7 @@ function brunch()
 {
     breakfast $*
     if [ $? -eq 0 ]; then
-        mka bacon
+        mka icecold
     else
         echo "No such item in brunch menu. Try 'breakfast'"
         return 1
@@ -599,7 +599,7 @@ function brunchopen()
 {
     breakfast $*
     if [ $? -eq 0 ]; then
-        mka bacon && xdg-open $ANDROID_PRODUCT_OUT
+        mka icecold && xdg-open $ANDROID_PRODUCT_OUT
     else
         echo "No such item in brunch menu. Try 'breakfast'"
         return 1
@@ -2239,7 +2239,7 @@ function cmka() {
     if [ ! -z "$1" ]; then
         for i in "$@"; do
             case $i in
-                bacon|otapackage|systemimage)
+                icecold|otapackage|systemimage)
                     mka installclean
                     mka $i
                     ;;

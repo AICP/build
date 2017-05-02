@@ -2360,9 +2360,9 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE)
 
 AICP_TARGET_PACKAGE := $(PRODUCT_OUT)/$(AICP_VERSION).zip
 
-.PHONY: otapackage bacon
+.PHONY: otapackage icecold
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
-bacon: otapackage
+icecold: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
 	$(hide) $(MD5SUM) $(AICP_TARGET_PACKAGE) > $(AICP_TARGET_PACKAGE).md5sum
 	@echo  ""
