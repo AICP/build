@@ -109,7 +109,7 @@ PRODUCT_SYSTEM_SERVER_APPS += \
     FusedLocation \
     InputDevices \
     SettingsProvider \
-    WallpaperBackup \
+    WallpaperBackup
 
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     ro.zygote=zygote32
