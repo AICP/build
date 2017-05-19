@@ -63,6 +63,6 @@ PRODUCT_SYSTEM_SERVER_APPS += \
     FusedLocation \
     InputDevices \
     KeyChain \
-    Telecom \
+    Telecom
 
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_base.mk)
