@@ -725,10 +725,10 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
   aicpv = GetBuildProp("ro.aicp.version", OPTIONS.info_dict)
   if os.getenv("AICP_BUILDTYPE") is not None:
-    build = ' '.join(aicpv.split('_')[3].split('-')).title()
+    build = ' '.join(aicpv.title()
     script.Print("*   Version: %s"%(build));
   elif os.getenv("AICP_NIGHTLY") is not None:
-    build = ' '.join(aicpv.split('_')[2:]).title()
+    build = ' '.join(aicpv.title()
     script.Print("*   Version: %s"%(build));
   else:
     build = GetBuildProp("ro.build.date", OPTIONS.info_dict)
