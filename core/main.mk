@@ -384,8 +384,6 @@ ifdef TARGET_2ND_ARCH
   endif
 endif
 
-ADDITIONAL_BUILD_PROPERTIES += ro.permission_review_required=1
-
 ## user/userdebug ##
 
 user_variant := $(filter user userdebug,$(TARGET_BUILD_VARIANT))
