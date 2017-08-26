@@ -1,109 +1,53 @@
+
+export HMM_DESCRIPTIVE=(
+"lunch:   lunch <product_name>-<build_variant>"
+"tapas:   tapas [<App1> <App2> ...] [arm|x86|mips|armv5|arm64|x86_64|mips64] [eng|userdebug|user]"
+"croot:   Changes directory to the top of the tree."
+"cout:    Changes directory to out."
+"m:       Makes from the top of the tree."
+"mm:      Builds all of the modules in the current directory, but not their dependencies."
+"mmm:     Builds all of the modules in the supplied directories, but not their dependencies.
+               To limit the modules being built use the syntax: mmm dir/:target1,target2."
+"mma:     Builds all of the modules in the current directory, and their dependencies."
+"mmp:     Builds all of the modules in the current directory and pushes them to the device."
+"mmmp:    Builds all of the modules in the supplied directories and pushes them to the device."
+"mmma:    Builds all of the modules in the supplied directories, and their dependencies."
+"cgrep:   Greps on all local C/C++ files."
+"ggrep:   Greps on all local Gradle files."
+"jgrep:   Greps on all local Java files."
+"resgrep: Greps on all local res/*.xml files."
+"mangrep: Greps on all local AndroidManifest.xml files."
+"sepgrep: Greps on all local sepolicy files."
+"sgrep:   Greps on all local source files."
+"godir:   Go to the directory containing a file."
+"mka:      Builds using SCHED_BATCH on all processors"
+"mkap:     Builds the module(s) using mka and pushes them to the device."
+"cmka:     Cleans and builds using mka."
+"repolastsync: Prints date and time of last repo sync"
+"reposync: Parallel repo sync using ionice and SCHED_BATCH"
+"repopick: Utility to fetch changes from Gerrit."
+"installboot: Installs a boot.img to the connected device."
+"installrecovery: Installs a recovery.img to the connected device."
+)
+
 function hmm() {
-cat <<EOF
+    T=$(gettop)
 
-Run "m help" for help with the build system itself.
-
-Invoke ". build/envsetup.sh" from your shell to add the following functions to your environment:
-- lunch:     lunch <product_name>-<build_variant>
-             Selects <product_name> as the product to build, and <build_variant> as the variant to
-             build, and stores those selections in the environment to be read by subsequent
-             invocations of 'm' etc.
-- tapas:     tapas [<App1> <App2> ...] [arm|x86|mips|arm64|x86_64|mips64] [eng|userdebug|user]
-- croot:     Changes directory to the top of the tree.
-- m:         Makes from the top of the tree.
-- mm:        Builds all of the modules in the current directory, but not their dependencies.
-- mmm:       Builds all of the modules in the supplied directories, but not their dependencies.
-             To limit the modules being built use the syntax: mmm dir/:target1,target2.
-- mma:       Builds all of the modules in the current directory, and their dependencies.
-- mmma:      Builds all of the modules in the supplied directories, and their dependencies.
-- provision: Flash device with all required partitions. Options will be passed on to fastboot.
-- cgrep:     Greps on all local C/C++ files.
-- ggrep:     Greps on all local Gradle files.
-- jgrep:     Greps on all local Java files.
-- resgrep:   Greps on all local res/*.xml files.
-- mangrep:   Greps on all local AndroidManifest.xml files.
-- mgrep:     Greps on all local Makefiles files.
-- sepgrep:   Greps on all local sepolicy files.
-- sgrep:     Greps on all local source files.
-- godir:     Go to the directory containing a file.
-
-EOF
-
-    __print_gzosp_functions_help
-
-cat <<EOF
-
-Environment options:
-- SANITIZE_HOST: Set to 'true' to use ASAN for all host modules. Note that
-                 ASAN_OPTIONS=detect_leaks=0 will be set by default until the
-                 build is leak-check clean.
-
-Look at the source to view more functions. The complete list is:
-EOF
-    local T=$(gettop)
-    local A=""
-    local i
-    for i in `cat $T/build/envsetup.sh $T/vendor/gzosp/build/envsetup.sh | sed -n "/^[[:blank:]]*function /s/function \([a-z_]*\).*/\1/p" | sort | uniq`; do
-      A="$A $i"
+    echo "Invoke \". build/envsetup.sh\" from your shell to add the following functions to your environment:"
+    for c in ${!HMM_DESCRIPTIVE[*]}; do
+        echo -e "- ${HMM_DESCRIPTIVE[$c]}"
     done
-    echo $A
-}
 
-# Get all the build variables needed by this script in a single call to the build system.
-function build_build_var_cache()
-{
-    local T=$(gettop)
-    # Grep out the variable names from the script.
-    cached_vars=`cat $T/build/envsetup.sh $T/vendor/gzosp/build/envsetup.sh | tr '()' '  ' | awk '{for(i=1;i<=NF;i++) if($i~/get_build_var/) print $(i+1)}' | sort -u | tr '\n' ' '`
-    cached_abs_vars=`cat $T/build/envsetup.sh $T/vendor/gzosp/build/envsetup.sh | tr '()' '  ' | awk '{for(i=1;i<=NF;i++) if($i~/get_abs_build_var/) print $(i+1)}' | sort -u | tr '\n' ' '`
-    # Call the build system to dump the "<val>=<value>" pairs as a shell script.
-    build_dicts_script=`\builtin cd $T; build/soong/soong_ui.bash --dumpvars-mode \
-                        --vars="$cached_vars" \
-                        --abs-vars="$cached_abs_vars" \
-                        --var-prefix=var_cache_ \
-                        --abs-var-prefix=abs_var_cache_`
-    local ret=$?
-    if [ $ret -ne 0 ]
-    then
-        unset build_dicts_script
-        return $ret
-    fi
-    # Execute the script to store the "<val>=<value>" pairs as shell variables.
-    eval "$build_dicts_script"
-    ret=$?
-    unset build_dicts_script
-    if [ $ret -ne 0 ]
-    then
-        return $ret
-    fi
-    BUILD_VAR_CACHE_READY="true"
-}
-
-# Delete the build var cache, so that we can still call into the build system
-# to get build variables not listed in this script.
-function destroy_build_var_cache()
-{
-    unset BUILD_VAR_CACHE_READY
-    local v
-    for v in $cached_vars; do
-      unset var_cache_$v
-    done
-    unset cached_vars
-    for v in $cached_abs_vars; do
-      unset abs_var_cache_$v
-    done
-    unset cached_abs_vars
+    echo
+    echo "Look at the source to view more functions. The complete list is:"
+    for i in `cat $T/build/envsetup.sh | sed -n "/^[ \t]*function /s/function \([a-z_]*\).*/\1/p" | sort | uniq`; do
+      echo "$i"
+    done | column
 }
 
 # Get the value of a build variable as an absolute path.
 function get_abs_build_var()
 {
-    if [ "$BUILD_VAR_CACHE_READY" = "true" ]
-    then
-        eval "echo \"\${abs_var_cache_$1}\""
-    return
-    fi
-
     local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
@@ -115,12 +59,6 @@ function get_abs_build_var()
 # Get the exact value of a build variable.
 function get_build_var()
 {
-    if [ "$BUILD_VAR_CACHE_READY" = "true" ]
-    then
-        eval "echo \"\${var_cache_$1}\""
-    return
-    fi
-
     local T=$(gettop)
     if [ ! "$T" ]; then
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
@@ -208,6 +146,7 @@ function setpaths()
     # defined in core/config.mk
     local targetgccversion=$(get_build_var TARGET_GCC_VERSION)
     local targetgccversion2=$(get_build_var 2ND_TARGET_GCC_VERSION)
+    local targetlegacygccversion=$(get_build_var TARGET_LEGACY_GCC_VERSION)
     export TARGET_GCC_VERSION=$targetgccversion
 
     # The gcc toolchain does not exists for windows/cygwin. In this case, do not reference it.
@@ -240,6 +179,21 @@ function setpaths()
         export ANDROID_TOOLCHAIN_2ND_ARCH=$gccprebuiltdir/$toolchaindir2
     fi
 
+    unset ANDROID_KERNEL_TOOLCHAIN_PATH
+    case $ARCH in
+        arm)
+            # Legacy toolchain configuration used for ARM kernel compilation
+            toolchaindir=arm/arm-eabi-$targetlegacygccversion/bin
+            if [ -d "$gccprebuiltdir/$toolchaindir" ]; then
+                 export ARM_EABI_TOOLCHAIN="$gccprebuiltdir/$toolchaindir"
+                 ANDROID_KERNEL_TOOLCHAIN_PATH="$ARM_EABI_TOOLCHAIN":
+            fi
+            ;;
+        *)
+            # No need to set ARM_EABI_TOOLCHAIN for other ARCHs
+            ;;
+    esac
+
     export ANDROID_DEV_SCRIPTS=$T/development/scripts:$T/prebuilts/devtools/tools:$T/external/selinux/prebuilts/bin
 
     # add kernel specific binaries
@@ -255,6 +209,7 @@ function setpaths()
     if [ -n "$ANDROID_TOOLCHAIN_2ND_ARCH" ]; then
         ANDROID_BUILD_PATHS=$ANDROID_BUILD_PATHS:$ANDROID_TOOLCHAIN_2ND_ARCH
     fi
+    ANDROID_BUILD_PATHS=$ANDROID_BUILD_PATHS:$ANDROID_KERNEL_TOOLCHAIN_PATH:
     ANDROID_BUILD_PATHS=$ANDROID_BUILD_PATHS:$ANDROID_DEV_SCRIPTS:
     export ANDROID_BUILD_PATHS
 
@@ -277,7 +232,6 @@ function setpaths()
     fi
 
     export PATH=$ANDROID_BUILD_PATHS$PATH
-    export PYTHONPATH=$T/development/python-packages:$PYTHONPATH
 
     export ANDROID_JAVA_HOME=$(get_abs_build_var ANDROID_JAVA_HOME)
     export JAVA_HOME=$ANDROID_JAVA_HOME
@@ -423,9 +377,7 @@ function choosetype()
         fi
     done
 
-    build_build_var_cache
     set_stuff_for_environment
-    destroy_build_var_cache
 }
 
 #
@@ -440,10 +392,9 @@ function chooseproduct()
     if [ "x$TARGET_PRODUCT" != x ] ; then
         default_value=$TARGET_PRODUCT
     else
-        default_value=aosp_arm
+        default_value=full
     fi
 
-    export TARGET_BUILD_APPS=
     export TARGET_PRODUCT=
     local ANSWER
     while [ -z "$TARGET_PRODUCT" ]
@@ -471,9 +422,7 @@ function chooseproduct()
         fi
     done
 
-    build_build_var_cache
     set_stuff_for_environment
-    destroy_build_var_cache
 }
 
 function choosevariant()
@@ -536,10 +485,8 @@ function choosecombo()
     choosevariant $3
 
     echo
-    build_build_var_cache
     set_stuff_for_environment
     printconfig
-    destroy_build_var_cache
 }
 
 # Clear this variable.  It will be built up again when the vendorsetup.sh
@@ -557,32 +504,100 @@ function add_lunch_combo()
     LUNCH_MENU_CHOICES=(${LUNCH_MENU_CHOICES[@]} $new_combo)
 }
 
-# add the default one here
-add_lunch_combo aosp_arm-eng
-add_lunch_combo aosp_arm64-eng
-add_lunch_combo aosp_mips-eng
-add_lunch_combo aosp_mips64-eng
-add_lunch_combo aosp_x86-eng
-add_lunch_combo aosp_x86_64-eng
-
 function print_lunch_menu()
 {
     local uname=$(uname)
     echo
-    echo "You're building on" $uname
-    echo
-    echo "Lunch menu... pick a combo:"
+
+    echo ""
+    tput setaf 1;
+    tput bold;
+    echo "  ▄████ ▒███████▒ ▒█████    ██████  ██▓███  "
+    echo " ██▒ ▀█▒▒ ▒ ▒ ▄▀░▒██▒  ██▒▒██    ▒ ▓██░  ██▒"
+    echo "▒██░▄▄▄░░ ▒ ▄▀▒░ ▒██░  ██▒░ ▓██▄   ▓██░ ██▓▒"
+    echo "░▓█  ██▓  ▄▀▒   ░▒██   ██░  ▒   ██▒▒██▄█▓▒ ▒"
+    echo "░▒▓███▀▒▒███████▒░ ████▓▒░▒██████▒▒▒██▒ ░  ░"
+    echo " ░▒   ▒ ░▒▒ ▓░▒░▒░ ▒░▒░▒░ ▒ ▒▓▒ ▒ ░▒▓▒░ ░  ░"
+    echo "  ░   ░ ░░▒ ▒ ░ ▒  ░ ▒ ▒░ ░ ░▒  ░ ░░▒ ░     "
+    echo "░ ░   ░ ░ ░ ░ ░ ░░ ░ ░ ▒  ░  ░  ░  ░░       "
+    echo "      ░   ░ ░        ░ ░        ░           "
+    echo "        ░                                   "
+    tput sgr0;
+    echo ""
+    echo "                      Welcome to the device menu                      "
+    echo ""
+    tput bold;
+    echo "     Below are all the devices currently available to be compiled     "
+    tput sgr0;
+    echo ""
 
     local i=1
     local choice
     for choice in ${LUNCH_MENU_CHOICES[@]}
     do
-        echo "     $i. $choice"
+        echo " $i. $choice "
         i=$(($i+1))
-    done
+    done | column
+
+    if [ "z${GZOSP_DEVICES_ONLY}" != "z" ]; then
+       echo "... and don't forget the bacon!"
+    fi
 
     echo
 }
+
+function brunch()
+{
+    breakfast $*
+    if [ $? -eq 0 ]; then
+        mka gzosp
+    else
+        echo "No such item in brunch menu. Try 'breakfast'"
+        return 1
+    fi
+    return $?
+}
+
+function omnom
+{
+    brunch $*
+    eat
+}
+
+function breakfast()
+{
+    target=$1
+    local variant=$2
+    GZOSP_DEVICES_ONLY="true"
+    unset LUNCH_MENU_CHOICES
+    add_lunch_combo full-eng
+    for f in `/bin/ls vendor/gzosp/vendorsetup.sh 2> /dev/null`
+        do
+            echo "including $f"
+            . $f
+        done
+    unset f
+
+    if [ $# -eq 0 ]; then
+        # No arguments, so let's have the full menu
+        lunch
+    else
+        echo "z$target" | grep -q "-"
+        if [ $? -eq 0 ]; then
+            # A buildtype was specified, assume a full device name
+            lunch $target
+        else
+            # This is probably just the GZOSP model name
+            if [ -z "$variant" ]; then
+                variant="userdebug"
+            fi
+            lunch gzosp_$target-$variant
+        fi
+    fi
+    return $?
+}
+
+alias bib=breakfast
 
 function lunch()
 {
@@ -649,8 +664,7 @@ function lunch()
 
     TARGET_PRODUCT=$product \
     TARGET_BUILD_VARIANT=$variant \
-    TARGET_PLATFORM_VERSION=$version \
-    build_build_var_cache
+    TARGET_PLATFORM_VERSION=$version
     if [ $? -ne 0 ]
     then
         echo
@@ -680,7 +694,6 @@ function lunch()
 
     set_stuff_for_environment
     printconfig
-    destroy_build_var_cache
 }
 
 # Tab completion for lunch.
@@ -724,10 +737,10 @@ function tapas()
         return
     fi
 
-    local product=aosp_arm
+    local product=full
     case $arch in
-      x86)    product=aosp_x86;;
-      mips)   product=aosp_mips;;
+      x86)    product=full_x86;;
+      mips)   product=full_mips;;
       arm64)  product=aosp_arm64;;
       x86_64) product=aosp_x86_64;;
       mips64)  product=aosp_mips64;;
@@ -748,10 +761,8 @@ function tapas()
     export TARGET_BUILD_TYPE=release
     export TARGET_BUILD_APPS=$apps
 
-    build_build_var_cache
     set_stuff_for_environment
     printconfig
-    destroy_build_var_cache
 }
 
 function gettop
@@ -970,14 +981,12 @@ function mmma()
         MODULES_IN_PATHS="$MODULES_IN_PATHS MODULES-IN-$DIR"
       else
         case $DIR in
-          showcommands | snod | dist | *=*) ARGS="$ARGS $DIR";;
+          showcommands | snod | dist | incrementaljavac | *=*) ARGS="$ARGS $DIR";;
           *) echo "Couldn't find directory $DIR"; return 1;;
         esac
       fi
     done
-    # Convert "/" to "-".
-    MODULES_IN_PATHS=${MODULES_IN_PATHS//\//-}
-    _wrap_build $T/build/soong/soong_ui.bash --make-mode $DASH_ARGS $ARGS $MODULES_IN_PATHS
+    $DRV $T/build/soong/soong_ui.bash --make-mode $DASH_ARGS $ARGS all_modules BUILD_MODULES_IN_PATHS="$MODULE_PATHS"
   else
     echo "Couldn't locate the top of the tree.  Try setting TOP."
     return 1
@@ -1214,16 +1223,14 @@ case `uname -s` in
     Darwin)
         function sgrep()
         {
-            find -E . -name .repo -prune -o -name .git -prune -o  -type f -iregex '.*\.(c|h|cc|cpp|S|java|xml|sh|mk|aidl|vts)' \
-                -exec grep --color -n "$@" {} +
+            find -E . -name .repo -prune -o -name .git -prune -o  -type f -iregex '.*\.(c|h|cc|cpp|S|java|xml|sh|mk|aidl)' -print0 | xargs -0 grep --color -n "$@"
         }
 
         ;;
     *)
         function sgrep()
         {
-            find . -name .repo -prune -o -name .git -prune -o  -type f -iregex '.*\.\(c\|h\|cc\|cpp\|S\|java\|xml\|sh\|mk\|aidl\|vts\)' \
-                -exec grep --color -n "$@" {} +
+            find . -name .repo -prune -o -name .git -prune -o  -type f -iregex '.*\.\(c\|h\|cc\|cpp\|S\|java\|xml\|sh\|mk\|aidl\)' -print0 | xargs -0 grep --color -n "$@"
         }
         ;;
 esac
@@ -1235,46 +1242,37 @@ function gettargetarch
 
 function ggrep()
 {
-    find . -name .repo -prune -o -name .git -prune -o -name out -prune -o -type f -name "*\.gradle" \
-        -exec grep --color -n "$@" {} +
+    find . -name .repo -prune -o -name .git -prune -o -name out -prune -o -type f -name "*\.gradle" -print0 | xargs -0 grep --color -n "$@"
 }
 
 function jgrep()
 {
-    find . -name .repo -prune -o -name .git -prune -o -name out -prune -o -type f -name "*\.java" \
-        -exec grep --color -n "$@" {} +
+    find . -name .repo -prune -o -name .git -prune -o -name out -prune -o -type f -name "*\.java" -print0 | xargs -0 grep --color -n "$@"
 }
 
 function cgrep()
 {
-    find . -name .repo -prune -o -name .git -prune -o -name out -prune -o -type f \( -name '*.c' -o -name '*.cc' -o -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) \
-        -exec grep --color -n "$@" {} +
+    find . -name .repo -prune -o -name .git -prune -o -name out -prune -o -type f \( -name '*.c' -o -name '*.cc' -o -name '*.cpp' -o -name '*.h' -o -name '*.hpp' \) -print0 | xargs -0 grep --color -n "$@"
 }
 
 function resgrep()
 {
-    local dir
-    for dir in `find . -name .repo -prune -o -name .git -prune -o -name out -prune -o -name res -type d`; do
-        find $dir -type f -name '*\.xml' -exec grep --color -n "$@" {} +
-    done
+    for dir in `find . -name .repo -prune -o -name .git -prune -o -name out -prune -o -name res -type d`; do find $dir -type f -name '*\.xml' -print0 | xargs -0 grep --color -n "$@"; done;
 }
 
 function mangrep()
 {
-    find . -name .repo -prune -o -name .git -prune -o -path ./out -prune -o -type f -name 'AndroidManifest.xml' \
-        -exec grep --color -n "$@" {} +
+    find . -name .repo -prune -o -name .git -prune -o -path ./out -prune -o -type f -name 'AndroidManifest.xml' -print0 | xargs -0 grep --color -n "$@"
 }
 
 function sepgrep()
 {
-    find . -name .repo -prune -o -name .git -prune -o -path ./out -prune -o -name sepolicy -type d \
-        -exec grep --color -n -r --exclude-dir=\.git "$@" {} +
+    find . -name .repo -prune -o -name .git -prune -o -path ./out -prune -o -name sepolicy -type d -print0 | xargs -0 grep --color -n -r --exclude-dir=\.git "$@"
 }
 
 function rcgrep()
 {
-    find . -name .repo -prune -o -name .git -prune -o -name out -prune -o -type f -name "*\.rc*" \
-        -exec grep --color -n "$@" {} +
+    find . -name .repo -prune -o -name .git -prune -o -name out -prune -o -type f -name "*\.rc*" -print0 | xargs -0 grep --color -n "$@"
 }
 
 case `uname -s` in
@@ -1287,8 +1285,7 @@ case `uname -s` in
 
         function treegrep()
         {
-            find -E . -name .repo -prune -o -name .git -prune -o -type f -iregex '.*\.(c|h|cpp|S|java|xml)' \
-                -exec grep --color -n -i "$@" {} +
+            find -E . -name .repo -prune -o -name .git -prune -o -type f -iregex '.*\.(c|h|cpp|S|java|xml)' -print0 | xargs -0 grep --color -n -i "$@"
         }
 
         ;;
@@ -1301,8 +1298,7 @@ case `uname -s` in
 
         function treegrep()
         {
-            find . -name .repo -prune -o -name .git -prune -o -regextype posix-egrep -iregex '.*\.(c|h|cpp|S|java|xml)' -type f \
-                -exec grep --color -n -i "$@" {} +
+            find . -name .repo -prune -o -name .git -prune -o -regextype posix-egrep -iregex '.*\.(c|h|cpp|S|java|xml)' -type f -print0 | xargs -0 grep --color -n -i "$@"
         }
 
         ;;
@@ -1568,6 +1564,320 @@ function godir () {
     \cd $T/$pathname
 }
 
+function makerecipe() {
+  if [ -z "$1" ]
+  then
+    echo "No branch name provided."
+    return 1
+  fi
+  cd android
+  sed -i s/'default revision=.*'/'default revision="refs\/heads\/'$1'"'/ default.xml
+  git commit -a -m "$1"
+  cd ..
+
+  repo forall -c '
+
+  if [ "$REPO_REMOTE" == "github" ]
+  then
+    pwd
+    cmremote
+    git push cmremote HEAD:refs/heads/'$1'
+  fi
+  '
+}
+
+function mka() {
+    local T=$(gettop)
+    if [ "$T" ]; then
+        case `uname -s` in
+            Darwin)
+                make -C $T -j `sysctl hw.ncpu|cut -d" " -f2` "$@"
+                ;;
+            *)
+                mk_timer schedtool -B -n 1 -e ionice -n 1 make -C $T -j$(cat /proc/cpuinfo | grep "^processor" | wc -l) "$@"
+                ;;
+        esac
+
+    else
+        echo "Couldn't locate the top of the tree.  Try setting TOP."
+    fi
+}
+
+function cmka() {
+    if [ ! -z "$1" ]; then
+        for i in "$@"; do
+            case $i in
+                bacon|otapackage|systemimage)
+                    mka installclean
+                    mka $i
+                    ;;
+                *)
+                    mka clean-$i
+                    mka $i
+                    ;;
+            esac
+        done
+    else
+        mka clean
+        mka
+    fi
+}
+
+function repolastsync() {
+    RLSPATH="$ANDROID_BUILD_TOP/.repo/.repo_fetchtimes.json"
+    RLSLOCAL=$(date -d "$(stat -c %z $RLSPATH)" +"%e %b %Y, %T %Z")
+    RLSUTC=$(date -d "$(stat -c %z $RLSPATH)" -u +"%e %b %Y, %T %Z")
+    echo "Last repo sync: $RLSLOCAL / $RLSUTC"
+}
+
+function reposync() {
+    case `uname -s` in
+        Darwin)
+            make -j `sysctl hw.ncpu|cut -d" " -f2` "$@"
+            ;;
+        *)
+            schedtool -B -n 1 -e ionice -n 1 make -j `cat /proc/cpuinfo | grep "^processor" | wc -l` "$@"
+            ;;
+    esac
+}
+
+function repopick() {
+    T=$(gettop)
+    $T/vendor/gzosp/build/tools/repopick.py $@
+}
+
+function fixup_common_out_dir() {
+    common_out_dir=$(get_build_var OUT_DIR)/target/common
+    target_device=$(get_build_var TARGET_DEVICE)
+    if [ ! -z $GZOSP_FIXUP_COMMON_OUT ]; then
+        if [ -d ${common_out_dir} ] && [ ! -L ${common_out_dir} ]; then
+            mv ${common_out_dir} ${common_out_dir}-${target_device}
+            ln -s ${common_out_dir}-${target_device} ${common_out_dir}
+        else
+            [ -L ${common_out_dir} ] && rm ${common_out_dir}
+            mkdir -p ${common_out_dir}-${target_device}
+            ln -s ${common_out_dir}-${target_device} ${common_out_dir}
+        fi
+    else
+        [ -L ${common_out_dir} ] && rm ${common_out_dir}
+        mkdir -p ${common_out_dir}
+    fi
+}
+
+function installboot()
+{
+    if [ ! -e "$OUT/recovery/root/etc/recovery.fstab" ];
+    then
+        echo "No recovery.fstab found. Build recovery first."
+        return 1
+    fi
+    if [ ! -e "$OUT/boot.img" ];
+    then
+        echo "No boot.img found. Run make bootimage first."
+        return 1
+    fi
+    PARTITION=`grep "^\/boot" $OUT/recovery/root/etc/recovery.fstab | awk {'print $3'}`
+    if [ -z "$PARTITION" ];
+    then
+        # Try for RECOVERY_FSTAB_VERSION = 2
+        PARTITION=`grep "[[:space:]]\/boot[[:space:]]" $OUT/recovery/root/etc/recovery.fstab | awk {'print $1'}`
+        PARTITION_TYPE=`grep "[[:space:]]\/boot[[:space:]]" $OUT/recovery/root/etc/recovery.fstab | awk {'print $3'}`
+        if [ -z "$PARTITION" ];
+        then
+            echo "Unable to determine boot partition."
+            return 1
+        fi
+    fi
+    adb start-server
+    adb wait-for-online
+    adb root
+    sleep 1
+    adb wait-for-online shell mount /system 2>&1 > /dev/null
+    adb wait-for-online remount
+    if (adb shell getprop ro.gzosp.device | grep -q "$GZOSP_BUILD");
+    then
+        adb push $OUT/boot.img /cache/
+        for i in $OUT/system/lib/modules/*;
+        do
+            adb push $i /system/lib/modules/
+        done
+        adb shell dd if=/cache/boot.img of=$PARTITION
+        adb shell chmod 644 /system/lib/modules/*
+        echo "Installation complete."
+    else
+        echo "The connected device does not appear to be $GZOSP_BUILD, run away!"
+    fi
+}
+
+function installrecovery()
+{
+    if [ ! -e "$OUT/recovery/root/etc/recovery.fstab" ];
+    then
+        echo "No recovery.fstab found. Build recovery first."
+        return 1
+    fi
+    if [ ! -e "$OUT/recovery.img" ];
+    then
+        echo "No recovery.img found. Run make recoveryimage first."
+        return 1
+    fi
+    PARTITION=`grep "^\/recovery" $OUT/recovery/root/etc/recovery.fstab | awk {'print $3'}`
+    if [ -z "$PARTITION" ];
+    then
+        # Try for RECOVERY_FSTAB_VERSION = 2
+        PARTITION=`grep "[[:space:]]\/recovery[[:space:]]" $OUT/recovery/root/etc/recovery.fstab | awk {'print $1'}`
+        PARTITION_TYPE=`grep "[[:space:]]\/recovery[[:space:]]" $OUT/recovery/root/etc/recovery.fstab | awk {'print $3'}`
+        if [ -z "$PARTITION" ];
+        then
+            echo "Unable to determine recovery partition."
+            return 1
+        fi
+    fi
+    adb start-server
+    adb wait-for-online
+    adb root
+    sleep 1
+    adb wait-for-online shell mount /system 2>&1 > /dev/null
+    adb wait-for-online remount
+    if (adb shell getprop ro.gzosp.device | grep -q "$GZOSP_BUILD");
+    then
+        adb push $OUT/recovery.img /cache/
+        adb shell dd if=/cache/recovery.img of=$PARTITION
+        echo "Installation complete."
+    else
+        echo "The connected device does not appear to be $GZOSP_BUILD, run away!"
+    fi
+}
+
+# Credit for color strip sed: http://goo.gl/BoIcm
+function dopush()
+{
+    local func=$1
+    shift
+
+    adb start-server # Prevent unexpected starting server message from adb get-state in the next line
+    if [ $(adb get-state) != device -a $(adb shell busybox test -e /sbin/recovery 2> /dev/null; echo $?) != 0 ] ; then
+        echo "No device is online. Waiting for one..."
+        echo "Please connect USB and/or enable USB debugging"
+        until [ $(adb get-state) = device -o $(adb shell busybox test -e /sbin/recovery 2> /dev/null; echo $?) = 0 ];do
+            sleep 1
+        done
+        echo "Device Found."
+    fi
+
+    if (adb shell getprop ro.gzosp.device | grep -q "$GZOSP_BUILD") || [ "$FORCE_PUSH" == "true" ];
+    then
+    # retrieve IP and PORT info if we're using a TCP connection
+    TCPIPPORT=$(adb devices | egrep '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+[^0-9]+' \
+        | head -1 | awk '{print $1}')
+    adb root &> /dev/null
+    sleep 0.3
+    if [ -n "$TCPIPPORT" ]
+    then
+        # adb root just killed our connection
+        # so reconnect...
+        adb connect "$TCPIPPORT"
+    fi
+
+   adb wait-for-device &> /dev/null
+    sleep 0.3
+    adb remount &> /dev/null
+
+    mkdir -p $OUT
+    ($func $*|tee $OUT/.log;return ${PIPESTATUS[0]})
+    ret=$?;
+    if [ $ret -ne 0 ]; then
+        rm -f $OUT/.log;return $ret
+    fi
+
+    # Install: <file>
+    LOC="$(cat $OUT/.log | sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' | grep '^Install: ' | cut -d ':' -f 2)"
+
+    # Copy: <file>
+    LOC="$LOC $(cat $OUT/.log | sed -r 's/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g' | grep '^Copy: ' | cut -d ':' -f 2)"
+
+    # If any files are going to /data, push an octal file permissions reader to device
+    if [ -n "$(echo $LOC | egrep '(^|\s)/data')" ]; then
+        CHKPERM="/data/local/tmp/chkfileperm.sh"
+(
+cat <<'EOF'
+#!/system/xbin/sh
+FILE=$@
+if [ -e $FILE ]; then
+    ls -l $FILE | awk '{k=0;for(i=0;i<=8;i++)k+=((substr($1,i+2,1)~/[rwx]/)*2^(8-i));if(k)printf("%0o ",k);print}' | cut -d ' ' -f1
+fi
+EOF
+) > $OUT/.chkfileperm.sh
+        echo "Pushing file permissions checker to device"
+        adb push $OUT/.chkfileperm.sh $CHKPERM
+        adb shell chmod 755 $CHKPERM
+        rm -f $OUT/.chkfileperm.sh
+    fi
+
+    stop_n_start=false
+    for FILE in $(echo $LOC | tr " " "\n"); do
+        # Make sure file is in $OUT/system or $OUT/data
+        case $FILE in
+            $OUT/system/*|$OUT/data/*)
+                # Get target file name (i.e. /system/bin/adb)
+                TARGET=$(echo $FILE | sed "s#$OUT##")
+            ;;
+            *) continue ;;
+        esac
+
+        case $TARGET in
+            /data/*)
+                # fs_config only sets permissions and se labels for files pushed to /system
+                if [ -n "$CHKPERM" ]; then
+                    OLDPERM=$(adb shell $CHKPERM $TARGET)
+                    OLDPERM=$(echo $OLDPERM | tr -d '\r' | tr -d '\n')
+                    OLDOWN=$(adb shell ls -al $TARGET | awk '{print $2}')
+                    OLDGRP=$(adb shell ls -al $TARGET | awk '{print $3}')
+                fi
+                echo "Pushing: $TARGET"
+                adb push $FILE $TARGET
+                if [ -n "$OLDPERM" ]; then
+                    echo "Setting file permissions: $OLDPERM, $OLDOWN":"$OLDGRP"
+                    adb shell chown "$OLDOWN":"$OLDGRP" $TARGET
+                    adb shell chmod "$OLDPERM" $TARGET
+                else
+                    echo "$TARGET did not exist previously, you should set file permissions manually"
+                fi
+                adb shell restorecon "$TARGET"
+            ;;
+            /system/priv-app/SystemUI/SystemUI.apk|/system/framework/*)
+                # Only need to stop services once
+                if ! $stop_n_start; then
+                    adb shell stop
+                    stop_n_start=true
+                fi
+                echo "Pushing: $TARGET"
+                adb push $FILE $TARGET
+            ;;
+            *)
+                echo "Pushing: $TARGET"
+                adb push $FILE $TARGET
+            ;;
+        esac
+    done
+    if [ -n "$CHKPERM" ]; then
+        adb shell rm $CHKPERM
+    fi
+    if $stop_n_start; then
+        adb shell start
+    fi
+    rm -f $OUT/.log
+    return 0
+    else
+        echo "The connected device does not appear to be $GZOSP_BUILD, run away!"
+    fi
+}
+
+alias mmp='dopush mm'
+alias mmmp='dopush mmm'
+alias mkap='dopush mka'
+alias cmkap='dopush cmka'
+
 # Print colored exit condition
 function pez {
     "$@"
@@ -1620,9 +1930,9 @@ function _wrap_build()
     fi
     echo
     if [ $ret -eq 0 ] ; then
-        echo -n "${color_success}#### build completed successfully "
+        printf "${color_success}#### build completed successfully "
     else
-        echo -n "${color_failed}#### failed to build some targets "
+        printf "${color_failed}#### failed to build some targets "
     fi
     if [ $hours -gt 0 ] ; then
         printf "(%02g:%02g:%02g (hh:mm:ss))" $hours $mins $secs
@@ -1631,43 +1941,45 @@ function _wrap_build()
     elif [ $secs -gt 0 ] ; then
         printf "(%s seconds)" $secs
     fi
-    echo " ####${color_reset}"
-    echo
+    printf " ####${color_reset}\n\n"
     return $ret
 }
 
-function make()
+function mk_timer()
 {
-    _wrap_build $(get_make_command "$@") "$@"
-}
-
-function provision()
-{
-    if [ ! "$ANDROID_PRODUCT_OUT" ]; then
-        echo "Couldn't locate output files.  Try running 'lunch' first." >&2
-        return 1
-    fi
-    if [ ! -e "$ANDROID_PRODUCT_OUT/provision-device" ]; then
-        echo "There is no provisioning script for the device." >&2
-        return 1
-    fi
-
-    # Check if user really wants to do this.
-    if [ "$1" = "--no-confirmation" ]; then
-        shift 1
+    local start_time=$(date +"%s")
+    $@
+    local ret=$?
+    local end_time=$(date +"%s")
+    local tdiff=$(($end_time-$start_time))
+    local hours=$(($tdiff / 3600 ))
+    local mins=$((($tdiff % 3600) / 60))
+    local secs=$(($tdiff % 60))
+    local ncolors=$(tput colors 2>/dev/null)
+    if [ -n "$ncolors" ] && [ $ncolors -ge 8 ]; then
+        color_failed="\e[0;31m"
+        color_success="\e[0;32m"
+        color_reset="\e[0m"
     else
-        echo "This action will reflash your device."
-        echo ""
-        echo "ALL DATA ON THE DEVICE WILL BE IRREVOCABLY ERASED."
-        echo ""
-        echo -n "Are you sure you want to do this (yes/no)? "
-        read
-        if [[ "${REPLY}" != "yes" ]] ; then
-            echo "Not taking any action. Exiting." >&2
-            return 1
-        fi
+        color_failed=""
+        color_success=""
+        color_reset=""
     fi
-    "$ANDROID_PRODUCT_OUT/provision-device" "$@"
+    echo
+    if [ $ret -eq 0 ] ; then
+        printf "${color_success}#### make completed successfully "
+    else
+        printf "${color_failed}#### make failed to build some targets "
+    fi
+    if [ $hours -gt 0 ] ; then
+        printf "(%02g:%02g:%02g (hh:mm:ss))" $hours $mins $secs
+    elif [ $mins -gt 0 ] ; then
+        printf "(%02g:%02g (mm:ss))" $mins $secs
+    elif [ $secs -gt 0 ] ; then
+        printf "(%s seconds)" $secs
+    fi
+    printf " ####${color_reset}\n\n"
+    return $ret
 }
 
 function atest()
@@ -1678,24 +1990,21 @@ function atest()
     "$(gettop)"/tools/tradefederation/core/atest/atest.py "$@"
 }
 
-function __detect_shell() {
-    case `ps -o command -p $$` in
-        *bash*)
-            echo bash
-            ;;
-        *zsh*)
-            echo zsh
-            ;;
-        *)
-            echo unknown
-            return 1
-            ;;
-    esac
-    return
+function make()
+{
+    mk_timer $(get_make_command) "$@"
 }
 
-if ! __detect_shell > /dev/null; then
-    echo "WARNING: Only bash and zsh are supported, use of other shell may lead to erroneous results"
+if [ "x$SHELL" != "x/bin/bash" ]; then
+    case `ps -o command -p $$` in
+        *bash*)
+            ;;
+        *zsh*)
+            ;;
+        *)
+            echo "WARNING: Only bash and zsh are supported, use of other shell may lead to erroneous results"
+            ;;
+    esac
 fi
 
 # determine whether arrays are zero-based (bash) or one-based (zsh)
@@ -1710,8 +2019,7 @@ unset _xarray
 
 # Execute the contents of any vendorsetup.sh files we can find.
 for f in `test -d device && find -L device -maxdepth 4 -name 'vendorsetup.sh' 2> /dev/null | sort` \
-         `test -d vendor && find -L vendor -maxdepth 4 -name 'vendorsetup.sh' 2> /dev/null | sort` \
-         `test -d product && find -L product -maxdepth 4 -name 'vendorsetup.sh' 2> /dev/null | sort`
+         `test -d vendor && find -L vendor -maxdepth 4 -name 'vendorsetup.sh' 2> /dev/null | sort`
 do
     echo "including $f"
     . $f
