@@ -2361,22 +2361,17 @@ otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
 bacon: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
 	$(hide) $(MD5SUM) $(AICP_TARGET_PACKAGE) > $(AICP_TARGET_PACKAGE).md5sum
-	@echo  ""
-	@echo  ""
-	@echo -e $(CL_CHAR3)"        ██████  █████▒▒▒▒▒        ███████▒▒▒"${CL_RST}
-	@echo -e $(CL_CHAR3)"      ███████████████▒▒▒▒▒     ██████████▒▒▒▒▒"${CL_RST}
-	@echo -e $(CL_CHAR3)"   ██████████████████▒▒▒▒▒  █████████████▒▒▒▒▒▒▒▒"${CL_RST}
-	@echo -e $(CL_CHAR3)"  ███████     ███████▒▒▒▒▒ ████████ ▒▒▒▒▒  ▒▒▒▒▒▒▒▒"${CL_RST}
-	@echo -e $(CL_CHAR3)"  ██████       ██████▒▒▒▒▒ ██████   ▒▒▒▒▒   ▒▒▒▒▒▒▒"${CL_RST}
-	@echo -e $(CL_CHAR3)" ██████         █████▒▒▒▒▒██████    ▒▒▒▒▒    ▒▒▒▒▒▒▒"${CL_RST}
-	@echo -e $(CL_CHAR3)"  ██████       ██████▒▒▒▒▒ ██████   ▒▒▒▒▒   ▒▒▒▒▒▒▒"${CL_RST}
-	@echo -e $(CL_CHAR3)"  ███████     ███████▒▒▒▒▒ ████████ ▒▒▒▒▒  ▒▒▒▒▒▒▒▒"${CL_RST}
-	@echo -e $(CL_CHAR3)"   ██████████████████▒▒▒▒▒  █████████████▒▒▒▒▒▒▒▒"${CL_RST}
-	@echo -e $(CL_CHAR3)"      ███████████████▒▒▒▒▒     ██████████▒▒▒▒▒"${CL_RST}
-	@echo -e $(CL_CHAR3)"        ██████  █████▒▒▒▒▒        ███████▒▒▒"${CL_RST}
-	@echo -e $(CL_CHAR3)"                                    ▒▒▒▒▒"${CL_RST}
-	@echo -e $(CL_CHAR1)"  C    U    S    T    O    M"${CL_CHAR3}"        ▒▒▒▒▒"${CL_CHAR1}"  R   O   M"${CL_RST}
-	@echo -e $(CL_CHAR3)"                                    ▒▒▒▒▒"${CL_RST}
+  @echo  ""
+  @echo  ""
+  @echo -e $(CL_BLU)"     █████ ████▒▒▒▒   ████████▒▒▒▒      "${CL_RST}
+  @echo -e $(CL_BLU)"   ████████████▒▒▒▒ ██████████▒▒▒▒▒▒    "${CL_RST}
+  @echo -e $(CL_BLU)"  ████     ████▒▒▒▒█████  ▒▒▒▒   ▒▒▒▒   "${CL_RST}
+  @echo -e $(CL_BLU)"  ███       ███▒▒▒▒████   ▒▒▒▒    ▒▒▒   "${CL_RST}
+  @echo -e $(CL_BLU)"  ████     ████▒▒▒▒████   ▒▒▒▒   ▒▒▒▒   "${CL_RST}
+  @echo -e $(CL_BLU)"   ████████████▒▒▒▒ ██████████▒▒▒▒▒▒    "${CL_RST}
+  @echo -e $(CL_BLU)"     █████ ████▒▒▒▒   ████████▒▒▒▒      "${CL_RST}
+  @echo -e $(CL_BLU)"                          ▒▒▒▒          "${CL_RST}
+  @echo -e $(CL_BLU)"                          ▒▒▒▒          "${CL_RST}
 	@echo  ""
 	@echo -e ${CL_CYN}"===========-Package complete-==========="${CL_RST}
 	@echo -e ${CL_CYN}"zip: "${CL_MAG} $(AICP_TARGET_PACKAGE)${CL_RST}
