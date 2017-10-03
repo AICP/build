@@ -547,6 +547,9 @@ endif
 # To run bison from elsewhere you need to set up enviromental variable
 # BISON_PKGDATADIR.
 BISON_PKGDATADIR := $(PWD)/external/bison/data
+ifeq ($(USE_HOST_BISON),yes)
+BISON := $(HOST_OUT_EXECUTABLES)/bison
+else
 BISON := prebuilts/misc/$(BUILD_OS)-$(HOST_PREBUILT_ARCH)/bison/bison
 YACC := $(BISON) -d
 
