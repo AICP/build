@@ -61,6 +61,7 @@ PRODUCT_PACKAGES := \
     android.hardware.keymaster@3.0 \
     android.hardware.light@2.0 \
     android.hardware.media@1.0 \
+    android.hardware.media.omx@1.0-utils \
     android.hardware.media.omx@1.0 \
     android.hardware.memtrack@1.0 \
     android.hardware.nfc@1.0 \
@@ -70,6 +71,8 @@ PRODUCT_PACKAGES := \
     android.hardware.radio.deprecated@1.0 \
     android.hardware.sensors@1.0 \
     android.hardware.soundtrigger@2.0 \
+    android.hardware.tetheroffload.config@1.0 \
+    android.hardware.tetheroffload.control@1.0 \
     android.hardware.thermal@1.0 \
     android.hardware.tv.cec@1.0 \
     android.hardware.tv.input@1.0 \
@@ -79,12 +82,13 @@ PRODUCT_PACKAGES := \
     android.hardware.vr@1.0 \
     android.hardware.weaver@1.0 \
     android.hardware.wifi@1.0 \
+    android.hardware.wifi@1.1 \
     android.hardware.wifi.supplicant@1.0 \
     android.hidl.allocator@1.0 \
-    android.hidl.base@1.0 \
     android.hidl.manager@1.0 \
     android.hidl.memory@1.0 \
     android.hidl.token@1.0 \
+    android.system.net.netd@1.0 \
     android.system.wifi.keystore@1.0 \
 
 # VNDK:
@@ -165,7 +169,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     vndk-sp \
 
-# LL-VNDK:
+# LL-NDK:
 PRODUCT_PACKAGES += \
     libandroid_net \
     libc \
@@ -186,14 +190,6 @@ PRODUCT_PACKAGES += \
     libsync \
     libvulkan \
 
-PRODUCT_SYSTEM_VERITY_PARTITION := /dev/block/bootdevice/by-name/system
-
-# Wifi:
-#   Wifi HAL (android.hardware.wifi@1.0-service, wpa_supplicant,
-#   and wpa_supplicant.conf) is not here. They are in vendor.img
-PRODUCT_PACKAGES += \
-    wificond \
-
 # Audio:
 USE_XML_AUDIO_POLICY_CONF := 1
 # The following policy XML files are used as fallback for
@@ -210,8 +206,3 @@ PRODUCT_COPY_FILES += \
 #   audio.a2dp.default to support A2DP if board has the capability.
 PRODUCT_PACKAGES += \
     audio.a2dp.default
-
-# May need to review why the followings are needed in generic system image.
-PRODUCT_COPY_FILES += \
-    device/generic/goldfish/data/etc/apns-conf.xml:system/etc/apns-conf.xml
-

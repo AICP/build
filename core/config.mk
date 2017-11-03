@@ -133,11 +133,7 @@ BUILD_HOST_DALVIK_STATIC_JAVA_LIBRARY := $(BUILD_SYSTEM)/host_dalvik_static_java
 # Parse out any modifier targets.
 # ###############################################################
 
-# The 'showcommands' goal says to show the full command
-# lines being executed, instead of a short message about
-# the kind of operation being done.
-SHOW_COMMANDS:= $(filter showcommands,$(MAKECMDGOALS))
-hide := $(if $(SHOW_COMMANDS),,@)
+hide := @
 
 ################################################################
 # Tools needed in product configuration makefiles.
@@ -487,6 +483,23 @@ endif
 
 BUILD_PLATFORM_ZIP := $(filter platform platform-java,$(MAKECMDGOALS))
 
+# ---------------------------------------------------------------
+# Whether we can expect a full build graph
+ALLOW_MISSING_DEPENDENCIES := $(filter true,$(ALLOW_MISSING_DEPENDENCIES))
+ifneq ($(TARGET_BUILD_APPS),)
+ALLOW_MISSING_DEPENDENCIES := true
+endif
+ifeq ($(TARGET_BUILD_PDK),true)
+ALLOW_MISSING_DEPENDENCIES := true
+endif
+ifneq ($(filter true,$(SOONG_ALLOW_MISSING_DEPENDENCIES)),)
+ALLOW_MISSING_DEPENDENCIES := true
+endif
+ifneq ($(ONE_SHOT_MAKEFILE),)
+ALLOW_MISSING_DEPENDENCIES := true
+endif
+.KATI_READONLY := ALLOW_MISSING_DEPENDENCIES
+
 #
 # Tools that are prebuilts for TARGET_BUILD_APPS
 #
@@ -503,12 +516,23 @@ LLVM_RS_CC := $(HOST_OUT_EXECUTABLES)/llvm-rs-cc
 BCC_COMPAT := $(HOST_OUT_EXECUTABLES)/bcc_compat
 DEPMOD := $(HOST_OUT_EXECUTABLES)/depmod
 
+#TODO: use a smaller -Xmx value for most libraries;
+#      only core.jar and framework.jar need a heap this big.
+ifndef DX_ALT_JAR
 DX := $(HOST_OUT_EXECUTABLES)/dx
+DX_COMMAND := $(DX) -JXms16M -JXmx2048M
+else
+DX := $(DX_ALT_JAR)
+DX_COMMAND := java -Xms16M -Xmx2048M -jar $(DX)
+endif
+
 MAINDEXCLASSES := $(HOST_OUT_EXECUTABLES)/mainDexClasses
 
 SOONG_ZIP := $(SOONG_HOST_OUT_EXECUTABLES)/soong_zip
 ZIP2ZIP := $(SOONG_HOST_OUT_EXECUTABLES)/zip2zip
 FILESLIST := $(SOONG_HOST_OUT_EXECUTABLES)/fileslist
+
+SOONG_JAVAC_WRAPPER := $(SOONG_HOST_OUT_EXECUTABLES)/soong_javac_wrapper
 
 # Always use prebuilts for ckati and makeparallel
 prebuilt_build_tools := prebuilts/build-tools
@@ -646,6 +670,7 @@ BOOT_SIGNER := $(HOST_OUT_EXECUTABLES)/boot_signer
 FUTILITY := $(HOST_OUT_EXECUTABLES)/futility-host
 VBOOT_SIGNER := prebuilts/misc/scripts/vboot_signer/vboot_signer.sh
 FEC := $(HOST_OUT_EXECUTABLES)/fec
+BRILLO_UPDATE_PAYLOAD := $(HOST_OUT_EXECUTABLES)/brillo_update_payload
 
 DEXDUMP := $(HOST_OUT_EXECUTABLES)/dexdump2$(BUILD_EXECUTABLE_SUFFIX)
 PROFMAN := $(HOST_OUT_EXECUTABLES)/profman
@@ -664,13 +689,21 @@ COLUMN:= column
 
 # We may not have the right JAVA_HOME/PATH set up yet when this is run from envsetup.sh.
 ifneq ($(CALLED_FROM_SETUP),true)
-HOST_JDK_TOOLS_JAR:= $(shell $(BUILD_SYSTEM)/find-jdk-tools-jar.sh)
+
+# Path to tools.jar, or empty if EXPERIMENTAL_USE_OPENJDK9 is set
+HOST_JDK_TOOLS_JAR :=
+# TODO: Remove HOST_JDK_TOOLS_JAR and all references to it once OpenJDK 8
+# toolchains are no longer supported (i.e. when what is now
+# EXPERIMENTAL_USE_OPENJDK9 becomes the standard). http://b/38418220
+ifeq ($(EXPERIMENTAL_USE_OPENJDK9),)
+HOST_JDK_TOOLS_JAR := $(shell $(BUILD_SYSTEM)/find-jdk-tools-jar.sh)
 
 ifneq ($(HOST_JDK_TOOLS_JAR),)
 ifeq ($(wildcard $(HOST_JDK_TOOLS_JAR)),)
 $(error Error: could not find jdk tools.jar at $(HOST_JDK_TOOLS_JAR), please check if your JDK was installed correctly)
 endif
 endif
+endif # ifeq ($(EXPERIMENTAL_USE_OPENJDK9),)
 
 # Is the host JDK 64-bit version?
 HOST_JDK_IS_64BIT_VERSION :=
@@ -686,9 +719,13 @@ else
 MD5SUM:=md5sum
 endif
 
-APICHECK_CLASSPATH := $(HOST_JDK_TOOLS_JAR)
-APICHECK_CLASSPATH := $(APICHECK_CLASSPATH):$(HOST_OUT_JAVA_LIBRARIES)/doclava$(COMMON_JAVA_PACKAGE_SUFFIX)
-APICHECK_CLASSPATH := $(APICHECK_CLASSPATH):$(HOST_OUT_JAVA_LIBRARIES)/jsilver$(COMMON_JAVA_PACKAGE_SUFFIX)
+APICHECK_CLASSPATH_ENTRIES := \
+    $(HOST_OUT_JAVA_LIBRARIES)/doclava$(COMMON_JAVA_PACKAGE_SUFFIX) \
+    $(HOST_OUT_JAVA_LIBRARIES)/jsilver$(COMMON_JAVA_PACKAGE_SUFFIX) \
+    $(HOST_JDK_TOOLS_JAR) \
+    )
+APICHECK_CLASSPATH := $(subst $(space),:,$(strip $(APICHECK_CLASSPATH_ENTRIES)))
+
 APICHECK_COMMAND := $(APICHECK) -JXmx1024m -J"classpath $(APICHECK_CLASSPATH)"
 
 # Boolean variable determining if Treble is fully enabled
@@ -709,7 +746,38 @@ else
 endif
 
 FRAMEWORK_MANIFEST_FILE := system/libhidl/manifest.xml
-FRAMEWORK_COMPATIBILITY_MATRIX_FILE := hardware/interfaces/compatibility_matrix.xml
+
+# Compatibility matrix versioning:
+# MATRIX_LEVEL_OVERRIDE defined: MATRIX_LEVEL = MATRIX_LEVEL_OVERRIDE
+# MATRIX_LEVEL_OVERRIDE undefined:
+#   FULL_TREBLE != true: MATRIX_LEVEL = legacy
+#   FULL_TREBLE == true:
+#     SHIPPING_API_LEVEL defined: MATRIX_LEVEL = SHIPPING_API_LEVEL
+#     SHIPPING_API_LEVEL undefined: MATRIX_LEVEL = PLATFORM_SDK_VERSION
+# MATRIX_LEVEL == legacy => legacy.xml
+# MATRIX_LEVEL <= 26 => 26.xml
+# MATRIX_LEVEL == 27 => 27.xml # define when 27 releases
+# MATRIX_LEVEL == 28 => 28.xml # define when 28 releases
+# ...
+# otherwise => current.xml
+
+ifneq ($(PRODUCT_COMPATIBILITY_MATRIX_LEVEL_OVERRIDE),)
+  PRODUCT_COMPATIBILITY_MATRIX_LEVEL := $(PRODUCT_COMPATIBILITY_MATRIX_LEVEL_OVERRIDE)
+else ifneq ($(PRODUCT_FULL_TREBLE),true)
+  PRODUCT_COMPATIBILITY_MATRIX_LEVEL := legacy
+else ifneq ($(PRODUCT_SHIPPING_API_LEVEL),)
+  PRODUCT_COMPATIBILITY_MATRIX_LEVEL := $(PRODUCT_SHIPPING_API_LEVEL)
+else
+  PRODUCT_COMPATIBILITY_MATRIX_LEVEL := $(PLATFORM_SDK_VERSION)
+endif
+
+ifeq ($(strip $(PRODUCT_COMPATIBILITY_MATRIX_LEVEL)),legacy)
+  FRAMEWORK_COMPATIBILITY_MATRIX_FILE := hardware/interfaces/compatibility_matrix.legacy.xml
+else ifeq ($(call math_gt_or_eq,$(PRODUCT_COMPATIBILITY_MATRIX_LEVEL),27),)
+  FRAMEWORK_COMPATIBILITY_MATRIX_FILE := hardware/interfaces/compatibility_matrix.26.xml
+else
+  FRAMEWORK_COMPATIBILITY_MATRIX_FILE := hardware/interfaces/compatibility_matrix.current.xml
+endif
 
 # ###############################################################
 # Set up final options.
@@ -817,10 +885,10 @@ endif
 RS_PREBUILT_CLCORE := prebuilts/sdk/renderscript/lib/$(TARGET_ARCH)/librsrt_$(TARGET_ARCH).bc
 RS_PREBUILT_COMPILER_RT := prebuilts/sdk/renderscript/lib/$(TARGET_ARCH)/libcompiler_rt.a
 ifeq (true,$(TARGET_IS_64_BIT))
-RS_PREBUILT_LIBPATH := -L prebuilts/ndk/current/platforms/android-21/arch-$(TARGET_ARCH)/usr/lib64 \
-                       -L prebuilts/ndk/current/platforms/android-21/arch-$(TARGET_ARCH)/usr/lib
+RS_PREBUILT_LIBPATH := -L prebuilts/ndk/r10/platforms/android-21/arch-$(TARGET_ARCH)/usr/lib64 \
+                       -L prebuilts/ndk/r10/platforms/android-21/arch-$(TARGET_ARCH)/usr/lib
 else
-RS_PREBUILT_LIBPATH := -L prebuilts/ndk/current/platforms/android-9/arch-$(TARGET_ARCH)/usr/lib
+RS_PREBUILT_LIBPATH := -L prebuilts/ndk/r10/platforms/android-9/arch-$(TARGET_ARCH)/usr/lib
 endif
 
 # API Level lists for Renderscript Compat lib.
@@ -873,8 +941,7 @@ endef
 
 # These goals don't need to collect and include Android.mks/CleanSpec.mks
 # in the source tree.
-dont_bother_goals := clean clobber dataclean installclean \
-    help out \
+dont_bother_goals := out \
     snod systemimage-nodeps \
     stnod systemtarball-nodeps \
     userdataimage-nodeps userdatatarball-nodeps \

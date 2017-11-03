@@ -107,10 +107,15 @@ class ExternalError(RuntimeError):
   pass
 
 
-def Run(args, **kwargs):
-  """Create and return a subprocess.Popen object, printing the command
-  line on the terminal if -v was specified."""
-  if OPTIONS.verbose:
+def Run(args, verbose=None, **kwargs):
+  """Create and return a subprocess.Popen object.
+
+  Caller can specify if the command line should be printed. The global
+  OPTIONS.verbose will be used if not specified.
+  """
+  if verbose is None:
+    verbose = OPTIONS.verbose
+  if verbose:
     print("  running: ", " ".join(args))
   return subprocess.Popen(args, **kwargs)
 
@@ -340,14 +345,13 @@ def DumpInfoDict(d):
     print("%-25s = (%s) %s" % (k, type(v).__name__, v))
 
 
-def AppendAVBSigningArgs(cmd):
+def AppendAVBSigningArgs(cmd, partition):
   """Append signing arguments for avbtool."""
-  keypath = OPTIONS.info_dict.get("board_avb_key_path", None)
-  algorithm = OPTIONS.info_dict.get("board_avb_algorithm", None)
-  if not keypath or not algorithm:
-    algorithm = "SHA256_RSA4096"
-    keypath = "external/avb/test/data/testkey_rsa4096.pem"
-  cmd.extend(["--key", keypath, "--algorithm", algorithm])
+  # e.g., "--key path/to/signing_key --algorithm SHA256_RSA4096"
+  key_path = OPTIONS.info_dict.get("avb_" + partition + "_key_path")
+  algorithm = OPTIONS.info_dict.get("avb_" + partition + "_algorithm")
+  if key_path and algorithm:
+    cmd.extend(["--key", key_path, "--algorithm", algorithm])
 
 
 def _BuildBootableImage(sourcedir, fs_config_file, info_dict=None,
@@ -500,13 +504,13 @@ def _BuildBootableImage(sourcedir, fs_config_file, info_dict=None,
     img_keyblock.close()
 
   # AVB: if enabled, calculate and add hash to boot.img.
-  if info_dict.get("board_avb_enable", None) == "true":
-    avbtool = os.getenv('AVBTOOL') or "avbtool"
-    part_size = info_dict.get("boot_size", None)
+  if info_dict.get("avb_enable") == "true":
+    avbtool = os.getenv('AVBTOOL') or info_dict["avb_avbtool"]
+    part_size = info_dict["boot_size"]
     cmd = [avbtool, "add_hash_footer", "--image", img.name,
            "--partition_size", str(part_size), "--partition_name", "boot"]
-    AppendAVBSigningArgs(cmd)
-    args = info_dict.get("board_avb_boot_add_hash_footer_args", None)
+    AppendAVBSigningArgs(cmd, "boot")
+    args = info_dict.get("avb_boot_add_hash_footer_args")
     if args and args.strip():
       cmd.extend(shlex.split(args))
     p = Run(cmd, stdout=subprocess.PIPE)
