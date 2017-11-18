@@ -551,6 +551,7 @@ ifeq ($(USE_HOST_BISON),yes)
 BISON := $(HOST_OUT_EXECUTABLES)/bison
 else
 BISON := prebuilts/misc/$(BUILD_OS)-$(HOST_PREBUILT_ARCH)/bison/bison
+endif
 YACC := $(BISON) -d
 
 YASM := prebuilts/misc/$(BUILD_OS)-$(HOST_PREBUILT_ARCH)/yasm/yasm
