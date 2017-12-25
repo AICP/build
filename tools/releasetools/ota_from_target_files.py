@@ -515,9 +515,9 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
   build = GetBuildProp("ro.aicp.version", OPTIONS.info_dict)
   if os.getenv("AICP_BUILDTYPE") is not None:
-    script.Print("*   Version: %s"%(build));
+    script.Print("    Version: %s"%(build));
   elif os.getenv("AICP_NIGHTLY") is not None:
-    script.Print("*   Version: %s"%(build));
+    script.Print("    Version: %s"%(build));
   else:
     build = GetBuildProp("ro.build.date", OPTIONS.info_dict)
     script.Print("*********************************************");
