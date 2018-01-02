@@ -515,22 +515,22 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
   build = GetBuildProp("ro.aicp.version", OPTIONS.info_dict)
   if os.getenv("AICP_BUILDTYPE") is not None:
-    script.Print("*   Version: %s"%(build));
+    script.Print("   Version: %s"%(build));
   elif os.getenv("AICP_NIGHTLY") is not None:
-    script.Print("*   Version: %s"%(build));
+    script.Print("   Version: %s"%(build));
   else:
     build = GetBuildProp("ro.build.date", OPTIONS.info_dict)
     script.Print("*********************************************");
     script.Print("*************    AICP   BUILD   *************");
     script.Print("*********************************************");
-    script.Print("*   Compiled: %s"%(build));
+    script.Print("   Compiled: %s"%(build));
 
   device = GetBuildProp("ro.product.device", OPTIONS.info_dict)
   if GetBuildProp("ro.product.model", OPTIONS.info_dict) is not None:
     model = GetBuildProp("ro.product.model", OPTIONS.info_dict)
-    script.Print("*   Device: %s (%s)"%(model, device));
+    script.Print("   Device: %s (%s)"%(model, device));
   else:
-    script.Print("*   Device: %s"%(device));
+    script.Print("   Device: %s"%(device));
   script.Print("*********************************************");
 
   if OPTIONS.wipe_user_data:
