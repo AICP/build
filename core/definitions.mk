@@ -2195,7 +2195,7 @@ endef
 # Call jack
 #
 define call-jack
- JACK_VERSION=$(PRIVATE_JACK_VERSION) $(JACK) $(DEFAULT_JACK_EXTRA_ARGS)
+ JACK_VERSION=$(PRIVATE_JACK_VERSION) flock $(BUILD_DROIDDOC) $(JACK) $(DEFAULT_JACK_EXTRA_ARGS)
 endef
 
 # Common definition to invoke javac on the host and target.
@@ -2336,6 +2336,7 @@ $(call call-jack) \
     $(if $(PRIVATE_JACK_PROGUARD_FLAGS),--config-proguard $@.flags) \
     $$tmpEcjArg \
     || ( rm -rf $(PRIVATE_CLASSES_JACK); exit 41 )
+$(hide) $(JACK)-admin server-gc
 $(hide) mv $(PRIVATE_JACK_INTERMEDIATES_DIR)/classes*.dex $(dir $@)
 $(hide) rm -f $(PRIVATE_JACK_INTERMEDIATES_DIR)/java-source-list
 $(if $(PRIVATE_EXTRA_JAR_ARGS),$(hide) rm -rf $@.res.tmp)
@@ -2379,6 +2380,7 @@ $(hide) if [ -s $@.java-source-list-uniq ] ; then \
 	    $(if $(PRIVATE_JACK_INCREMENTAL_DIR),--incremental-folder $(PRIVATE_JACK_INCREMENTAL_DIR)) \
 	    @$@.java-source-list-uniq; \
 fi
+$(hide) $(JACK)-admin server-gc
 touch $@
 endef
 
@@ -2398,6 +2400,7 @@ define transform-jar-to-jack
 	    --import $< \
 	    --import-resource $@.tmpjill.res \
 	    --output-jack $@
+	$(hide) $(JACK)-admin server-gc
 	$(hide) rm -rf $@.tmpjill.res
 endef
 
@@ -2519,6 +2522,7 @@ $(call call-jack) \
     $(if $(PRIVATE_JACK_PROGUARD_FLAGS),--config-proguard $@.flags) \
     $$tmpEcjArg \
     || ( rm -f $@ ; exit 41 )
+$(hide) $(JACK)-admin server-gc
 $(hide) rm -f $(PRIVATE_JACK_INTERMEDIATES_DIR)/java-source-list
 $(if $(PRIVATE_EXTRA_JAR_ARGS),$(hide) rm -rf $@.res.tmp)
 $(hide) mv $(PRIVATE_JACK_INTERMEDIATES_DIR)/java-source-list-uniq $(PRIVATE_JACK_INTERMEDIATES_DIR).java-source-list
