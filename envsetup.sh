@@ -1665,6 +1665,18 @@ function _wrap_build()
     fi
     echo
     if [ $ret -eq 0 ] ; then
+        echo -ne "${color_success}\n"
+        echo -ne "     █████ ████▒▒▒▒   ████████▒▒▒▒      \n"
+        echo -ne "   ████████████▒▒▒▒ ██████████▒▒▒▒▒▒    \n"
+        echo -ne "  ████     ████▒▒▒▒█████  ▒▒▒▒   ▒▒▒▒   \n"
+        echo -ne "  ███       ███▒▒▒▒████   ▒▒▒▒    ▒▒▒   \n"
+        echo -ne "  ████     ████▒▒▒▒████   ▒▒▒▒   ▒▒▒▒   \n"
+        echo -ne "   ████████████▒▒▒▒ ██████████▒▒▒▒▒▒    \n"
+        echo -ne "     █████ ████▒▒▒▒   ████████▒▒▒▒      \n"
+        echo -ne "                          ▒▒▒▒          \n"
+        echo -ne "                          ▒▒▒▒          \n"
+        echo -ne "www.aicp-rom.com   -   Get your flash ON\n"
+        echo -ne "${color_reset}\n"
         echo -n "${color_success}#### build completed successfully "
     else
         echo -n "${color_failed}#### failed to build some targets "
