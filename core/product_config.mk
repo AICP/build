@@ -171,6 +171,7 @@ include $(BUILD_SYSTEM)/device.mk
 # A AICP build needs only the AICP product makefiles.
 ifneq ($(AICP_BUILD),)
   all_product_configs := $(shell find device -path "*/$(AICP_BUILD)/aicp.mk")
+  all_product_configs += $(wildcard vendor/aicp/build/target/product/aicp_$(AICP_BUILD).mk)
 else
   ifneq ($(strip $(TARGET_BUILD_APPS)),)
   # An unbundled app build needs only the core product makefiles.
