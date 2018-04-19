@@ -32,6 +32,12 @@ print_build_config_vars += \
   TARGET_USE_SDCLANG
 endif
 
+ifeq ($(TARGET_KERNEL_CLANG_COMPILE),true)
+print_build_config_vars += \
+  TARGET_KERNEL_CLANG_COMPILE \
+  TARGET_KERNEL_CLANG_VERSION
+endif
+
 ifneq ($(RECOVERY_VARIANT),)
 print_build_config_vars += \
   RECOVERY_VARIANT
