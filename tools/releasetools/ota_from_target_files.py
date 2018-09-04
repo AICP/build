@@ -300,12 +300,15 @@ class BuildInfo(object):
   def get(self, key, default=None):
     return self.info_dict.get(key, default)
 
-  def GetBuildProp(self, prop):
+  def GetBuildProp(self, prop, raise_error=True):
     """Returns the inquired build property."""
     try:
       return self.info_dict.get("build.prop", {})[prop]
     except KeyError:
-      raise common.ExternalError("couldn't find %s in build.prop" % (prop,))
+      if raise_error:
+        raise common.ExternalError("couldn't find %s in build.prop" % (prop,))
+      else:
+        return "Unknown"
 
   def GetVendorBuildProp(self, prop):
     """Returns the inquired vendor build property."""
