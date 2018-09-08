@@ -844,7 +844,7 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   script.Print("   \\ \\____/ /\\_______\\\\ \\_____\\ `\\____\\ \\_\\       ");
   script.Print("    \\/___/  \\/_______/ \\/_____/\\/_____/\\/_/   ");
   script.Print("                                                   ");
-  script.Print("                  AOSP Oreo                        ");
+  script.Print("                   AOSP Pie                        ");
   script.Print("          A Ground Zero Roms Project               ");
   script.Print("***************************************************");
 
