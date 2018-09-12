@@ -1709,16 +1709,6 @@ ifneq ($(LOCAL_MODULE_MAKEFILE),$(SOONG_ANDROID_MK))
   endif
 endif
 
-
-# Temporary Fix to ignore errors till repos have fixes for these
-my_cflags += -Wall -Werror -Wno-unused-variable -Wno-unused-value -Wno-unused-function \
-             -Wno-unused-label -Wno-user-defined-warnings -Wno-unused-parameter -Wno-char-subscripts \
-             -Wno-string-plus-int -Wno-sometimes-uninitialized -Wno-format-extra-args -Wno-format \
-             -Wno-parentheses-equality -Wno-macro-redefined -Wno-logical-op-parentheses \
-             -Wno-parentheses -Wno-unused-private-field -Wno-missing-braces -Wno-implicit-function-declaration \
-             -Wno-pointer-arith -Wno-gnu-designator -Wno-constant-logical-operand -Wno-incompatible-pointer-types \
-             -Wno-address-of-packed-member -Wno-enum-conversion -Wno-self-assign
-
 # Disable clang-tidy if it is not found.
 ifeq ($(PATH_TO_CLANG_TIDY),)
   my_tidy_enabled := false
