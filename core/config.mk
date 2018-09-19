@@ -230,7 +230,7 @@ $(call project-set-path-variant,ril,TARGET_RIL_VARIANT,hardware/ril)
 
 -include vendor/extra/BoardConfigExtra.mk
 ifneq ($(LINEAGE_BUILD),)
-include vendor/lineage/config/BoardConfigLineage.mk
+include vendor/aicp/config/BoardConfigLineage.mk
 endif
 
 # The build system exposes several variables for where to find the kernel
