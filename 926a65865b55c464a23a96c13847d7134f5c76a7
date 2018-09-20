@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ffb072b2_fd0534a4",
+        "filename": "core/config.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 233,
+      "author": {
+        "id": 152
+      },
+      "writtenOn": "2018-09-20T20:24:40Z",
+      "side": 1,
+      "message": "Let BoardConfigLineage.mk",
+      "revId": "926a65865b55c464a23a96c13847d7134f5c76a7",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6f118ed_e3a66160",
+        "filename": "core/config.mk",
+        "patchSetId": 2
+      },
+      "lineNbr": 1157,
+      "author": {
+        "id": 152
+      },
+      "writtenOn": "2018-09-20T20:24:40Z",
+      "side": 1,
+      "message": "Keep lineage -\u003e One less repo to track",
+      "revId": "926a65865b55c464a23a96c13847d7134f5c76a7",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
+      "unresolved": true
+    }
+  ]
+}
