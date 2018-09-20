@@ -29,7 +29,7 @@ Invoke ". build/envsetup.sh" from your shell to add the following functions to y
 
 EOF
 
-    __print_lineage_functions_help
+    __print_aicp_functions_help
 
 cat <<EOF
 
@@ -137,13 +137,13 @@ function check_product()
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
     fi
-    if (echo -n $1 | grep -q -e "^lineage_") ; then
-        LINEAGE_BUILD=$(echo -n $1 | sed -e 's/^lineage_//g')
-        export BUILD_NUMBER=$( (date +%s%N ; echo $LINEAGE_BUILD; hostname) | openssl sha1 | sed -e 's/.*=//g; s/ //g' | cut -c1-10 )
+    if (echo -n $1 | grep -q -e "^aicp_") ; then
+        AICP_BUILD=$(echo -n $1 | sed -e 's/^aicp_//g')
+        export BUILD_NUMBER=$( (date +%s%N ; echo $AICP_BUILD; hostname) | openssl sha1 | sed -e 's/.*=//g; s/ //g' | cut -c1-10 )
     else
-        LINEAGE_BUILD=
+        AICP_BUILD=
     fi
-    export LINEAGE_BUILD
+    export AICP_BUILD
 
         TARGET_PRODUCT=$1 \
         TARGET_BUILD_VARIANT= \
@@ -634,7 +634,7 @@ function lunch()
     check_product $product
     if [ $? -ne 0 ]
     then
-        # if we can't find a product, try to grab it off the LineageOS GitHub
+        # if we can't find a product, try to grab it off the AICP GitHub
         T=$(gettop)
         cd $T > /dev/null
         vendor/aicp/build/tools/roomservice.py $product
