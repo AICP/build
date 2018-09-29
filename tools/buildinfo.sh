@@ -64,6 +64,7 @@ if [ -n "$DEVICE_MAINTAINERS" ] ; then
 fi
 echo "ro.build.characteristics=$TARGET_AAPT_CHARACTERISTICS"
 
+echo "ro.aicp.device=$LINEAGE_DEVICE"
 echo "ro.lineage.device=$LINEAGE_DEVICE"
 
 echo "# end build properties"
