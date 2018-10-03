@@ -3206,8 +3206,9 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) \
 	   $(BUILT_TARGET_FILES_PACKAGE) $@
 
 GZOSP_TARGET_PACKAGE := $(PRODUCT_OUT)/$(GZOSP_VERSION).zip
+AICP_TARGET_PACKAGE := $(PRODUCT_OUT)/$(AICP_VERSION).zip
 
-.PHONY: otapackage gzosp
+.PHONY: otapackage gzosp aicp bacon
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
 gzosp: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(GZOSP_TARGET_PACKAGE)
@@ -3224,6 +3225,21 @@ gzosp: otapackage
 	@echo -e ${CL_RED}"                           A Ground Zero Roms "${CL_RED}
 	@echo -e ${CL_RED}"                                Project      "${CL_RED}
 	@echo -e "Package complete: $(GZOSP_TARGET_PACKAGE)"
+aicp: otapackage
+	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
+	$(hide) $(MD5SUM) $(AICP_TARGET_PACKAGE) > $(AICP_TARGET_PACKAGE).md5sum
+	@echo -e ${CL_GRN}""${CL_GRN}
+	@echo -e ${CL_GRN}"   ▄████████  ▄█   ▄████████    ▄███████▄ "${CL_GRN}
+	@echo -e ${CL_GRN}"  ███    ███ ███  ███    ███   ███    ███ "${CL_GRN}
+	@echo -e ${CL_GRN}"  ███    ███ ███▌ ███    █▀    ███    ███ "${CL_GRN}
+	@echo -e ${CL_GRN}"  ███    ███ ███▌ ███          ███    ███ "${CL_GRN}
+	@echo -e ${CL_GRN}"▀███████████ ███▌ ███        ▀█████████▀  "${CL_GRN}
+	@echo -e ${CL_GRN}"  ███    ███ ███  ███    █▄    ███ "${CL_GRN}
+	@echo -e ${CL_GRN}"  ███    ███ ███  ███    ███   ███ "${CL_GRN}
+	@echo -e ${CL_GRN}"  ███    █▀  █▀   ████████▀   ▄████▀ "${CL_GRN}
+	@echo -e ${CL_GRN}""${CL_GRN}
+	@echo -e "Package complete: $(AICP_TARGET_PACKAGE)"
+bacon: aicp
 
 endif    # build_ota_package
 

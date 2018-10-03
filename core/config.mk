@@ -230,7 +230,7 @@ $(call project-set-path-variant,ril,TARGET_RIL_VARIANT,hardware/ril)
 
 -include vendor/extra/BoardConfigExtra.mk
 ifneq ($(GZOSP_BUILD),)
-include vendor/gzosp/config/BoardConfigGZOSP.mk
+include vendor/aicp/config/BoardConfigGZOSP.mk
 endif
 
 # The build system exposes several variables for where to find the kernel
@@ -1161,9 +1161,9 @@ endif
 -include vendor/*/build/core/config.mk
 
 # Rules for QCOM targets
--include $(TOPDIR)vendor/gzosp/build/core/qcom_target.mk
+-include $(TOPDIR)vendor/aicp/build/core/qcom_target.mk
 
 # Rules for MTK targets
--include $(TOPDIR)vendor/gzosp/build/core/mtk_target.mk
+-include $(TOPDIR)vendor/aicp/build/core/mtk_target.mk
 
 include $(BUILD_SYSTEM)/dumpvar.mk

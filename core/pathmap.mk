@@ -94,4 +94,4 @@ FRAMEWORKS_BASE_SUBDIRS := \
 FRAMEWORKS_BASE_JAVA_SRC_DIRS := \
 	$(addprefix frameworks/base/,$(FRAMEWORKS_BASE_SUBDIRS))
 
--include vendor/gzosp/build/core/pathmap.mk
+-include vendor/aicp/build/core/pathmap.mk
