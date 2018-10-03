@@ -838,18 +838,32 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
   system_progress = 0.75
 
-  script.Print("**************************************************");
-  script.Print(" ____    ________   _____   ____    ____          ");
-  script.Print("/\\  _`\\ /\\_____  \\ /\\  __`\\/\\  _`\\ /\\  _`\\         ");
-  script.Print("\\ \\ \\L\\_\\/____//'/'\\ \\ \\/\\ \\ \\,\\L\\_\\ \\ \\L\\\\");
-  script.Print(" \\ \\ \\L_L    //'/'  \\ \\ \\ \\ \\/_\\__ \\ \\ ,__/       ");
-  script.Print("  \\ \\ \\/, \\ //'/'___ \\ \\ \\_\\ \\/\\ \\L\\ \\ \\ \\/   ");
-  script.Print("   \\ \\____/ /\\_______\\\\ \\_____\\ `\\____\\ \\_\\       ");
-  script.Print("    \\/___/  \\/_______/ \\/_____/\\/_____/\\/_/   ");
-  script.Print("                                                   ");
-  script.Print("                   AOSP Pie                        ");
-  script.Print("          A Ground Zero Roms Project               ");
-  script.Print("***************************************************");
+  script.Print("*********************************************");
+  script.Print("*       ##### ####****   ########****       *")
+  script.Print("*     ############**** ##########******     *")
+  script.Print("*    ####     ####****#####  ****  *****    *")
+  script.Print("*    ###       ###****####   ****   ****    *")
+  script.Print("*    ####     ####****#####  ****  *****    *")
+  script.Print("*     ############**** ##########******     *")
+  script.Print("*       ##### ####****   ########****       *")
+  script.Print("*                            ****           *")
+  script.Print("*                            ****           *")
+  script.Print("* www.aicp-rom.com   -   Get your flash ON  *")
+  script.Print("*********************************************");
+
+
+  build = target_info.GetBuildProp("ro.build.date")
+  script.Print("*************    AICP   BUILD   *************");
+  script.Print("*********************************************");
+  script.Print("   Compiled: %s"%(build));
+
+  device = target_info.GetBuildProp("ro.product.device")
+  if target_info.GetBuildProp("ro.product.model") is not None:
+    model = target_info.GetBuildProp("ro.product.model")
+    script.Print("   Device: %s (%s)"%(model, device));
+  else:
+    script.Print("   Device: %s"%(device));
+  script.Print("*********************************************");
 
   if OPTIONS.wipe_user_data:
     system_progress -= 0.1
