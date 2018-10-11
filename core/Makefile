@@ -3232,17 +3232,19 @@ gzosp: otapackage
 	@echo -e ${CL_RED}"                                Project      "${CL_RED}
 	@echo -e "Package complete: $(GZOSP_TARGET_PACKAGE)"
 aicp: otapackage
-	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
-	$(hide) $(MD5SUM) $(AICP_TARGET_PACKAGE) > $(AICP_TARGET_PACKAGE).md5sum
-	@echo -e ${CL_GRN}""${CL_GRN}
-	@echo -e ${CL_GRN}"   ▄████████  ▄█   ▄████████    ▄███████▄ "${CL_GRN}
-	@echo -e ${CL_GRN}"  ███    ███ ███  ███    ███   ███    ███ "${CL_GRN}
-	@echo -e ${CL_GRN}"  ███    ███ ███▌ ███    █▀    ███    ███ "${CL_GRN}
-	@echo -e ${CL_GRN}"  ███    ███ ███▌ ███          ███    ███ "${CL_GRN}
-	@echo -e ${CL_GRN}"▀███████████ ███▌ ███        ▀█████████▀  "${CL_GRN}
-	@echo -e ${CL_GRN}"  ███    ███ ███  ███    █▄    ███ "${CL_GRN}
-	@echo -e ${CL_GRN}"  ███    ███ ███  ███    ███   ███ "${CL_GRN}
-	@echo -e ${CL_GRN}"  ███    █▀  █▀   ████████▀   ▄████▀ "${CL_GRN}
+        $(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
+        $(hide) $(MD5SUM) $(AICP_TARGET_PACKAGE) > $(AICP_TARGET_PACKAGE).md5sum
+        @echo -e ${CL_GRN}""${CL_GRN}
+        @echo -e ${CL_GRN}"      ##### ####****   ########****     "${CL_GRN}
+        @echo -e ${CL_GRN}"    ############**** ##########******   "${CL_GRN}
+        @echo -e ${CL_GRN}"   ####     ####****#####  ****  *****  "${CL_GRN}
+        @echo -e ${CL_GRN}"   ###       ###****####   ****   ****  "${CL_GRN}
+        @echo -e ${CL_GRN}"   ####     ####****#####  ****  *****  "${CL_GRN}
+        @echo -e ${CL_GRN}"    ############**** ##########******   "${CL_GRN}
+        @echo -e ${CL_GRN}"      ##### ####****   ########****     "${CL_GRN}
+        @echo -e ${CL_GRN}"                           **** "${CL_GRN}
+        @echo -e ${CL_GRN}"                           **** "${CL_GRN}
+        @echo -e "www.aicp-rom.com   -   Get your flash ON\n"
 	@echo -e ${CL_GRN}""${CL_GRN}
 	@echo -e "Package complete: $(AICP_TARGET_PACKAGE)"
 bacon: aicp
