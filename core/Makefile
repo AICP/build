@@ -3235,14 +3235,17 @@ aicp: otapackage
 	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(AICP_TARGET_PACKAGE)
 	$(hide) $(MD5SUM) $(AICP_TARGET_PACKAGE) > $(AICP_TARGET_PACKAGE).md5sum
 	@echo -e ${CL_GRN}""${CL_GRN}
-	@echo -e ${CL_GRN}"   ▄████████  ▄█   ▄████████    ▄███████▄ "${CL_GRN}
-	@echo -e ${CL_GRN}"  ███    ███ ███  ███    ███   ███    ███ "${CL_GRN}
-	@echo -e ${CL_GRN}"  ███    ███ ███▌ ███    █▀    ███    ███ "${CL_GRN}
-	@echo -e ${CL_GRN}"  ███    ███ ███▌ ███          ███    ███ "${CL_GRN}
-	@echo -e ${CL_GRN}"▀███████████ ███▌ ███        ▀█████████▀  "${CL_GRN}
-	@echo -e ${CL_GRN}"  ███    ███ ███  ███    █▄    ███ "${CL_GRN}
-	@echo -e ${CL_GRN}"  ███    ███ ███  ███    ███   ███ "${CL_GRN}
-	@echo -e ${CL_GRN}"  ███    █▀  █▀   ████████▀   ▄████▀ "${CL_GRN}
+	@echo -e ${CL_GRN}"        ##### ####****   ########****     "${CL_GRN}
+	@echo -e ${CL_GRN}"      ############**** ##########******   "${CL_GRN}
+	@echo -e ${CL_GRN}"     ####     ####****#####  ****  *****  "${CL_GRN}
+	@echo -e ${CL_GRN}"     ###       ###****####   ****   ****  "${CL_GRN}
+	@echo -e ${CL_GRN}"     ####     ####****#####  ****  *****  "${CL_GRN}
+	@echo -e ${CL_GRN}"      ############**** ##########******   "${CL_GRN}
+	@echo -e ${CL_GRN}"        ##### ####****   ########****     "${CL_GRN}
+	@echo -e ${CL_GRN}"                             **** "${CL_GRN}
+	@echo -e ${CL_GRN}"                             **** "${CL_GRN}
+	@echo -e ${CL_GRN}"  www.aicp-rom.com   -   Get your flash ON"${CL_GRN}
+	@echo -e ${CL_GRN}"Based on the Ground Zero Open Source Project"${CL_GRN}
 	@echo -e ${CL_GRN}""${CL_GRN}
 	@echo -e "Package complete: $(AICP_TARGET_PACKAGE)"
 bacon: aicp
