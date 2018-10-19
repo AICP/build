@@ -75,17 +75,13 @@ function check_product()
         echo "Couldn't locate the top of the tree.  Try setting TOP." >&2
         return
     fi
-    if (echo -n $1 | grep -q -e "^gzosp_") ; then
-        GZOSP_BUILD=$(echo -n $1 | sed -e 's/^gzosp_//g')
-        export BUILD_NUMBER=$( (date +%s%N ; echo $GZOSP_BUILD; hostname) | openssl sha1 | sed -e 's/.*=//g; s/ //g' | cut -c1-10 )
-    elif (echo -n $1 | grep -q -e "^aicp_") ; then
-        GZOSP_BUILD=$(echo -n $1 | sed -e 's/^aicp_//g')
-        export BUILD_NUMBER=$( (date +%s%N ; echo $GZOSP_BUILD; hostname) | openssl sha1 | sed -e 's/.*=//g; s/ //g' | cut -c1-10 )
+    if (echo -n $1 | grep -q -e "^aicp_") ; then
+        AICP_BUILD=$(echo -n $1 | sed -e 's/^aicp_//g')
+        export BUILD_NUMBER=$( (date +%s%N ; echo $AICP_BUILD; hostname) | openssl sha1 | sed -e 's/.*=//g; s/ //g' | cut -c1-10 )
     else
-        GZOSP_BUILD=
+        AICP_BUILD=
     fi
-    export GZOSP_BUILD
-    export AICP_BUILD=$GZOSP_BUILD
+    export AICP_BUILD
 
         TARGET_PRODUCT=$1 \
         TARGET_BUILD_VARIANT= \
@@ -1645,7 +1641,7 @@ function repopick() {
 function fixup_common_out_dir() {
     common_out_dir=$(get_build_var OUT_DIR)/target/common
     target_device=$(get_build_var TARGET_DEVICE)
-    if [ ! -z $GZOSP_FIXUP_COMMON_OUT ]; then
+    if [ ! -z $AICP_FIXUP_COMMON_OUT ]; then
         if [ -d ${common_out_dir} ] && [ ! -L ${common_out_dir} ]; then
             mv ${common_out_dir} ${common_out_dir}-${target_device}
             ln -s ${common_out_dir}-${target_device} ${common_out_dir}
@@ -1690,7 +1686,7 @@ function installboot()
     sleep 1
     adb wait-for-online shell mount /system 2>&1 > /dev/null
     adb wait-for-online remount
-    if (adb shell getprop ro.gzosp.device | grep -q "$GZOSP_BUILD");
+    if (adb shell getprop ro.aicp.device | grep -q "$AICP_BUILD");
     then
         adb push $OUT/boot.img /cache/
         for i in $OUT/system/lib/modules/*;
@@ -1701,7 +1697,7 @@ function installboot()
         adb shell chmod 644 /system/lib/modules/*
         echo "Installation complete."
     else
-        echo "The connected device does not appear to be $GZOSP_BUILD, run away!"
+        echo "The connected device does not appear to be $AICP_BUILD, run away!"
     fi
 }
 
@@ -1735,13 +1731,13 @@ function installrecovery()
     sleep 1
     adb wait-for-online shell mount /system 2>&1 > /dev/null
     adb wait-for-online remount
-    if (adb shell getprop ro.gzosp.device | grep -q "$GZOSP_BUILD");
+    if (adb shell getprop ro.aicp.device | grep -q "$AICP_BUILD");
     then
         adb push $OUT/recovery.img /cache/
         adb shell dd if=/cache/recovery.img of=$PARTITION
         echo "Installation complete."
     else
-        echo "The connected device does not appear to be $GZOSP_BUILD, run away!"
+        echo "The connected device does not appear to be $AICP_BUILD, run away!"
     fi
 }
 
@@ -1761,7 +1757,7 @@ function dopush()
         echo "Device Found."
     fi
 
-    if (adb shell getprop ro.gzosp.device | grep -q "$GZOSP_BUILD") || [ "$FORCE_PUSH" == "true" ];
+    if (adb shell getprop ro.aicp.device | grep -q "$AICP_BUILD") || [ "$FORCE_PUSH" == "true" ];
     then
     # retrieve IP and PORT info if we're using a TCP connection
     TCPIPPORT=$(adb devices | egrep '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+[^0-9]+' \
@@ -1867,7 +1863,7 @@ EOF
     rm -f $OUT/.log
     return 0
     else
-        echo "The connected device does not appear to be $GZOSP_BUILD, run away!"
+        echo "The connected device does not appear to be $aicp_BUILD, run away!"
     fi
 }
 
