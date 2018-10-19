@@ -229,8 +229,8 @@ FIND_LEAVES_EXCLUDES := $(addprefix --prune=, $(SCAN_EXCLUDE_DIRS) .repo .git)
 $(call project-set-path-variant,ril,TARGET_RIL_VARIANT,hardware/ril)
 
 -include vendor/extra/BoardConfigExtra.mk
-ifneq ($(GZOSP_BUILD),)
-include vendor/aicp/config/BoardConfigGZOSP.mk
+ifneq ($(AICP_BUILD),)
+include vendor/aicp/config/BoardConfigAICP.mk
 endif
 
 # The build system exposes several variables for where to find the kernel
@@ -1151,10 +1151,10 @@ include $(BUILD_SYSTEM)/ninja_config.mk
 include $(BUILD_SYSTEM)/soong_config.mk
 endif
 
-ifneq ($(GZOSP_BUILD),)
+ifneq ($(AICP_BUILD),)
 ## We need to be sure the global selinux policies are included
 ## last, to avoid accidental resetting by device configs
-#$(eval include device/gzosp/sepolicy/common/sepolicy.mk)
+#$(eval include device/aicp/sepolicy/common/sepolicy.mk)
 endif
 
 # Include any vendor specific config.mk file
