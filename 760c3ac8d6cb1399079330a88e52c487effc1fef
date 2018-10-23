@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e223314d_65fce744",
+        "filename": "envsetup.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 1866,
+      "author": {
+        "id": 3
+      },
+      "writtenOn": "2018-10-23T10:14:39Z",
+      "side": 1,
+      "message": "AICP",
+      "range": {
+        "startLine": 1866,
+        "startChar": 57,
+        "endLine": 1866,
+        "endChar": 62
+      },
+      "revId": "760c3ac8d6cb1399079330a88e52c487effc1fef",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
+      "unresolved": false
+    }
+  ]
+}
