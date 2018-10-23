@@ -854,8 +854,6 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
 
 
   build = target_info.GetBuildProp("ro.build.date")
-  script.Print("*************    AICP   BUILD   *************");
-  script.Print("*********************************************");
   script.Print("   Compiled: %s"%(build));
 
   device = target_info.GetBuildProp("ro.product.device")
