@@ -477,6 +477,8 @@ LOCAL_IS_AUX_MODULE :=
 full_android_manifest :=
 non_system_module :=
 
+LOCAL_RESOURCE_DEPENDENCIES :=
+
 # Include any vendor specific clear_vars.mk file
 -include vendor/*/build/core/clear_vars.mk
 
