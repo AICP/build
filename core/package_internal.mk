@@ -354,6 +354,11 @@ $(R_file_stamp) $(my_res_package): PRIVATE_TARGET_AAPT_CHARACTERISTICS := $(TARG
 $(R_file_stamp) $(my_res_package): PRIVATE_MANIFEST_PACKAGE_NAME := $(LOCAL_MANIFEST_PACKAGE_NAME)
 $(R_file_stamp) $(my_res_package): PRIVATE_MANIFEST_INSTRUMENTATION_FOR := $(LOCAL_MANIFEST_INSTRUMENTATION_FOR)
 
+# Resource dependencies
+ifdef LOCAL_RESOURCE_DEPENDENCIES
+  $(R_file_stamp): $(LOCAL_RESOURCE_DEPENDENCIES)
+endif
+
 ###############################
 ## AAPT/AAPT2
 
