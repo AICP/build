@@ -474,8 +474,12 @@ LOCAL_CUSTOM_BUILD_STEP_INPUT:=
 LOCAL_CUSTOM_BUILD_STEP_OUTPUT:=
 LOCAL_IS_AUX_MODULE :=
 
+<<<<<<< HEAD   (7b2706 ota: Disable downgrade check)
 full_android_manifest :=
 non_system_module :=
+=======
+LOCAL_RESOURCE_DEPENDENCIES :=
+>>>>>>> CHANGE (32e1ac Add LOCAL_RESOURCE_DEPENDENCIES build variable)
 
 # Include any vendor specific clear_vars.mk file
 -include vendor/*/build/core/clear_vars.mk
