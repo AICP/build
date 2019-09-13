@@ -1789,10 +1789,17 @@ $(INSTALLED_RECOVERY_BUILD_PROP_TARGET): \
 	$(hide) cat $(INSTALLED_PRODUCT_SERVICES_BUILD_PROP_TARGET) >> $@
 	$(call append-recovery-ui-properties,$(PRIVATE_RECOVERY_UI_PROPERTIES),$@)
 
+ifneq ($(TARGET_PREBUILT_RECOVERY_RAMDISK),)
 INTERNAL_RECOVERYIMAGE_ARGS := \
-	$(addprefix --second ,$(INSTALLED_2NDBOOTLOADER_TARGET)) \
-	--kernel $(recovery_kernel) \
-	--ramdisk $(recovery_ramdisk)
+    $(addprefix --second ,$(INSTALLED_2NDBOOTLOADER_TARGET)) \
+    --kernel $(recovery_kernel) \
+    --ramdisk $(TARGET_PREBUILT_RECOVERY_RAMDISK)
+else
+INTERNAL_RECOVERYIMAGE_ARGS := \
+    $(addprefix --second ,$(INSTALLED_2NDBOOTLOADER_TARGET)) \
+    --kernel $(recovery_kernel) \
+    --ramdisk $(recovery_ramdisk)
+endif
 
 # Assumes this has already been stripped
 ifdef INTERNAL_KERNEL_CMDLINE
