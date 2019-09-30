@@ -2167,13 +2167,14 @@ INTERNAL_SYSTEMIMAGE_FILES := $(sort $(filter $(TARGET_OUT)/%, \
     $(RECOVERY_RESOURCE_ZIP)) \
     $(PDK_FUSION_SYMLINK_STAMP))
 
+.PHONY: systemimage-changelog
 systemimage-changelog: $(INTERNAL_SYSTEMIMAGE_FILES)
 	@echo -e "Making changelog!"
 	$(hide) APKCERTS=$(APKCERTS_FILE) ./vendor/aicp/tools/changelog
 
-.PHONY: systemimage-changelog
+CHANGELOG := systemimage-changelog
 
-FULL_SYSTEMIMAGE_DEPS := $(INTERNAL_SYSTEMIMAGE_FILES) $(INTERNAL_USERIMAGES_DEPS) systemimage-changelog
+FULL_SYSTEMIMAGE_DEPS := $(INTERNAL_SYSTEMIMAGE_FILES) $(INTERNAL_USERIMAGES_DEPS)
 
 # ASAN libraries in the system image - add dependency.
 ASAN_IN_SYSTEM_INSTALLED := $(TARGET_OUT)/asan.tar.bz2
@@ -3764,7 +3765,8 @@ $(BUILT_TARGET_FILES_PACKAGE): \
 	    $(BUILT_ASSEMBLED_VENDOR_MANIFEST) \
 	    $(BUILT_SYSTEM_MATRIX) \
 	    $(BUILT_VENDOR_MATRIX) \
-	    | $(ACP)
+	    | $(ACP) \
+	    $(CHANGELOG)
 	@echo "Package target files: $@"
 	$(call create-system-vendor-symlink)
 	$(call create-system-product-symlink)
