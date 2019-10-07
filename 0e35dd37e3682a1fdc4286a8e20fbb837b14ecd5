@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "816522ea_2ae250bb",
+        "filename": "core/Makefile",
+        "patchSetId": 10
+      },
+      "lineNbr": 4210,
+      "author": {
+        "id": 1375
+      },
+      "writtenOn": "2019-10-07T06:46:46Z",
+      "side": 1,
+      "message": "AICP_BUILD. this breaks backup tool ... again",
+      "range": {
+        "startLine": 4210,
+        "startChar": 9,
+        "endLine": 4210,
+        "endChar": 22
+      },
+      "revId": "0e35dd37e3682a1fdc4286a8e20fbb837b14ecd5",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
+      "unresolved": true
+    }
+  ]
+}
