@@ -374,7 +374,9 @@ class BuildInfo(object):
     try:
       return self.info_dict.get("build.prop", {})[prop]
     except KeyError:
-      raise common.ExternalError("couldn't find %s in build.prop" % (prop,))
+      if raise_error:
+        print ("WARNING: could not find %s in build.prop" % (prop,))
+        return None
 
   def _ResolveRoProductBuildProp(self, prop):
     """Resolves the inquired ro.product.* build property"""
