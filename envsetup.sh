@@ -331,6 +331,27 @@ function printconfig()
     get_build_var report_config
 }
 
+function execaicpscripts()
+{
+    getdevice=$(echo $TARGET_PRODUCT | cut -d "_" -f2)
+    devicepath=$(find device/ -name $getdevice -type d)
+    exec_script_location=$devicepath/pre_scripts.txt
+    if [ -f $exec_script_location ];then
+        echo -e "\npre script configuration: $exec_script_location found"
+	while read each_script
+        do
+	    if [ -x $each_script ];then
+                echo "executing pre script: $each_script"
+	        $each_script
+            else
+                echo "pre script: $each_script is not existent or executable"
+            fi
+        done < $exec_script_location
+    fi
+
+    unset $getdevice
+    unset $each_script
+}
 function set_stuff_for_environment()
 {
     setpaths
@@ -699,6 +720,7 @@ function lunch()
 
     set_stuff_for_environment
     printconfig
+    [ $AICP_EXEC_PRE_SCRIPT ] && execaicpscripts
     destroy_build_var_cache
 }
 
