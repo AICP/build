@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8fcf2e5d_a7f52e9c",
+        "filename": "core/Makefile",
+        "patchSetId": 23
+      },
+      "lineNbr": 4256,
+      "author": {
+        "id": 1375
+      },
+      "writtenOn": "2019-12-13T16:05:23Z",
+      "side": 1,
+      "message": "and again ...will push the correct PS",
+      "revId": "ccf8c7dd7188004cb1a469e344447489fad88e9b",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
+      "unresolved": true
+    }
+  ]
+}
