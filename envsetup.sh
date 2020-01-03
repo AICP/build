@@ -334,7 +334,7 @@ function printconfig()
 function execaicpscripts()
 {
     getdevice=$(echo $TARGET_PRODUCT | cut -d "_" -f2)
-    devicepath=$(find device/ -name $getdevice -type d)
+    devicepath=$(find device/ -name $getdevice -type d | grep -v twrp)
     exec_script_location=$devicepath/pre_scripts.txt
     if [ -f $exec_script_location ];then
         echo -e "\npre script configuration: $exec_script_location found"
@@ -350,7 +350,9 @@ function execaicpscripts()
     fi
 
     unset $getdevice
-    unset $each_script
+    if [ ! -z ${each_script+x} ]; then
+        unset $each_script
+    fi
 }
 function set_stuff_for_environment()
 {
