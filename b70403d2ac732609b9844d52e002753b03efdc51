@@ -16,6 +16,24 @@
       "revId": "b70403d2ac732609b9844d52e002753b03efdc51",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b8f7106d_26672d0f",
+        "filename": "envsetup.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 600
+      },
+      "writtenOn": "2020-01-03T11:02:12Z",
+      "side": 0,
+      "message": "Added the path and the name of the script to the variable to be able to exec it. If not system doesn\u0027t know the script path, tries to execute every line on pre_script.txt file so we needed to put the full script path in the file.",
+      "parentUuid": "77ed9114_bb9728d2",
+      "revId": "b70403d2ac732609b9844d52e002753b03efdc51",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
+      "unresolved": true
     }
   ]
 }
