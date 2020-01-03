@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ee237f30_a905ce09",
+        "filename": "envsetup.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 209
+      },
+      "writtenOn": "2020-01-03T11:08:29Z",
+      "side": 1,
+      "message": "I meant with the ! -z check, or I\u0027ll get errors as those fixed in the previous commit ;)",
+      "revId": "afb4147af71996e4d1bf9c4d4491e8604f418bee",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
+      "unresolved": true
+    }
+  ]
+}
