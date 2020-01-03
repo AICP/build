@@ -34,6 +34,23 @@
       "revId": "b70403d2ac732609b9844d52e002753b03efdc51",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1c6eecc0_9b48003e",
+        "filename": "envsetup.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 353,
+      "author": {
+        "id": 209
+      },
+      "writtenOn": "2020-01-03T11:04:41Z",
+      "side": 0,
+      "message": "you might want to add an unset like this for your new variable",
+      "revId": "b70403d2ac732609b9844d52e002753b03efdc51",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
+      "unresolved": true
     }
   ]
 }
