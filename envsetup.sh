@@ -340,11 +340,12 @@ function execaicpscripts()
         echo -e "\npre script configuration: $exec_script_location found"
 	while read each_script
         do
-	    if [ -x $each_script ];then
+	    script_path=$devicepath/$each_script
+	    if [ -x $script_path ];then
                 echo "executing pre script: $each_script"
-	        $each_script
+	        $script_path
             else
-                echo "pre script: $each_script is not existent or executable"
+                echo "pre script: $script_path is not existent or executable"
             fi
         done < $exec_script_location
     fi
@@ -352,6 +353,7 @@ function execaicpscripts()
     unset $getdevice
     if [ ! -z ${each_script+x} ]; then
         unset $each_script
+        unset $script_path
     fi
 }
 function set_stuff_for_environment()
