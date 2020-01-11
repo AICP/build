@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "199d45b1_862b8816",
+        "filename": "tools/releasetools/ota_from_target_files.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 979,
+      "author": {
+        "id": 1375
+      },
+      "writtenOn": "2020-01-11T15:22:45Z",
+      "side": 0,
+      "message": "in https://github.com/AICP/build/commit/0874455ec667e053d41385c0e63ae161bd766dd7#diff-7d8b45b07034fa692272eb5816bad9c3 this line has been added, but we\u0027re moving the function with this commit - so OTA creation aborts.",
+      "revId": "8c7892e8c97b492e4e89647ab9a19dd4b6d194b0",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
+      "unresolved": true
+    }
+  ]
+}
