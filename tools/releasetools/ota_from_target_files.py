@@ -996,14 +996,14 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   script.Print("*********************************************");
 
 
-  build = target_info.GetBuildProp("ro.build.date")
+  build = target_info.GetBuildProp("ro.system.build.date")
   script.Print("*************    AICP   BUILD   *************");
   script.Print("*********************************************");
   script.Print("   Compiled: %s"%(build));
 
-  device = target_info.GetBuildProp("ro.product.device")
-  if target_info.GetBuildProp("ro.product.model") is not None:
-    model = target_info.GetBuildProp("ro.product.model")
+  device = target_info.GetBuildProp("ro.product.system.device")
+  if target_info.GetBuildProp("ro.product.system.model") is not None:
+    model = target_info.GetBuildProp("ro.product.system.model")
     script.Print("   Device: %s (%s)"%(model, device));
   else:
     script.Print("   Device: %s"%(device));
