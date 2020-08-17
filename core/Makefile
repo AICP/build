@@ -2223,9 +2223,9 @@ INTERNAL_SYSTEMIMAGE_FILES := $(sort $(filter $(TARGET_OUT)/%, \
     $(PDK_FUSION_SYMLINK_STAMP))
 
 .PHONY: systemimage-changelog
-systemimage-changelog: $(INTERNAL_SYSTEMIMAGE_FILES)
-	@echo -e "Making changelog!"
-	$(hide) APKCERTS=$(APKCERTS_FILE) ./vendor/aicp/tools/changelog
+systemimage-changelog:
+	@echo "Making changelog!"
+	./vendor/aicp/tools/changelog
 
 CHANGELOG := systemimage-changelog
 
