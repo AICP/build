@@ -3435,13 +3435,14 @@ ifneq (,$(filter address, $(SANITIZE_TARGET)))
   endif
 endif
 
+.PHONY: systemimage-changelog
 systemimage-changelog: $(INTERNAL_SYSTEMIMAGE_FILES)
 	@echo -e "Making changelog!"
 	$(hide) APKCERTS=$(APKCERTS_FILE) ./vendor/aicp/tools/changelog
 
-.PHONY: systemimage-changelog
+CHANGELOG := systemimage-changelog
 
-FULL_SYSTEMIMAGE_DEPS += $(INTERNAL_ROOT_FILES) $(INSTALLED_FILES_FILE_ROOT) systemimage-changelog
+FULL_SYSTEMIMAGE_DEPS += $(INTERNAL_ROOT_FILES) $(INSTALLED_FILES_FILE_ROOT)
 
 # -----------------------------------------------------------------
 ifdef BUILDING_SYSTEM_IMAGE
@@ -6387,7 +6388,8 @@ $(BUILT_TARGET_FILES_DIR): \
 	    $(MAKE_RECOVERY_PATCH) \
 	    $(BUILT_KERNEL_CONFIGS_FILE) \
 	    $(BUILT_KERNEL_VERSION_FILE) \
-	    | $(ACP)
+	    | $(ACP) \
+	    $(CHANGELOG)
 	@echo "Building target files: $@"
 	$(hide) rm -rf $@ $@.list $(zip_root)
 	$(hide) mkdir -p $(dir $@) $(zip_root)
