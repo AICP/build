@@ -3436,10 +3436,12 @@ ifneq (,$(filter address, $(SANITIZE_TARGET)))
 endif
 
 .PHONY: systemimage-changelog
+ifneq (1,$(USER_BUILD_NO_CHANGELOG))
 systemimage-changelog:
 	@echo "Making changelog!"
-	./vendor/aicp/tools/changelog
+	./vendor/aicp/tools/changelog $(PRODUCT_OUT)
 
+endif
 CHANGELOG := systemimage-changelog
 
 FULL_SYSTEMIMAGE_DEPS += $(INTERNAL_ROOT_FILES) $(INSTALLED_FILES_FILE_ROOT)
