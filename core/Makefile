@@ -2689,9 +2689,12 @@ endif
 
 .PHONY: systemimage-changelog
 systemimage-changelog:
+ifneq (1,$(USER_BUILD_NO_CHANGELOG))
 	@echo "Making changelog!"
-	./vendor/aicp/tools/changelog
-
+	./vendor/aicp/tools/changelog $(PRODUCT_OUT)
+else
+	@echo "Skipping changelog!"
+endif
 CHANGELOG := systemimage-changelog
 
 FULL_SYSTEMIMAGE_DEPS := $(INTERNAL_SYSTEMIMAGE_FILES) $(INTERNAL_USERIMAGES_DEPS)
