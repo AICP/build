@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3aaaecd4_6c89511d",
+        "filename": "core/Makefile",
+        "patchSetId": 4
+      },
+      "lineNbr": 2691,
+      "author": {
+        "id": 1782
+      },
+      "writtenOn": "2020-11-02T22:58:42Z",
+      "side": 1,
+      "message": "Actually, you can just move this line down one (below the systemimage-changelog: line).  And perhaps add a message that the changelog was skipped if you like.",
+      "revId": "fe872558fb509708581a989ec862eacf8a9481b7",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b",
+      "unresolved": true
+    }
+  ]
+}
