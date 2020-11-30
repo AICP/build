@@ -1270,6 +1270,9 @@ ifneq ($(wildcard device/lineage/sepolicy/common/sepolicy.mk),)
 ## last, to avoid accidental resetting by device configs
 $(eval include device/lineage/sepolicy/common/sepolicy.mk)
 endif
+ifneq ($(wildcard device/aicp/sepolicy/sepolicy.mk),)
+$(eval include device/aicp/sepolicy/sepolicy.mk)
+endif
 endif
 
 ifeq ($(CALLED_FROM_SETUP),true)
