@@ -16,6 +16,24 @@
       "message": "might be better than this https://gerrit.aicp-rom.com/c/AICP/vendor_aicp/+/109052",
       "revId": "e5ad7771438670b8e684d5a3416599d87b023026",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "5bcb9bb1_b7f490f8",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 6
+      },
+      "writtenOn": "2021-04-11T18:58:08Z",
+      "side": 1,
+      "message": "What do you make of the lines 325 and 326?",
+      "parentUuid": "0bdaf37c_d1923b4c",
+      "revId": "e5ad7771438670b8e684d5a3416599d87b023026",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
     }
   ]
 }
