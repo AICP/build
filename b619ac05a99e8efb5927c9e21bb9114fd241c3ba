@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b2823b34_d42263be",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 3
+      },
+      "writtenOn": "2021-08-03T20:14:22Z",
+      "side": 1,
+      "message": "full history: https://github.com/semdoc/build/commits/r11.1",
+      "revId": "b619ac05a99e8efb5927c9e21bb9114fd241c3ba",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    }
+  ]
+}
