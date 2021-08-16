@@ -16,6 +16,23 @@
       "message": "please fix authorship. see https://review.lineageos.org/c/LineageOS/android_build/+/313540",
       "revId": "d3f9695f525d08255ae9ec02a1bfae238389ac32",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "de241a7f_1e457d75",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1375
+      },
+      "writtenOn": "2021-08-16T07:21:39Z",
+      "side": 1,
+      "message": "oh my bad ... it is correct...",
+      "revId": "d3f9695f525d08255ae9ec02a1bfae238389ac32",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
     }
   ]
 }
