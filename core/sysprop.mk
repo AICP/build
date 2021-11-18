@@ -154,7 +154,7 @@ BUILD_KEYS := test-keys
 else
 BUILD_KEYS := dev-keys
 endif
-BUILD_VERSION_TAGS += $(BUILD_KEYS)
+BUILD_VERSION_TAGS += release-keys
 BUILD_VERSION_TAGS := $(subst $(space),$(comma),$(sort $(BUILD_VERSION_TAGS)))
 
 # BUILD_FINGERPRINT is used used to uniquely identify the combined build and
