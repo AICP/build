@@ -242,6 +242,34 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   # All other partitions as well as the data wipe use 10% of the progress, and
   # the update of the system partition takes the remaining progress.
   system_progress = 0.9 - (len(block_diff_dict) - 1) * 0.1
+
+  script.Print("*********************************************");
+  script.Print("*       ##### ####****   ########****       *")
+  script.Print("*     ############**** ##########******     *")
+  script.Print("*    ####     ####****#####  ****  *****    *")
+  script.Print("*    ###       ###****####   ****   ****    *")
+  script.Print("*    ####     ####****#####  ****  *****    *")
+  script.Print("*     ############**** ##########******     *")
+  script.Print("*       ##### ####****   ########****       *")
+  script.Print("*                            ****           *")
+  script.Print("*                            ****           *")
+  script.Print("* www.aicp-rom.com   -   Get your flash ON  *")
+  script.Print("*********************************************");
+
+
+  build = target_info.GetBuildProp("ro.build.date")
+  script.Print("*************    AICP   BUILD   *************");
+  script.Print("*********************************************");
+  script.Print("   Compiled: %s"%(build));
+
+  device = target_info.GetBuildProp("ro.product.device")
+  if target_info.GetBuildProp("ro.product.model") is not None:
+    model = target_info.GetBuildProp("ro.product.model")
+    script.Print("   Device: %s (%s)"%(model, device));
+  else:
+    script.Print("   Device: %s"%(device));
+  script.Print("*********************************************");
+
   if OPTIONS.wipe_user_data:
     system_progress -= 0.1
   progress_dict = {partition: 0.1 for partition in block_diff_dict}
