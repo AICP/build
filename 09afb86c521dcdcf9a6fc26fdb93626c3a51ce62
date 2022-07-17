@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1a547ea1_f58c599c",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 343
+      },
+      "writtenOn": "2022-07-17T15:09:11Z",
+      "side": 1,
+      "message": "hmm. it should only be displayed if there is no build number.\nworse a test...",
+      "revId": "09afb86c521dcdcf9a6fc26fdb93626c3a51ce62",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    }
+  ]
+}
