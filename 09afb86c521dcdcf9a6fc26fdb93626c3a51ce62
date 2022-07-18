@@ -51,6 +51,23 @@
       "parentUuid": "19e77a80_d487ede6",
       "revId": "09afb86c521dcdcf9a6fc26fdb93626c3a51ce62",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1d999ffe_9e1c5d16",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1416
+      },
+      "writtenOn": "2022-07-18T17:25:30Z",
+      "side": 1,
+      "message": "Restores stock AOSP behavior ",
+      "revId": "09afb86c521dcdcf9a6fc26fdb93626c3a51ce62",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
     }
   ]
 }
