@@ -33,6 +33,24 @@
       "message": "http://haste.aicp-rom.com/beporegavi.coffeescript",
       "revId": "09afb86c521dcdcf9a6fc26fdb93626c3a51ce62",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "48d0b31a_8c54be00",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 3
+      },
+      "writtenOn": "2022-07-18T10:17:43Z",
+      "side": 1,
+      "message": "Disregard. The build failure reason was something different.",
+      "parentUuid": "19e77a80_d487ede6",
+      "revId": "09afb86c521dcdcf9a6fc26fdb93626c3a51ce62",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
     }
   ]
 }
