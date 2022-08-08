@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "a659b442_960be230",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 3
+      },
+      "writtenOn": "2022-08-08T05:45:52Z",
+      "side": 1,
+      "message": "Original commit here: https://review.lineageos.org/c/LineageOS/android_build/+/335069\n\nLooks like this is part of July\u002708 ASB.\n\nSo, track upstream.",
+      "revId": "358ec48976f374a7cc726db13bd56e99d22bf024",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    }
+  ]
+}
