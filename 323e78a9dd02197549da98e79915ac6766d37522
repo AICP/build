@@ -33,6 +33,24 @@
       "message": "do you need to track https://github.com/LineageOS/android_system_tools_dtbtool?\n",
       "revId": "323e78a9dd02197549da98e79915ac6766d37522",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "ed9e258e_1e3206a7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1375
+      },
+      "writtenOn": "2022-08-22T12:25:54Z",
+      "side": 1,
+      "message": "yes, will push manifest soon",
+      "parentUuid": "337f1ef1_4e7831e6",
+      "revId": "323e78a9dd02197549da98e79915ac6766d37522",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
     }
   ]
 }
