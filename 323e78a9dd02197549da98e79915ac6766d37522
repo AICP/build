@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6a264c8d_ed4435d2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1375
+      },
+      "writtenOn": "2022-08-22T10:45:06Z",
+      "side": 1,
+      "message": "FAILED: ninja: \u0027out/host/linux-x86/bin/dtbToolLineage\u0027, needed by \u0027out/target/product/m8/dt.img\u0027, missing and no known rule to make it\n",
+      "revId": "323e78a9dd02197549da98e79915ac6766d37522",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    }
+  ]
+}
