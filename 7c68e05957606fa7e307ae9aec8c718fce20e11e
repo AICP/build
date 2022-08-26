@@ -16,6 +16,23 @@
       "message": "this was abandoned by lineage, and according to Luca aosp nfc supports qc  so unless if we\u0027re going to support devices that don\u0027t have nfc I\u0027m not sure that we need this https://review.lineageos.org/c/LineageOS/android_build/+/317114",
       "revId": "7c68e05957606fa7e307ae9aec8c718fce20e11e",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "0d76bb91_dfd317ee",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1375
+      },
+      "writtenOn": "2022-08-26T15:56:46Z",
+      "side": 1,
+      "message": "HTC One M8 needs this for NFC service",
+      "revId": "7c68e05957606fa7e307ae9aec8c718fce20e11e",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
     }
   ]
 }
