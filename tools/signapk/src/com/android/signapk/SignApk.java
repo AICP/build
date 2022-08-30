@@ -36,7 +36,7 @@ import org.conscrypt.OpenSSLProvider;
 
 import com.android.apksig.ApkSignerEngine;
 import com.android.apksig.DefaultApkSignerEngine;
-import com.android.apksig.SigningCertificateLineage;
+import com.android.apksig.SigningCertificateAicp;
 import com.android.apksig.Hints;
 import com.android.apksig.apk.ApkUtils;
 import com.android.apksig.apk.MinSdkVersionException;
@@ -1080,7 +1080,7 @@ class SignApk {
         Integer minSdkVersionOverride = null;
         boolean signUsingApkSignatureSchemeV2 = true;
         boolean signUsingApkSignatureSchemeV4 = false;
-        SigningCertificateLineage certLineage = null;
+        SigningCertificateAicp certAicp = null;
         Integer rotationMinSdkVersion = null;
 
         int argstart = 0;
@@ -1127,13 +1127,13 @@ class SignApk {
             } else if ("--enable-v4".equals(args[argstart])) {
                 signUsingApkSignatureSchemeV4 = true;
                 ++argstart;
-            } else if ("--lineage".equals(args[argstart])) {
-                File lineageFile = new File(args[++argstart]);
+            } else if ("--aicp".equals(args[argstart])) {
+                File aicpFile = new File(args[++argstart]);
                 try {
-                    certLineage = SigningCertificateLineage.readFromFile(lineageFile);
+                    certAicp = SigningCertificateAicp.readFromFile(aicpFile);
                 } catch (Exception e) {
                     throw new IllegalArgumentException(
-                            "Error reading lineage file: " + e.getMessage());
+                            "Error reading aicp file: " + e.getMessage());
                 }
                 ++argstart;
             } else if ("--rotation-min-sdk-version".equals(args[argstart])) {
@@ -1243,8 +1243,8 @@ class SignApk {
                     .setOtherSignersSignaturesPreserved(false)
                     .setCreatedBy("1.0 (Android SignApk)");
 
-                if (certLineage != null) {
-                   builder = builder.setSigningCertificateLineage(certLineage);
+                if (certAicp != null) {
+                   builder = builder.setSigningCertificateAicp(certAicp);
                 }
 
                 if (rotationMinSdkVersion != null) {
