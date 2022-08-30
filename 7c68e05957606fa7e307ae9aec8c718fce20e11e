@@ -33,6 +33,23 @@
       "message": "HTC One M8 needs this for NFC service",
       "revId": "7c68e05957606fa7e307ae9aec8c718fce20e11e",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2845a782_745ae498",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1416
+      },
+      "writtenOn": "2022-08-30T09:45:01Z",
+      "side": 1,
+      "message": "No need to keep it on patches, lets keep it merged",
+      "revId": "7c68e05957606fa7e307ae9aec8c718fce20e11e",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
     }
   ]
 }
