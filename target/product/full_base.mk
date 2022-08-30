@@ -45,7 +45,7 @@ PRODUCT_VENDOR_PROPERTIES := \
 PRODUCT_LOCALES := en_US
 
 # Get some sounds
-ifeq ($(LINEAGE_BUILD),)
+ifeq ($(AICP_BUILD),)
 $(call inherit-product-if-exists, frameworks/base/data/sounds/AllAudio.mk)
 endif
 

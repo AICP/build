@@ -206,7 +206,7 @@ android_system_image {
         default: [],
     }),
     enabled: select((soong_config_variable("gsi", "building_gsi"),
-                     soong_config_variable("gsi", "building_lineage_gsi")), {
+                     soong_config_variable("gsi", "building_aicp_gsi")), {
         (true, true): false,
         (true, default): true,
         (default, default): false,
