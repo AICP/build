@@ -16,6 +16,23 @@
       "message": "https://github.com/AICP/device_oneplus_sm8250-common/commit/fffd55a9f39beb4e9558b7c2c57f743c3cadd122\n\nAll devices switches to AOSP NFC I thought... Am I wrong ?\n\nSee commit message: https://review.lineageos.org/c/LineageOS/android/+/340387",
       "revId": "7696dfa8f259873a20065203296583f863920321",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "7a159558_930abb9e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1416
+      },
+      "writtenOn": "2022-10-05T14:30:30Z",
+      "side": 1,
+      "message": "This is for devices without NFC, resulting in a build error. If devices with NFC are missing packages/ have broken NFC, please report",
+      "revId": "7696dfa8f259873a20065203296583f863920321",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
     }
   ]
 }
