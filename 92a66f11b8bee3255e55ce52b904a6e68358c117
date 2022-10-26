@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "d508f389_fde940be",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 3
+      },
+      "writtenOn": "2022-10-26T14:00:28Z",
+      "side": 1,
+      "message": "https://github.com/LineageOS/android_build/blob/lineage-20.0/target/product/handheld_system.mk#L57",
+      "revId": "92a66f11b8bee3255e55ce52b904a6e68358c117",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    }
+  ]
+}
