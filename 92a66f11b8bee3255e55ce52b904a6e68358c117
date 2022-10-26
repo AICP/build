@@ -33,6 +33,23 @@
       "message": "Op8: https://github.com/LineageOS/android_device_oneplus_sm8250-common/blob/lineage-20/common.mk#L280\nOp7: https://github.com/LineageOS/android_device_oneplus_sm8150-common/blob/lineage-20/common.mk#L274",
       "revId": "92a66f11b8bee3255e55ce52b904a6e68358c117",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "baf38736_b88ec57e",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1375
+      },
+      "writtenOn": "2022-10-26T14:15:59Z",
+      "side": 1,
+      "message": "m8 will need that for sure, if I deside to port...",
+      "revId": "92a66f11b8bee3255e55ce52b904a6e68358c117",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
     }
   ]
 }
