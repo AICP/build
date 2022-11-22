@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6b066942_2150cba5",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 3
+      },
+      "writtenOn": "2022-11-22T10:02:19Z",
+      "side": 1,
+      "message": "part of: https://review.lineageos.org/q/topic:bluetooth-cert topic. Merged on LoS.",
+      "revId": "bf8a697ee6a6cca54781c9f31f7ef6f6083e126d",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    }
+  ]
+}
