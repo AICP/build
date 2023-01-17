@@ -16,6 +16,23 @@
       "message": "follow: https://review.lineageos.org/c/LineageOS/android_build/+/347375",
       "revId": "9e3c489797b38ab67c77abe0ff2a036b7e5196ba",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "fa0573ba_4f294014",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1646
+      },
+      "writtenOn": "2023-01-17T18:17:50Z",
+      "side": 1,
+      "message": "unzip \u003e 5.13 needs this, unless we are building ZIP bombs 😄",
+      "revId": "9e3c489797b38ab67c77abe0ff2a036b7e5196ba",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
     }
   ]
 }
