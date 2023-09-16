@@ -46,6 +46,11 @@ def mangle_build_prop(prop_list, kernel_version_file_for_uffd_gc):
     prop_list.put("ro.dalvik.vm.enable_uffd_gc",
                   "true" if enable_uffd_gc else "false")
 
+  # If ro.adb.secure is 0, then enable adb on USB by default
+  # (this is for eng builds)
+  prop_list.put("ro.adb.secure", "0")
+  prop_list.put("ro.secure", "0")
+
 def validate_grf_props(prop_list):
   """Validate GRF properties if exist.
 
