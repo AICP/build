@@ -39,6 +39,11 @@ def mangle_build_prop(prop_list):
         val = val + ",adb"
       prop_list.put("persist.sys.usb.config", val)
 
+  # If ro.adb.secure is 0, then enable adb on USB by default
+  # (this is for eng builds)
+  prop_list.put("ro.adb.secure", "0")
+  prop_list.put("ro.secure", "0")
+
 def validate_grf_props(prop_list):
   """Validate GRF properties if exist.
 
