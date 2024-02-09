@@ -16,6 +16,24 @@
       "message": "Still required? When I try to build with a clean LineageOS tree this throws an error",
       "revId": "9ed12fa816284f65884b89db2f7a77821fb00935",
       "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "9837c02c_a81017b1",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1682
+      },
+      "writtenOn": "2024-02-09T11:25:11Z",
+      "side": 1,
+      "message": "not anymore",
+      "parentUuid": "ab309fb2_80bcbd46",
+      "revId": "9ed12fa816284f65884b89db2f7a77821fb00935",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
     }
   ]
 }
