@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5a69a5c1_d0201475",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1416
+      },
+      "writtenOn": "2024-06-05T05:15:54Z",
+      "side": 1,
+      "message": "FULL_SYSTEMIMAGE_DEPS getting changed",
+      "revId": "c314d4b28a303ab8cb7462aaa575fd7a13880826",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    }
+  ]
+}
