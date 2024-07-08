@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "4d84c574_886317e7",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1646
+      },
+      "writtenOn": "2024-07-08T13:34:53Z",
+      "side": 1,
+      "message": "new vendor symlinks require this\n\nresolved build error:\nvendor/google/bonito: unhandled install path \"TARGET_OUT_PRODUCT_FAKE for libdmengine_libdmengine_symlink32\".",
+      "revId": "d29294b239bfcba92e68506ffef7d89dd452ad0e",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    }
+  ]
+}
