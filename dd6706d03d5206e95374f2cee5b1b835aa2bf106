@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "288d50ec_c2f7ae66",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1416
+      },
+      "writtenOn": "2025-02-24T15:23:43Z",
+      "side": 1,
+      "message": "Thanks for the patches. Please set appropriate topics so as to make review process a bit easier",
+      "revId": "dd6706d03d5206e95374f2cee5b1b835aa2bf106",
+      "serverId": "9f904cbb-a964-4fab-a7dc-5cfc4d5c238b"
+    }
+  ]
+}
