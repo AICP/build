@@ -36,7 +36,7 @@ import org.conscrypt.OpenSSLProvider;
 
 import com.android.apksig.ApkSignerEngine;
 import com.android.apksig.DefaultApkSignerEngine;
-import com.android.apksig.SigningCertificateAicp;
+import com.android.apksig.SigningCertificateLineage;
 import com.android.apksig.Hints;
 import com.android.apksig.apk.ApkUtils;
 import com.android.apksig.apk.MinSdkVersionException;
@@ -1092,7 +1092,7 @@ class SignApk {
         Integer minSdkVersionOverride = null;
         boolean signUsingApkSignatureSchemeV2 = true;
         boolean signUsingApkSignatureSchemeV4 = false;
-        SigningCertificateAicp certAicp = null;
+        SigningCertificateLineage certAicp = null;
         Integer rotationMinSdkVersion = null;
 
         int argstart = 0;
@@ -1148,7 +1148,7 @@ class SignApk {
             } else if ("--aicp".equals(args[argstart])) {
                 File aicpFile = new File(args[++argstart]);
                 try {
-                    certAicp = SigningCertificateAicp.readFromFile(aicpFile);
+                    certAicp = SigningCertificateLineage.readFromFile(aicpFile);
                 } catch (Exception e) {
                     throw new IllegalArgumentException(
                             "Error reading aicp file: " + e.getMessage());
@@ -1262,7 +1262,7 @@ class SignApk {
                     .setCreatedBy("1.0 (Android SignApk)");
 
                 if (certAicp != null) {
-                   builder = builder.setSigningCertificateAicp(certAicp);
+                   builder = builder.setSigningCertificateLineage(certAicp);
                 }
 
                 if (rotationMinSdkVersion != null) {
