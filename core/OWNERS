@@ -11,3 +11,5 @@ per-file version_defaults.mk = amhk@google.com,gurpreetgs@google.com,mkhokhlova@
 # For Ravenwood test configs
 per-file ravenwood_test_config_template.xml =omakoto@google.com
 
+# For ART configuration.
+per-file art_config.mk = file:platform/art:main:/OWNERS

@@ -108,6 +108,7 @@ $(KATI_obsolete_var TARGET_ROOT_OUT_SBIN_UNSTRIPPED,/sbin has been removed, use 
 $(KATI_obsolete_var BUILD_BROKEN_PHONY_TARGETS)
 $(KATI_obsolete_var BUILD_BROKEN_DUP_COPY_HEADERS)
 $(KATI_obsolete_var BUILD_BROKEN_ENG_DEBUG_TAGS)
+$(KATI_obsolete_var BUILD_BROKEN_GENRULE_SANDBOXING)
 $(KATI_obsolete_export It is a global setting. See $(CHANGES_URL)#export_keyword)
 $(KATI_obsolete_var BUILD_BROKEN_ANDROIDMK_EXPORTS)
 $(KATI_obsolete_var PRODUCT_NOTICE_SPLIT_OVERRIDE,Stop using this, keep calm, and carry on.)
@@ -174,6 +175,8 @@ $(KATI_obsolete_var BUILDING_PVMFW_IMAGE,BUILDING_PVMFW_IMAGE is no longer used)
 $(KATI_obsolete_var BOARD_BUILD_SYSTEM_ROOT_IMAGE)
 $(KATI_obsolete_var FS_GET_STATS)
 $(KATI_obsolete_var BUILD_BROKEN_USES_SOONG_PYTHON2_MODULES)
+$(KATI_obsolete_var BOARD_SYSTEM_EXT_PREBUILT_DIR,Use BOARD_SYSTEM_EXT_SEPOLICY_PREBUILT_DIRS instead)
+$(KATI_obsolete_var BOARD_PRODUCT_PREBUILT_DIR,Use BOARD_PRODUCT_SEPOLICY_PREBUILT_DIRS instead)
 
 # Used to force goals to build.  Only use for conditionally defined goals.
 .PHONY: FORCE
@@ -689,12 +692,6 @@ BISON_DATA :=$=
 YASM := prebuilts/misc/$(BUILD_OS)-$(HOST_PREBUILT_ARCH)/yasm/yasm
 
 DOXYGEN:= doxygen
-ifeq ($(HOST_OS),linux)
-BREAKPAD_DUMP_SYMS := $(HOST_OUT_EXECUTABLES)/dump_syms
-else
-# For non-supported hosts, do not generate breakpad symbols.
-BREAKPAD_GENERATE_SYMBOLS := false
-endif
 GZIP := prebuilts/build-tools/path/$(BUILD_OS)-$(HOST_PREBUILT_ARCH)/gzip
 PROTOC := $(HOST_OUT_EXECUTABLES)/aprotoc$(HOST_EXECUTABLE_SUFFIX)
 NANOPB_SRCS := $(HOST_OUT_EXECUTABLES)/protoc-gen-nanopb
@@ -720,6 +717,7 @@ MKF2FSUSERIMG := $(HOST_OUT_EXECUTABLES)/mkf2fsuserimg
 SIMG2IMG := $(HOST_OUT_EXECUTABLES)/simg2img$(HOST_EXECUTABLE_SUFFIX)
 E2FSCK := $(HOST_OUT_EXECUTABLES)/e2fsck$(HOST_EXECUTABLE_SUFFIX)
 TUNE2FS := $(HOST_OUT_EXECUTABLES)/tune2fs$(HOST_EXECUTABLE_SUFFIX)
+SGDISK := $(HOST_OUT_EXECUTABLES)/sgdisk
 JARJAR := $(HOST_OUT_JAVA_LIBRARIES)/jarjar.jar
 DATA_BINDING_COMPILER := $(HOST_OUT_JAVA_LIBRARIES)/databinding-compiler.jar
 FAT16COPY := build/make/tools/fat16copy.py
@@ -740,6 +738,7 @@ OTA_FROM_RAW_IMG := $(HOST_OUT_EXECUTABLES)/ota_from_raw_img$(HOST_EXECUTABLE_SU
 SPARSE_IMG := $(HOST_OUT_EXECUTABLES)/sparse_img$(HOST_EXECUTABLE_SUFFIX)
 CHECK_PARTITION_SIZES := $(HOST_OUT_EXECUTABLES)/check_partition_sizes$(HOST_EXECUTABLE_SUFFIX)
 SYMBOLS_MAP := $(HOST_OUT_EXECUTABLES)/symbols_map
+ZSTD := $(HOST_OUT_EXECUTABLES)/zstd
 
 PROGUARD_HOME := external/proguard
 PROGUARD := $(PROGUARD_HOME)/bin/proguard.sh
@@ -750,8 +749,6 @@ APPEND2SIMG := $(HOST_OUT_EXECUTABLES)/append2simg
 VERITY_SIGNER := $(HOST_OUT_EXECUTABLES)/verity_signer
 BUILD_VERITY_METADATA := $(HOST_OUT_EXECUTABLES)/build_verity_metadata
 BUILD_VERITY_TREE := $(HOST_OUT_EXECUTABLES)/build_verity_tree
-FUTILITY := $(HOST_OUT_EXECUTABLES)/futility-host
-VBOOT_SIGNER := $(HOST_OUT_EXECUTABLES)/vboot_signer
 
 DEXDUMP := $(HOST_OUT_EXECUTABLES)/dexdump$(BUILD_EXECUTABLE_SUFFIX)
 PROFMAN := $(HOST_OUT_EXECUTABLES)/profman
@@ -901,19 +898,6 @@ ifeq ($(call math_gt,$(BOARD_API_LEVEL),$(BOARD_GENFS_LABELS_VERSION)),true)
   $(error BOARD_GENFS_LABELS_VERSION ($(BOARD_GENFS_LABELS_VERSION)) must be greater than or equal to BOARD_API_LEVEL ($(BOARD_API_LEVEL)))
 endif
 
-ifeq ($(PRODUCT_RETROFIT_DYNAMIC_PARTITIONS),true)
-  ifneq ($(PRODUCT_USE_DYNAMIC_PARTITIONS),true)
-    $(error PRODUCT_USE_DYNAMIC_PARTITIONS must be true when PRODUCT_RETROFIT_DYNAMIC_PARTITIONS \
-        is set)
-  endif
-  ifdef PRODUCT_SHIPPING_API_LEVEL
-    ifeq (true,$(call math_gt_or_eq,$(PRODUCT_SHIPPING_API_LEVEL),29))
-      $(error Devices with shipping API level $(PRODUCT_SHIPPING_API_LEVEL) must not set \
-          PRODUCT_RETROFIT_DYNAMIC_PARTITIONS)
-    endif
-  endif
-endif
-
 ifeq ($(PRODUCT_USE_DYNAMIC_PARTITIONS),true)
     ifneq ($(PRODUCT_USE_DYNAMIC_PARTITION_SIZE),true)
         $(error PRODUCT_USE_DYNAMIC_PARTITION_SIZE must be true for devices with dynamic partitions)
@@ -1015,41 +999,6 @@ BOARD_SUPER_PARTITION_PARTITION_LIST := \
 .KATI_READONLY := BOARD_SUPER_PARTITION_PARTITION_LIST
 
 ifneq ($(BOARD_SUPER_PARTITION_SIZE),)
-ifeq ($(PRODUCT_RETROFIT_DYNAMIC_PARTITIONS),true)
-
-# The metadata device must be specified manually for retrofitting.
-ifeq ($(BOARD_SUPER_PARTITION_METADATA_DEVICE),)
-$(error Must specify BOARD_SUPER_PARTITION_METADATA_DEVICE if PRODUCT_RETROFIT_DYNAMIC_PARTITIONS=true.)
-endif
-
-# The super partition block device list must be specified manually for retrofitting.
-ifeq ($(BOARD_SUPER_PARTITION_BLOCK_DEVICES),)
-$(error Must specify BOARD_SUPER_PARTITION_BLOCK_DEVICES if PRODUCT_RETROFIT_DYNAMIC_PARTITIONS=true.)
-endif
-
-# The metadata device must be included in the super partition block device list.
-ifeq (,$(filter $(BOARD_SUPER_PARTITION_METADATA_DEVICE),$(BOARD_SUPER_PARTITION_BLOCK_DEVICES)))
-$(error BOARD_SUPER_PARTITION_METADATA_DEVICE is not listed in BOARD_SUPER_PARTITION_BLOCK_DEVICES.)
-endif
-
-# The metadata device must be supplied to init via the kernel command-line.
-INTERNAL_KERNEL_CMDLINE += androidboot.super_partition=$(BOARD_SUPER_PARTITION_METADATA_DEVICE)
-
-BOARD_BUILD_RETROFIT_DYNAMIC_PARTITIONS_OTA_PACKAGE := true
-
-# If "vendor" is listed as one of the dynamic partitions but without its image available (e.g. an
-# AOSP target built without vendor image), don't build the retrofit full OTA package. Because we
-# won't be able to build meaningful super_* images for retrofitting purpose.
-ifneq (,$(filter vendor,$(BOARD_SUPER_PARTITION_PARTITION_LIST)))
-ifndef BUILDING_VENDOR_IMAGE
-ifndef BOARD_PREBUILT_VENDORIMAGE
-BOARD_BUILD_RETROFIT_DYNAMIC_PARTITIONS_OTA_PACKAGE :=
-endif # BOARD_PREBUILT_VENDORIMAGE
-endif # BUILDING_VENDOR_IMAGE
-endif # BOARD_SUPER_PARTITION_PARTITION_LIST
-
-else # PRODUCT_RETROFIT_DYNAMIC_PARTITIONS
-
 # For normal devices, we populate BOARD_SUPER_PARTITION_BLOCK_DEVICES so the
 # build can handle both cases consistently.
 ifeq ($(BOARD_SUPER_PARTITION_METADATA_DEVICE),)
@@ -1069,16 +1018,12 @@ endif
 ifneq ($(BOARD_SUPER_PARTITION_METADATA_DEVICE),super)
 INTERNAL_KERNEL_CMDLINE += androidboot.super_partition=$(BOARD_SUPER_PARTITION_METADATA_DEVICE)
 endif
-BOARD_BUILD_RETROFIT_DYNAMIC_PARTITIONS_OTA_PACKAGE :=
 
-endif # PRODUCT_RETROFIT_DYNAMIC_PARTITIONS
 endif # BOARD_SUPER_PARTITION_SIZE
 BOARD_SUPER_PARTITION_BLOCK_DEVICES ?=
 .KATI_READONLY := BOARD_SUPER_PARTITION_BLOCK_DEVICES
 BOARD_SUPER_PARTITION_METADATA_DEVICE ?=
 .KATI_READONLY := BOARD_SUPER_PARTITION_METADATA_DEVICE
-BOARD_BUILD_RETROFIT_DYNAMIC_PARTITIONS_OTA_PACKAGE ?=
-.KATI_READONLY := BOARD_BUILD_RETROFIT_DYNAMIC_PARTITIONS_OTA_PACKAGE
 
 $(foreach device,$(call to-upper,$(BOARD_SUPER_PARTITION_BLOCK_DEVICES)), \
     $(eval BOARD_SUPER_PARTITION_$(device)_DEVICE_SIZE := $(strip $(BOARD_SUPER_PARTITION_$(device)_DEVICE_SIZE))) \
@@ -1223,20 +1168,14 @@ define find_warning_allowed_projects
     $(filter $(ANDROID_WARNING_ALLOWED_PROJECTS),$(1)/)
 endef
 
-GOMA_POOL :=
 RBE_POOL :=
-GOMA_OR_RBE_POOL :=
-# When goma or RBE are enabled, kati will be passed --default_pool=local_pool to put
+# When RBE is enabled, kati will be passed --default_pool=local_pool to put
 # most rules into the local pool.  Explicitly set the pool to "none" for rules that
 # should be run outside the local pool, i.e. with -j500.
-ifneq (,$(filter-out false,$(USE_GOMA)))
-  GOMA_POOL := none
-  GOMA_OR_RBE_POOL := none
-else ifneq (,$(filter-out false,$(USE_RBE)))
+ifneq (,$(filter-out false,$(USE_RBE)))
   RBE_POOL := none
-  GOMA_OR_RBE_POOL := none
 endif
-.KATI_READONLY := GOMA_POOL RBE_POOL GOMA_OR_RBE_POOL
+.KATI_READONLY := RBE_POOL
 
 JAVAC_NINJA_POOL :=
 R8_NINJA_POOL :=
@@ -1255,9 +1194,6 @@ ifneq ($(filter-out false,$(USE_RBE)),)
 endif
 
 .KATI_READONLY := JAVAC_NINJA_POOL R8_NINJA_POOL D8_NINJA_POOL
-
-# Soong modules that are known to have broken optional_uses_libs dependencies.
-BUILD_WARNING_BAD_OPTIONAL_USES_LIBS_ALLOWLIST := LegacyCamera Gallery2
 
 # These goals don't need to collect and include Android.mks/CleanSpec.mks
 # in the source tree.
@@ -1388,7 +1324,7 @@ BUILD_THUMBPRINT_FILE := $(PRODUCT_OUT)/build_thumbprint.txt
 ifeq ($(strip $(HAS_BUILD_NUMBER)),true)
 $(BUILD_THUMBPRINT_FILE): $(BUILD_NUMBER_FILE)
 endif
-ifneq (,$(shell mkdir -p $(PRODUCT_OUT) && echo $(BUILD_THUMBPRINT) >$(BUILD_THUMBPRINT_FILE) && grep " " $(BUILD_THUMBPRINT_FILE)))
+ifneq (,$(shell mkdir -p $(PRODUCT_OUT) && echo $(BUILD_THUMBPRINT) >$(BUILD_THUMBPRINT_FILE).tmp && (if ! cmp -s $(BUILD_THUMBPRINT_FILE).tmp $(BUILD_THUMBPRINT_FILE); then mv $(BUILD_THUMBPRINT_FILE).tmp $(BUILD_THUMBPRINT_FILE); else rm $(BUILD_THUMBPRINT_FILE).tmp; fi) && grep " " $(BUILD_THUMBPRINT_FILE)))
   $(error BUILD_THUMBPRINT cannot contain spaces: "$(file <$(BUILD_THUMBPRINT_FILE))")
 endif
 # unset it for safety.

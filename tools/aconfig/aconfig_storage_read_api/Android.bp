@@ -12,7 +12,6 @@ rust_defaults {
         "libmemmap2",
         "libcxx",
         "libthiserror",
-        "libaconfig_storage_file",
     ],
 }
 
@@ -20,7 +19,26 @@ rust_library {
     name: "libaconfig_storage_read_api",
     crate_name: "aconfig_storage_read_api",
     host_supported: true,
+    vendor_available: true,
     defaults: ["aconfig_storage_read_api.defaults"],
+    rustlibs: [
+        "libaconfig_storage_file",
+    ],
+    apex_available: [
+        "//apex_available:platform",
+        "//apex_available:anyapex",
+    ],
+    min_sdk_version: "29",
+}
+
+rust_library {
+    name: "libaconfig_storage_read_api_with_test_utils",
+    crate_name: "aconfig_storage_read_api",
+    host_supported: true,
+    defaults: ["aconfig_storage_read_api.defaults"],
+    rustlibs: [
+        "libaconfig_storage_file_with_test_utils",
+    ],
     apex_available: [
         "//apex_available:platform",
         "//apex_available:anyapex",
@@ -33,7 +51,8 @@ rust_test_host {
     test_suites: ["general-tests"],
     defaults: ["aconfig_storage_read_api.defaults"],
     rustlibs: [
-        "librand",
+        "librand-0.8",
+        "libaconfig_storage_file_with_test_utils",
     ],
     data: [
         "tests/data/v1/package_v1.map",
@@ -69,6 +88,9 @@ rust_ffi_static {
     vendor_available: true,
     product_available: true,
     defaults: ["aconfig_storage_read_api.defaults"],
+    rustlibs: [
+        "libaconfig_storage_file",
+    ],
     apex_available: [
         "//apex_available:platform",
         "//apex_available:anyapex",
@@ -109,10 +131,20 @@ cc_library {
 
 cc_defaults {
     name: "aconfig_lib_cc_shared_link.defaults",
-    shared_libs: select(release_flag("RELEASE_READ_FROM_NEW_STORAGE"), {
-        true: ["libaconfig_storage_read_api_cc"],
-        default: [],
-    }),
+    target: {
+        android: {
+            shared_libs: select(release_flag("RELEASE_READ_FROM_NEW_STORAGE"), {
+                true: ["libaconfig_storage_read_api_cc"],
+                default: [],
+            }),
+        },
+        host: {
+            static_libs: select(release_flag("RELEASE_READ_FROM_NEW_STORAGE"), {
+                true: ["libaconfig_storage_read_api_cc"],
+                default: [],
+            }),
+        },
+    },
 }
 
 cc_defaults {

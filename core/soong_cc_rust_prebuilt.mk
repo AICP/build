@@ -195,23 +195,7 @@ ifndef LOCAL_IS_HOST_MODULE
       ALL_MODULES.$(my_register_name).SYMBOLIC_OUTPUT_PATH := $(symbolic_output)
       ALL_MODULES.$(my_register_name).ELF_SYMBOL_MAPPING_PATH := $(elf_symbol_mapping_path)
 
-      $(eval $(call copy-unstripped-elf-file-with-mapping,$(LOCAL_SOONG_UNSTRIPPED_BINARY),$(symbolic_output),$(elf_symbol_mapping_path)))
       $(LOCAL_BUILT_MODULE): | $(symbolic_output)
-
-      ifeq ($(BREAKPAD_GENERATE_SYMBOLS),true)
-        my_breakpad_path := $(TARGET_OUT_BREAKPAD)/$(patsubst $(PRODUCT_OUT)/%,%,$(my_symbol_path))
-        breakpad_output := $(my_breakpad_path)/$(my_installed_module_stem).sym
-        $(breakpad_output) : $(LOCAL_SOONG_UNSTRIPPED_BINARY) | $(BREAKPAD_DUMP_SYMS) $(PRIVATE_READELF)
-	@echo "target breakpad: $(PRIVATE_MODULE) ($@)"
-	@mkdir -p $(dir $@)
-	$(hide) if $(PRIVATE_READELF) -S $< > /dev/null 2>&1 ; then \
-	  $(BREAKPAD_DUMP_SYMS) -c $< > $@ ; \
-	else \
-	  echo "skipped for non-elf file."; \
-	  touch $@; \
-	fi
-        $(call add-dependency,$(LOCAL_BUILT_MODULE),$(breakpad_output))
-      endif
     endif
   endif
 endif
@@ -219,16 +203,6 @@ endif
 ifeq ($(NATIVE_COVERAGE),true)
   ifneq (,$(strip $(LOCAL_PREBUILT_COVERAGE_ARCHIVE)))
     $(eval $(call copy-one-file,$(LOCAL_PREBUILT_COVERAGE_ARCHIVE),$(intermediates)/$(LOCAL_MODULE).zip))
-    ifneq ($(LOCAL_UNINSTALLABLE_MODULE),true)
-      ifdef LOCAL_IS_HOST_MODULE
-        my_coverage_path := $($(my_prefix)OUT_COVERAGE)/$(patsubst $($(my_prefix)OUT)/%,%,$(my_module_path))
-      else
-        my_coverage_path := $(TARGET_OUT_COVERAGE)/$(patsubst $(PRODUCT_OUT)/%,%,$(my_module_path))
-      endif
-      my_coverage_path := $(my_coverage_path)/$(patsubst %.so,%,$(my_installed_module_stem)).zip
-      $(eval $(call copy-one-file,$(LOCAL_PREBUILT_COVERAGE_ARCHIVE),$(my_coverage_path)))
-      $(LOCAL_BUILT_MODULE): $(my_coverage_path)
-    endif
   else
     # Coverage information is needed when static lib is a dependency of another
     # coverage-enabled module.
@@ -253,9 +227,3 @@ $(LOCAL_INSTALLED_MODULE): PRIVATE_POST_INSTALL_CMD := \
 endif
 
 $(LOCAL_BUILT_MODULE): $(LOCAL_ADDITIONAL_DEPENDENCIES)
-
-# Reinstall shared library dependencies of fuzz targets to /data/fuzz/ (for
-# target) or /data/ (for host).
-ifdef LOCAL_IS_FUZZ_TARGET
-$(LOCAL_INSTALLED_MODULE): $(LOCAL_FUZZ_INSTALLED_SHARED_DEPS)
-endif

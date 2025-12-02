@@ -151,6 +151,15 @@ def CheckCombinedSepolicy(target_files_dir, partition_map, execute=True):
   with open(vendor_plat_version_file) as f:
     vendor_plat_version = f.read().strip()
 
+  vendor_genfs_version = ""
+  vendor_genfs_version_file = get_file('vendor',
+                                       'etc/selinux/genfs_labels_version.txt')
+  if vendor_genfs_version_file:
+    with open(vendor_genfs_version_file) as f:
+      vendor_genfs_version = f.read().strip()
+  else:
+    logger.debug('Missing vendor/etc/selinux/genfs_labels_version.txt')
+
   # Use the same flags and arguments as selinux.cpp OpenSplitPolicy().
   cmd = ['secilc', '-m', '-M', 'true', '-G', '-N']
   cmd.extend(['-c', kernel_sepolicy_version])
@@ -170,14 +179,20 @@ def CheckCombinedSepolicy(target_files_dir, partition_map, execute=True):
       return errors
     cmd.append(policy)
 
-  optional_policy_files = (
+  optional_policy_files = [
       ('system', 'etc/selinux/mapping/%s.compat.cil' % vendor_plat_version),
       ('system_ext', 'etc/selinux/system_ext_sepolicy.cil'),
       ('system_ext', 'etc/selinux/mapping/%s.cil' % vendor_plat_version),
       ('product', 'etc/selinux/product_sepolicy.cil'),
       ('product', 'etc/selinux/mapping/%s.cil' % vendor_plat_version),
       ('odm', 'etc/selinux/odm_sepolicy.cil'),
-  )
+  ]
+  if vendor_genfs_version != "":
+    optional_policy_files.append(
+        ('system',
+         f'etc/selinux/plat_sepolicy_genfs_{vendor_genfs_version}.cil',
+        )
+    )
   for policy in (map(lambda partition_and_path: get_file(*partition_and_path),
                      optional_policy_files)):
     if policy:

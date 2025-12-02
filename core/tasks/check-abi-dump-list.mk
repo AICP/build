@@ -104,17 +104,17 @@ PLATFORM_ABI_DUMPS := $(call find-abi-dump-paths,$(PLATFORM_ABI_DUMP_DIR))
 $(check-abi-dump-list-timestamp): PRIVATE_LSDUMP_PATHS := $(LSDUMP_PATHS)
 $(check-abi-dump-list-timestamp): PRIVATE_STUB_LIBRARIES := $(STUB_LIBRARIES)
 $(check-abi-dump-list-timestamp):
-	$(eval added_vndk_abi_dumps := $(strip $(sort $(filter-out \
+	$(eval added_vndk_abi_dumps := $(sort $(filter-out \
 	  $(call filter-abi-dump-names,LLNDK,$(PRIVATE_LSDUMP_PATHS)) libRS.so.lsdump, \
-	  $(notdir $(VNDK_ABI_DUMPS))))))
+	  $(notdir $(VNDK_ABI_DUMPS)))))
 	$(if $(added_vndk_abi_dumps), \
 	  echo -e "Found unexpected ABI reference dump files under $(VNDK_ABI_DUMP_DIR). It is caused by mismatch between Android.bp and the dump files. Run \`find \$${ANDROID_BUILD_TOP}/$(VNDK_ABI_DUMP_DIR) '(' -name $(subst $(space), -or -name ,$(added_vndk_abi_dumps)) ')' -delete\` to delete the dump files.")
 
 	# TODO(b/314010764): Remove LLNDK tag after PLATFORM_SDK_VERSION is upgraded to 35.
-	$(eval added_platform_abi_dumps := $(strip $(sort $(filter-out \
+	$(eval added_platform_abi_dumps := $(sort $(filter-out \
 	  $(call filter-abi-dump-names,APEX LLNDK PLATFORM,$(PRIVATE_LSDUMP_PATHS)) \
 	  $(addsuffix .lsdump,$(PRIVATE_STUB_LIBRARIES)) libRS.so.lsdump, \
-	  $(notdir $(PLATFORM_ABI_DUMPS))))))
+	  $(notdir $(PLATFORM_ABI_DUMPS)))))
 	$(if $(added_platform_abi_dumps), \
 	  echo -e "Found unexpected ABI reference dump files under $(PLATFORM_ABI_DUMP_DIR). It is caused by mismatch between Android.bp and the dump files. Run \`find \$${ANDROID_BUILD_TOP}/$(PLATFORM_ABI_DUMP_DIR) '(' -name $(subst $(space), -or -name ,$(added_platform_abi_dumps)) ')' -delete\` to delete the dump files.")
 

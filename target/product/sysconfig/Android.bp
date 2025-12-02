@@ -56,6 +56,13 @@ prebuilt_etc {
 }
 
 prebuilt_etc {
+    name: "preinstalled_packages_handheld_system_ext.xml",
+    sub_dir: "sysconfig",
+    system_ext_specific: true,
+    src: "preinstalled_packages_handheld_system_ext.xml",
+}
+
+prebuilt_etc {
     name: "initial-package-stopped-states-aosp.xml",
     product_specific: true,
     sub_dir: "sysconfig",

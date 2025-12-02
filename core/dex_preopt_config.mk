@@ -123,6 +123,7 @@ ifeq ($(WRITE_SOONG_VARIABLES),true)
   $(call add_json_str,  Dex2oatXms,                              $(DEX2OAT_XMS))
   $(call add_json_str,  EmptyDirectory,                          $(OUT_DIR)/empty)
   $(call add_json_str,  EnableUffdGc,                            $(ENABLE_UFFD_GC))
+  $(call add_json_str,  PlatformSdkVersion,                      $(PLATFORM_SDK_VERSION))
 
 ifdef TARGET_ARCH
   $(call add_json_map,  CpuVariant)

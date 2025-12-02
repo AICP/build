@@ -36,6 +36,7 @@ import queue
 import metadata_file_pb2
 import sbom_data
 import sbom_writers
+import sys
 
 # Package type
 PKG_SOURCE = 'SOURCE'
@@ -570,6 +571,25 @@ def get_all_transitive_static_dep_files_of_installed_files(installed_files_metad
 
   return sorted(all_static_dep_files.keys())
 
+def get_license_of_product_copy_file(file_path):
+  # Provides license info for known AOSP files used in PRODUCT_COPY_FILES.
+  paths = {
+      'device/sample/etc/',
+      'frameworks/av/media/libeffects/data/',
+      'frameworks/av/media/libstagefright/data/',
+      'frameworks/av/services/audiopolicy/config/',
+      'frameworks/base/config/',
+      'frameworks/base/data/keyboards/',
+      'frameworks/base/data/sounds/',
+      'frameworks/native/data/etc/',
+      'hardware/google/camera/devices/EmulatedCamera/hwl/configs/',
+      'system/core/rootdir/etc/',
+  }
+  for p in paths:
+    if file_path.startswith(p):
+      return 'build/soong/licenses/LICENSE'
+
+  return ''
 
 def main():
   global args
@@ -674,6 +694,8 @@ def main():
       doc.add_relationship(sbom_data.Relationship(id1=file_id,
                                                   relationship=sbom_data.RelationshipType.GENERATED_FROM,
                                                   id2=sbom_data.SPDXID_PLATFORM))
+      if not installed_file_metadata['license_text']:
+        installed_file_metadata['license_text'] = get_license_of_product_copy_file(src_path)
       if installed_file_metadata['license_text']:
         if installed_file_metadata['license_text'] == 'build/soong/licenses/LICENSE':
           f.concluded_license_ids = [sbom_data.SPDXID_LICENSE_APACHE]

@@ -17,8 +17,22 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
+genrule_defaults {
+    name: "otatools_package_defaults",
+    enabled: select(soong_config_variable("otatools", "use_otatools_package"), {
+        true: true,
+        default: false,
+    }),
+    target: {
+        windows: {
+            enabled: false,
+        },
+    },
+}
+
 java_genrule_host {
     name: "otatools_package_dep_jars",
+    defaults: ["otatools_package_defaults"],
     tools: ["soong_zip"],
     compile_multilib: "first",
     cmd: "mkdir -p $(genDir)/framework && " +
@@ -35,6 +49,7 @@ java_genrule_host {
 
 cc_genrule {
     name: "otatools_package_dep_libs",
+    defaults: ["otatools_package_defaults"],
     host_supported: true,
     device_supported: false,
     compile_multilib: "first",
@@ -84,6 +99,7 @@ cc_genrule {
 
 cc_genrule {
     name: "otatools_package_dep_bins",
+    defaults: ["otatools_package_defaults"],
     host_supported: true,
     device_supported: false,
     compile_multilib: "first",
@@ -188,7 +204,8 @@ cc_genrule {
 }
 
 java_genrule_host {
-    name: "otatools_package",
+    name: "otatools-package",
+    defaults: ["otatools_package_defaults"],
     tools: ["merge_zips"],
     compile_multilib: "first",
     cmd: "$(location merge_zips) $(out) $(in)",
@@ -199,11 +216,11 @@ java_genrule_host {
         ":otatools_package_dep_libs",
         ":otatools_package_releasetools",
     ],
-    // TODO: Rename as "otatools.zip" when the rest files are ready.
-    out: ["otatools_temp.zip"],
+    out: ["otatools.zip"],
     dist: {
         targets: [
-            "otatools-package-temp",
+            "droidcore",
+            "otatools-package",
         ],
     },
 }

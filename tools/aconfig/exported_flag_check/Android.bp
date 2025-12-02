@@ -12,17 +12,18 @@ rust_defaults {
         "libaconfig_protos",
         "libanyhow",
         "libclap",
+        "libprotobuf",
         "libregex",
     ],
 }
 
 rust_binary_host {
     name: "exported-flag-check",
-    defaults: ["record-finalized-flags-defaults"],
+    defaults: ["exported-flag-check-defaults"],
 }
 
 rust_test_host {
     name: "exported-flag-check-test",
-    defaults: ["record-finalized-flags-defaults"],
+    defaults: ["exported-flag-check-defaults"],
     test_suites: ["general-tests"],
 }

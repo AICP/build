@@ -185,6 +185,7 @@ mod ffi {
         pub package_exists: bool,
         pub package_id: u32,
         pub boolean_start_index: u32,
+        pub fingerprint: u64,
     }
 
     // Flag table query return for cc interlop
@@ -248,6 +249,7 @@ impl ffi::PackageReadContextQueryCXX {
                     package_exists: true,
                     package_id: offset.package_id,
                     boolean_start_index: offset.boolean_start_index,
+                    fingerprint: offset.fingerprint,
                 },
                 None => Self {
                     query_success: true,
@@ -255,6 +257,7 @@ impl ffi::PackageReadContextQueryCXX {
                     package_exists: false,
                     package_id: 0,
                     boolean_start_index: 0,
+                    fingerprint: 0,
                 },
             },
             Err(errmsg) => Self {
@@ -263,6 +266,7 @@ impl ffi::PackageReadContextQueryCXX {
                 package_exists: false,
                 package_id: 0,
                 boolean_start_index: 0,
+                fingerprint: 0,
             },
         }
     }

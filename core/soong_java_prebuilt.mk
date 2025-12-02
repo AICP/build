@@ -28,7 +28,6 @@ include $(BUILD_SYSTEM)/base_rules.mk
 ifdef LOCAL_SOONG_CLASSES_JAR
   $(eval $(call copy-one-file,$(LOCAL_SOONG_CLASSES_JAR),$(full_classes_jar)))
   $(eval $(call copy-one-file,$(LOCAL_SOONG_CLASSES_JAR),$(full_classes_pre_proguard_jar)))
-  $(eval $(call add-dependency,$(LOCAL_BUILT_MODULE),$(full_classes_jar)))
 
   ifneq ($(TURBINE_ENABLED),false)
     ifdef LOCAL_SOONG_HEADER_JAR
@@ -42,10 +41,10 @@ endif
 $(eval $(call copy-one-file,$(LOCAL_PREBUILT_MODULE_FILE),$(LOCAL_BUILT_MODULE)))
 
 ifdef LOCAL_SOONG_JACOCO_REPORT_CLASSES_JAR
-  $(eval $(call copy-one-file,$(LOCAL_SOONG_JACOCO_REPORT_CLASSES_JAR),\
-    $(call local-packaging-dir,jacoco)/jacoco-report-classes.jar))
-  $(call add-dependency,$(common_javalib.jar),\
-    $(call local-packaging-dir,jacoco)/jacoco-report-classes.jar)
+  ALL_MODULES.$(my_register_name).JACOCO_REPORT_FILES := $(LOCAL_SOONG_JACOCO_REPORT_CLASSES_JAR)
+  ALL_MODULES.$(my_register_name).JACOCO_REPORT_SOONG_ZIP_ARGUMENTS := \
+    -e out/target/common/obj/$(LOCAL_MODULE_CLASS)/$(LOCAL_MODULE)_intermediates/jacoco-report-classes.jar \
+    -f $(LOCAL_SOONG_JACOCO_REPORT_CLASSES_JAR)
 endif
 
 ifdef LOCAL_SOONG_PROGUARD_DICT
@@ -116,9 +115,7 @@ ifdef LOCAL_SOONG_DEX_JAR
     endif # is_boot_jar
 
     $(eval $(call copy-one-file,$(LOCAL_SOONG_DEX_JAR),$(common_javalib.jar)))
-    $(eval $(call add-dependency,$(LOCAL_BUILT_MODULE),$(common_javalib.jar)))
     ifdef LOCAL_SOONG_CLASSES_JAR
-      $(eval $(call add-dependency,$(common_javalib.jar),$(full_classes_jar)))
       ifneq ($(TURBINE_ENABLED),false)
         $(eval $(call add-dependency,$(common_javalib.jar),$(full_classes_header_jar)))
       endif

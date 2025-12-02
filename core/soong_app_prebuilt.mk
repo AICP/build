@@ -85,10 +85,10 @@ else
 endif
 
 ifdef LOCAL_SOONG_JACOCO_REPORT_CLASSES_JAR
-  $(eval $(call copy-one-file,$(LOCAL_SOONG_JACOCO_REPORT_CLASSES_JAR),\
-    $(call local-packaging-dir,jacoco)/jacoco-report-classes.jar))
-  $(call add-dependency,$(LOCAL_BUILT_MODULE),\
-    $(call local-packaging-dir,jacoco)/jacoco-report-classes.jar)
+  ALL_MODULES.$(my_register_name).JACOCO_REPORT_FILES := $(LOCAL_SOONG_JACOCO_REPORT_CLASSES_JAR)
+  ALL_MODULES.$(my_register_name).JACOCO_REPORT_SOONG_ZIP_ARGUMENTS := \
+    -e out/target/common/obj/$(LOCAL_MODULE_CLASS)/$(LOCAL_MODULE)_intermediates/jacoco-report-classes.jar \
+    -f $(LOCAL_SOONG_JACOCO_REPORT_CLASSES_JAR)
 endif
 
 ifdef LOCAL_SOONG_PROGUARD_DICT
@@ -142,14 +142,6 @@ endif
 # install symbol files of JNI libraries
 my_jni_lib_symbols_copy_files := $(foreach f,$(LOCAL_SOONG_JNI_LIBS_SYMBOLS),\
   $(call word-colon,1,$(f)):$(patsubst $(PRODUCT_OUT)/%,$(TARGET_OUT_UNSTRIPPED)/%,$(call word-colon,2,$(f))))
-
-$(foreach f, $(my_jni_lib_symbols_copy_files), \
-  $(eval $(call copy-unstripped-elf-file-with-mapping, \
-    $(call word-colon,1,$(f)), \
-    $(call word-colon,2,$(f)), \
-    $(patsubst $(TARGET_OUT_UNSTRIPPED)/%,$(call intermediates-dir-for,PACKAGING,elf_symbol_mapping)/%,$(call word-colon,2,$(f)).textproto)\
-  ))\
-)
 
 symbolic_outputs := $(foreach f,$(my_jni_lib_symbols_copy_files),$(call word-colon,2,$(f)))
 symbolic_mappings := $(foreach f,$(symbolic_outputs),$(patsubst $(TARGET_OUT_UNSTRIPPED)/%,$(call intermediates-dir-for,PACKAGING,elf_symbol_mapping)/%,$(f).textproto))
@@ -215,10 +207,6 @@ ifdef LOCAL_SOONG_BUNDLE
   ALL_MODULES.$(my_register_name).BUNDLE := $(LOCAL_SOONG_BUNDLE)
 endif
 
-ifdef LOCAL_SOONG_LINT_REPORTS
-  ALL_MODULES.$(my_register_name).LINT_REPORTS := $(LOCAL_SOONG_LINT_REPORTS)
-endif
-
 ifndef LOCAL_IS_HOST_MODULE
 ifeq ($(LOCAL_SDK_VERSION),system_current)
 my_link_type := java:system
@@ -237,13 +225,6 @@ my_2nd_arch_prefix := $(LOCAL_2ND_ARCH_VAR_PREFIX)
 my_common := COMMON
 include $(BUILD_SYSTEM)/link_type.mk
 endif # !LOCAL_IS_HOST_MODULE
-
-ifdef LOCAL_PREBUILT_COVERAGE_ARCHIVE
-  my_coverage_dir := $(TARGET_OUT_COVERAGE)/$(patsubst $(PRODUCT_OUT)/%,%,$(my_module_path))
-  my_coverage_copy_pairs := $(foreach f,$(LOCAL_PREBUILT_COVERAGE_ARCHIVE),$(f):$(my_coverage_dir)/$(notdir  $(f)))
-  my_coverage_files := $(call copy-many-files,$(my_coverage_copy_pairs))
-  $(LOCAL_INSTALLED_MODULE): $(my_coverage_files)
-endif
 
 SOONG_ALREADY_CONV += $(LOCAL_MODULE)
 

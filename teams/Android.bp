@@ -3108,7 +3108,7 @@ team {
 }
 
 team {
-    name: "trendy_team_wear_wearflow",
+    name: "trendy_team_wear_remote_compose",
 
     // go/trendy/manage/engineers/5947250429558784
     trendy_team_id: "5947250429558784",
@@ -4414,6 +4414,13 @@ team {
 
     // go/trendy/manage/engineers/6463689697099776
     trendy_team_id: "6463689697099776",
+}
+
+team {
+    name: "trendy_team_desktop_experiences",
+
+    // go/trendy/manage/engineers/5342568499216384
+    trendy_team_id: "5342568499216384",
 }
 
 // DON'T ADD NEW RULES HERE. For more details refer to

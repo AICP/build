@@ -104,7 +104,6 @@ PRODUCT_PACKAGES += \
     framework-sysconfig.xml \
     fsck.erofs \
     fsck_msdos \
-    fsverity-release-cert-der \
     fs_config_files_system \
     fs_config_dirs_system \
     gpu_counter_producer \
@@ -285,7 +284,6 @@ PRODUCT_PACKAGES += \
     system-build.prop \
     task_profiles.json \
     tc \
-    telecom \
     telephony-common \
     tombstoned \
     traced \
@@ -304,6 +302,17 @@ PRODUCT_PACKAGES += \
     wificond \
     wifi.rc \
     wm \
+
+# Once Telecom is APEX, we will consolidate all deps
+ifeq ($(RELEASE_TELECOM_MAINLINE_MODULE),true)
+  PRODUCT_PACKAGES += \
+      com.android.telecom \
+
+else
+  PRODUCT_PACKAGES += \
+      telecom \
+
+endif
 
 # When we release crashrecovery module
 ifeq ($(RELEASE_CRASHRECOVERY_MODULE),true)
@@ -376,6 +385,11 @@ endif
 ifneq ($(RELEASE_MOVE_VCN_TO_MAINLINE),true)
     PRODUCT_PACKAGES += \
         framework-connectivity-b
+endif
+
+ifeq ($(RELEASE_TELEPHONY_MODULE),true)
+    PRODUCT_PACKAGES += \
+       com.android.telephony2
 endif
 
 ifeq ($(RELEASE_MEMORY_MANAGEMENT_DAEMON),true)
@@ -577,8 +591,3 @@ $(call inherit-product,$(SRC_TARGET_DIR)/product/updatable_apex.mk)
 
 $(call soong_config_set, bionic, large_system_property_node, $(RELEASE_LARGE_SYSTEM_PROPERTY_NODE))
 $(call soong_config_set, Aconfig, read_from_new_storage, $(RELEASE_READ_FROM_NEW_STORAGE))
-$(call soong_config_set, SettingsLib, legacy_avatar_picker_app_enabled, $(if $(RELEASE_AVATAR_PICKER_APP),,true))
-$(call soong_config_set, appsearch, enable_isolated_storage, $(RELEASE_APPSEARCH_ENABLE_ISOLATED_STORAGE))
-
-# Enable AppSearch Isolated Storage per BUILD flag
-PRODUCT_PRODUCT_PROPERTIES += ro.appsearch.feature.enable_isolated_storage=$(RELEASE_APPSEARCH_ENABLE_ISOLATED_STORAGE)

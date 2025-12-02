@@ -22,12 +22,12 @@ pub mod package_table;
 use anyhow::Result;
 use std::collections::{HashMap, HashSet};
 
-use crate::commands::compute_flags_fingerprint;
+use crate::commands::{compute_flags_fingerprint, should_include_flag};
 use crate::storage::{
     flag_info::create_flag_info, flag_table::create_flag_table, flag_value::create_flag_value,
     package_table::create_package_table,
 };
-use aconfig_protos::{ProtoFlagPermission, ProtoFlagState, ProtoParsedFlag, ProtoParsedFlags};
+use aconfig_protos::{ProtoParsedFlag, ProtoParsedFlags};
 use aconfig_storage_file::StorageFileType;
 
 #[derive(Clone)]
@@ -35,6 +35,7 @@ pub struct FlagPackage<'a> {
     pub package_name: &'a str,
     pub package_id: u32,
     pub fingerprint: u64,
+    pub redact_exported_reads: bool,
     pub flag_names: HashSet<&'a str>,
     pub boolean_flags: Vec<&'a ProtoParsedFlag>,
     // The index of the first boolean flag in this aconfig package among all boolean
@@ -48,6 +49,7 @@ impl<'a> FlagPackage<'a> {
             package_name,
             package_id,
             fingerprint: 0,
+            redact_exported_reads: false,
             flag_names: HashSet::new(),
             boolean_flags: vec![],
             boolean_start_index: 0,
@@ -70,21 +72,15 @@ where
     let mut package_index: HashMap<&str, usize> = HashMap::new();
     for parsed_flags in parsed_flags_vec_iter {
         for parsed_flag in parsed_flags.parsed_flag.iter() {
+            // exclude both platform ro disabled flags as well as flags using device config
+            if !should_include_flag(parsed_flag) {
+                continue;
+            }
+
             let index = *(package_index.entry(parsed_flag.package()).or_insert(packages.len()));
             if index == packages.len() {
                 packages.push(FlagPackage::new(parsed_flag.package(), index as u32));
             }
-
-            // Exclude system/vendor/product flags that are RO+disabled.
-            if (parsed_flag.container == Some("system".to_string())
-                || parsed_flag.container == Some("vendor".to_string())
-                || parsed_flag.container == Some("product".to_string()))
-                && parsed_flag.permission == Some(ProtoFlagPermission::READ_ONLY.into())
-                && parsed_flag.state == Some(ProtoFlagState::DISABLED.into())
-            {
-                continue;
-            }
-
             packages[index].insert(parsed_flag);
         }
     }
@@ -101,6 +97,8 @@ where
             let fingerprint = compute_flags_fingerprint(&mut flag_names_vec);
             p.fingerprint = fingerprint;
         }
+
+        // TODO - b/377311211: Set redact_exported_reads if the build flag is enabled.
     }
 
     packages
@@ -139,10 +137,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use aconfig_storage_file::DEFAULT_FILE_VERSION;
 
     use super::*;
-    use crate::Input;
+    use crate::commands::Input;
 
     pub fn parse_all_test_flags() -> Vec<ProtoParsedFlags> {
         let aconfig_files = [
@@ -171,9 +168,14 @@ mod tests {
         aconfig_files
             .into_iter()
             .map(|(pkg, aconfig_file, aconfig_content, value_file, value_content)| {
+                let extended_permissions_options = crate::commands::ExtendedPermissionsOptions {
+                    default_permission: crate::commands::DEFAULT_FLAG_PERMISSION,
+                    allow_read_write: true,
+                    force_read_only: false,
+                };
                 let bytes = crate::commands::parse_flags(
                     pkg,
-                    Some("system"),
+                    "system",
                     vec![Input {
                         source: format!("tests/{}", aconfig_file).to_string(),
                         reader: Box::new(aconfig_content),
@@ -182,8 +184,8 @@ mod tests {
                         source: format!("tests/{}", value_file).to_string(),
                         reader: Box::new(value_content),
                     }],
-                    crate::commands::DEFAULT_FLAG_PERMISSION,
-                    true,
+                    None,
+                    extended_permissions_options,
                 )
                 .unwrap();
                 aconfig_protos::parsed_flags::try_from_binary_proto(&bytes).unwrap()
@@ -191,10 +193,11 @@ mod tests {
             .collect()
     }
 
+    // Storage file v1.
     #[test]
     fn test_flag_package() {
         let caches = parse_all_test_flags();
-        let packages = group_flags_by_package(caches.iter(), DEFAULT_FILE_VERSION);
+        let packages = group_flags_by_package(caches.iter(), 1);
 
         for pkg in packages.iter() {
             let pkg_name = pkg.package_name;
@@ -234,6 +237,7 @@ mod tests {
         assert_eq!(packages[2].fingerprint, 0);
     }
 
+    // Storage file v2.
     #[test]
     fn test_flag_package_with_fingerprint() {
         let caches = parse_all_test_flags();

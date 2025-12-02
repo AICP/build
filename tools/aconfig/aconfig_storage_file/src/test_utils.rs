@@ -32,6 +32,7 @@ pub fn create_test_package_table(version: u32) -> PackageTable {
         file_size: match version {
             1 => 209,
             2 => 233,
+            3 => 236,
             _ => panic!("Unsupported version."),
         },
         num_packages: 3,
@@ -41,6 +42,7 @@ pub fn create_test_package_table(version: u32) -> PackageTable {
     let buckets: Vec<Option<u32>> = match version {
         1 => vec![Some(59), None, None, Some(109), None, None, None],
         2 => vec![Some(59), None, None, Some(117), None, None, None],
+        3 => vec![Some(59), None, None, Some(118), None, None, None],
         _ => panic!("Unsupported version."),
     };
     let first_node = PackageTableNode {
@@ -48,8 +50,13 @@ pub fn create_test_package_table(version: u32) -> PackageTable {
         package_id: 1,
         fingerprint: match version {
             1 => 0,
-            2 => 4431940502274857964u64,
+            2..=3 => 4431940502274857964u64,
             _ => panic!("Unsupported version."),
+        },
+        redact_exported_reads: match version {
+            1..=2 => false,
+            3 => true,
+            _ => panic!("unsupported version."),
         },
         boolean_start_index: 3,
         next_offset: None,
@@ -59,13 +66,19 @@ pub fn create_test_package_table(version: u32) -> PackageTable {
         package_id: 0,
         fingerprint: match version {
             1 => 0,
-            2 => 15248948510590158086u64,
+            2..=3 => 15248948510590158086u64,
             _ => panic!("Unsupported version."),
+        },
+        redact_exported_reads: match version {
+            1..=2 => false,
+            3 => true,
+            _ => panic!("unsupported version."),
         },
         boolean_start_index: 0,
         next_offset: match version {
             1 => Some(159),
             2 => Some(175),
+            3 => Some(177),
             _ => panic!("Unsupported version."),
         },
     };
@@ -74,8 +87,13 @@ pub fn create_test_package_table(version: u32) -> PackageTable {
         package_id: 2,
         fingerprint: match version {
             1 => 0,
-            2 => 16233229917711622375u64,
+            2..=3 => 16233229917711622375u64,
             _ => panic!("Unsupported version."),
+        },
+        redact_exported_reads: match version {
+            1..=2 => false,
+            3 => true,
+            _ => panic!("unsupported version."),
         },
         boolean_start_index: 6,
         next_offset: None,

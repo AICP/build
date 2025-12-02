@@ -31,6 +31,7 @@
 #[cfg(not(feature = "cargo"))]
 mod auto_generated {
     pub use aconfig_rust_proto::aconfig::flag_metadata::Flag_purpose as ProtoFlagPurpose;
+    pub use aconfig_rust_proto::aconfig::flag_metadata::Flag_storage_backend as ProtoFlagStorageBackend;
     pub use aconfig_rust_proto::aconfig::Flag_declaration as ProtoFlagDeclaration;
     pub use aconfig_rust_proto::aconfig::Flag_declarations as ProtoFlagDeclarations;
     pub use aconfig_rust_proto::aconfig::Flag_metadata as ProtoFlagMetadata;
@@ -51,6 +52,7 @@ mod auto_generated {
     // Android tool-chain, we allow it
     include!(concat!(env!("OUT_DIR"), "/aconfig_proto/mod.rs"));
     pub use aconfig::flag_metadata::Flag_purpose as ProtoFlagPurpose;
+    pub use aconfig::flag_metadata::Flag_storage_backend as ProtoFlagStorageBackend;
     pub use aconfig::Flag_declaration as ProtoFlagDeclaration;
     pub use aconfig::Flag_declarations as ProtoFlagDeclarations;
     pub use aconfig::Flag_metadata as ProtoFlagMetadata;
@@ -141,6 +143,11 @@ pub mod flag_declaration {
         );
         ensure!(!pdf.description().is_empty(), "bad flag declaration: empty description");
         ensure!(pdf.bug.len() == 1, "bad flag declaration: exactly one bug required");
+
+        ensure!(
+            !pdf.metadata.has_storage(),
+            "bad flag declaration: storage in metadata should not be explicitly selected"
+        );
 
         Ok(())
     }
@@ -321,8 +328,29 @@ pub mod parsed_flag {
                 );
             }
         }
+        match pf.permission() {
+            ProtoFlagPermission::READ_ONLY => {
+                ensure!(
+                    pf.metadata.storage() == ProtoFlagStorageBackend::NONE,
+                    "bad parsed flag: storage backend is not NONE for a read only flag"
+                )
+            }
+            ProtoFlagPermission::READ_WRITE => {
+                ensure!(
+                    pf.metadata.storage() != ProtoFlagStorageBackend::UNSPECIFIED,
+                    "bad parsed flag: storage backend cannot be UNSPECIFIED"
+                )
+            }
+        }
 
         Ok(())
+    }
+
+    /// Construct a proto instance from a textproto string content
+    pub fn try_from_text_proto(s: &str) -> Result<ProtoParsedFlag> {
+        let pf: ProtoParsedFlag = super::try_from_text_proto(s)?;
+        verify_fields(&pf)?;
+        Ok(pf)
     }
 
     /// Get the file path of the corresponding flag declaration
@@ -337,6 +365,13 @@ pub mod parsed_flags {
     use super::*;
     use anyhow::bail;
     use std::cmp::Ordering;
+
+    /// Construct a proto instance from a textproto string content
+    pub fn try_from_text_proto(s: &str) -> Result<ProtoParsedFlags> {
+        let pfs: ProtoParsedFlags = super::try_from_text_proto(s)?;
+        verify_fields(&pfs)?;
+        Ok(pfs)
+    }
 
     /// Construct a proto instance from a binary proto bytes
     pub fn try_from_binary_proto(bytes: &[u8]) -> Result<ProtoParsedFlags> {
@@ -600,6 +635,28 @@ flag {
         .unwrap_err();
         assert!(format!("{:?}", error).contains("bad flag declarations: bad container"));
 
+        // bad input: storage backend should not be explicitly set
+        let error = flag_declarations::try_from_text_proto(
+            r#"
+package: "com.foo.bar"
+container: "system"
+flag {
+    name: "first"
+    namespace: "first_ns"
+    description: "This is the description of the first flag."
+    bug: "123"
+    is_fixed_read_only: true
+    metadata {
+        storage: ACONFIGD
+    }
+}
+"#,
+        )
+        .unwrap_err();
+        assert!(format!("{:?}", error).contains(
+            "bad flag declaration: storage in metadata should not be explicitly selected"
+        ));
+
         // TODO(b/312769710): Verify error when container is missing.
     }
 
@@ -716,6 +773,9 @@ parsed_flag {
         permission: READ_ONLY
     }
     container: "system"
+    metadata {
+        storage: NONE
+    }
 }
 parsed_flag {
     package: "com.second"
@@ -737,6 +797,9 @@ parsed_flag {
     }
     is_fixed_read_only: true
     container: "system"
+    metadata {
+        storage: NONE
+    }
 }
 "#;
         let parsed_flags = try_from_binary_proto_from_text_proto(text_proto).unwrap();
@@ -812,6 +875,9 @@ parsed_flag {
         permission: READ_ONLY
     }
     container: "system"
+    metadata {
+        storage: NONE
+    }
 }
 parsed_flag {
     package: "aaa.aaa"
@@ -827,6 +893,9 @@ parsed_flag {
         permission: READ_ONLY
     }
     container: "system"
+    metadata {
+        storage: ACONFIGD
+    }
 }
 "#;
         let error = try_from_binary_proto_from_text_proto(text_proto).unwrap_err();
@@ -851,6 +920,9 @@ parsed_flag {
         permission: READ_ONLY
     }
     container: "system"
+    metadata {
+        storage: NONE
+    }
 }
 parsed_flag {
     package: "com.foo"
@@ -866,6 +938,9 @@ parsed_flag {
         permission: READ_ONLY
     }
     container: "system"
+    metadata {
+        storage: ACONFIGD
+    }
 }
 "#;
         let error = try_from_binary_proto_from_text_proto(text_proto).unwrap_err();
@@ -890,6 +965,9 @@ parsed_flag {
         permission: READ_ONLY
     }
     container: "system"
+    metadata {
+        storage: NONE
+    }
 }
 parsed_flag {
     package: "com.foo"
@@ -905,10 +983,67 @@ parsed_flag {
         permission: READ_ONLY
     }
     container: "system"
+    metadata {
+        storage: ACONFIGD
+    }
 }
 "#;
         let error = try_from_binary_proto_from_text_proto(text_proto).unwrap_err();
         assert_eq!(format!("{:?}", error), "bad parsed flags: duplicate flag com.foo.bar (defined in flags.declarations and flags.declarations)");
+
+        // bad input: wrong storage backend: not NONE
+        let text_proto = r#"
+parsed_flag {
+    package: "com.foo"
+    name: "bar"
+    namespace: "first_ns"
+    description: "This is the description of the first flag."
+    bug: ""
+    state: DISABLED
+    permission: READ_ONLY
+    trace {
+        source: "flags.declarations"
+        state: DISABLED
+        permission: READ_ONLY
+    }
+    container: "system"
+    metadata {
+        storage: ACONFIGD
+    }
+}
+"#;
+        let error = try_from_binary_proto_from_text_proto(text_proto).unwrap_err();
+        assert_eq!(
+            format!("{:?}", error),
+            "bad parsed flag: storage backend is not NONE for a read only flag"
+        );
+
+        // bad input: wrong storage backend UNSPECIFIED
+        let text_proto = r#"
+parsed_flag {
+    package: "com.foo"
+    name: "bar"
+    namespace: "second_ns"
+    description: "This is the description of the second flag."
+    bug: ""
+    state: ENABLED
+    permission: READ_WRITE
+    trace {
+        source: "flags.declarations"
+        state: DISABLED
+        permission: READ_ONLY
+    }
+    container: "system"
+    metadata {
+        storage: UNSPECIFIED
+    }
+}
+"#;
+        let error = try_from_binary_proto_from_text_proto(text_proto).unwrap_err();
+        assert_eq!(
+            format!("{:?}", error),
+            "bad parsed flag: storage backend cannot be UNSPECIFIED"
+        );
     }
 
     #[test]
@@ -933,6 +1068,9 @@ parsed_flag {
         permission: READ_ONLY
     }
     container: "system"
+    metadata {
+        storage: NONE
+    }
 }
 "#;
         let parsed_flags = try_from_binary_proto_from_text_proto(text_proto).unwrap();
@@ -957,6 +1095,9 @@ parsed_flag {
         permission: READ_ONLY
     }
     container: "system"
+    metadata {
+        storage: NONE
+    }
 }
 parsed_flag {
     package: "com.second"
@@ -972,6 +1113,9 @@ parsed_flag {
         permission: READ_ONLY
     }
     container: "system"
+    metadata {
+        storage: ACONFIGD
+    }
 }
 "#;
         let expected = try_from_binary_proto_from_text_proto(text_proto).unwrap();
@@ -991,6 +1135,9 @@ parsed_flag {
         permission: READ_ONLY
     }
     container: "system"
+    metadata {
+        storage: NONE
+    }
 }
 "#;
         let first = try_from_binary_proto_from_text_proto(text_proto).unwrap();
@@ -1010,6 +1157,9 @@ parsed_flag {
         permission: READ_ONLY
     }
     container: "system"
+    metadata {
+        storage: ACONFIGD
+    }
 }
 "#;
         let second = try_from_binary_proto_from_text_proto(text_proto).unwrap();
@@ -1027,6 +1177,9 @@ parsed_flag {
         source: "duplicate/flags.declarations"
         state: DISABLED
         permission: READ_ONLY
+    }
+    metadata {
+        storage: ACONFIGD
     }
 }
 "#;

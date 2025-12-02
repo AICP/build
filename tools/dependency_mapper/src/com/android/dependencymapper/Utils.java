@@ -40,6 +40,11 @@ public class Utils {
         return fileBasedPath.replaceAll("\\..*", "").replaceAll("/", ".");
     }
 
+    public static String convertClassToFileBasedPath(String packageBasedClass) {
+        // Remove ".class" from the fileBasedPath, then replace "/" with "."
+        return packageBasedClass.replaceAll("\\.", "/") + ".class";
+    }
+
     public static String buildPackagePrependedClassSource(String qualifiedClassPath,
             String classSource) {
         // Find the location of the start of classname in the qualifiedClassPath
@@ -52,8 +57,10 @@ public class Utils {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         Map<String, Set<String>> jsonMap = new HashMap<>();
         for (DependencyProto.FileDependency fileDependency : contents.getFileDependencyList()) {
-            jsonMap.putIfAbsent(fileDependency.getFilePath(),
-                    Set.copyOf(fileDependency.getFileDependenciesList()));
+            jsonMap.putIfAbsent(fileDependency.getFilePath(), new HashSet<>(Set.copyOf(fileDependency.getFileDependenciesList())));
+            if (fileDependency.getIsDependencyToAll()) {
+                jsonMap.get(fileDependency.getFilePath()).add("isDepToAll");
+            }
         }
         String json = gson.toJson(jsonMap);
         try (FileWriter file = new FileWriter(jsonOut.toFile())) {
@@ -67,7 +74,7 @@ public class Utils {
     public static void writeContentsToProto(DependencyProto.FileDependencyList usages, Path protoOut) {
         try {
             OutputStream outputStream = Files.newOutputStream(protoOut);
-            usages.writeDelimitedTo(outputStream);
+            usages.writeTo(outputStream);
         } catch (IOException e) {
             System.err.println("Error writing proto output to: " + protoOut);
             throw new RuntimeException(e);

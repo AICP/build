@@ -3,11 +3,9 @@
 ## Soong genrules are now sandboxed
 
 Previously, soong genrules could access any files in the source tree, without specifying them as
-inputs. This makes them incorrect in incremental builds, and incompatible with RBE and Bazel.
+inputs. This makes them incorrect in incremental builds, and incompatible with RBE.
 
-Now, genrules are sandboxed so they can only access their listed srcs. Modules denylisted in
-genrule/allowlists.go are exempt from this. You can also set `BUILD_BROKEN_GENRULE_SANDBOXING`
-in board config to disable this behavior.
+Now, genrules are sandboxed so they can only access their listed srcs.
 
 ## Partitions are no longer affected by previous builds
 

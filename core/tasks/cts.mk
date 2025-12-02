@@ -101,6 +101,20 @@ $(verifier-zip): $(SOONG_ANDROID_CTS_VERIFIER_ZIP) $(cts-v-host-zip) $(SOONG_ZIP
 endif
 $(call dist-for-goals, cts, $(verifier-zip))
 
+cts_files_metadata := $(HOST_OUT)/cts/cts_files_metadata.textproto
+file_metadata_generation_tool := $(HOST_OUT_EXECUTABLES)/file_metadata_generation$(HOST_EXECUTABLE_SUFFIX)
+aapt2_tool := $(HOST_OUT_EXECUTABLES)/aapt2$(HOST_EXECUTABLE_SUFFIX)
+$(cts_files_metadata): PRIVATE_TESTCASES_DIR := $(HOST_OUT)/cts/android-cts/testcases
+$(cts_files_metadata): PRIVATE_AAPT2_TOOL := $(aapt2_tool)
+$(cts_files_metadata): PRIVATE_METADATA_TOOL := $(file_metadata_generation_tool)
+$(cts_files_metadata): PRIVATE_SDK_VERSION := $(PLATFORM_SDK_VERSION)
+$(cts_files_metadata): $(file_metadata_generation_tool) $(aapt2_tool) $(compatibility_zip)
+	$(PRIVATE_METADATA_TOOL) --testcases_dir $(PRIVATE_TESTCASES_DIR)\
+	--aapt2 $(PRIVATE_AAPT2_TOOL) --sdk_version $(PRIVATE_SDK_VERSION) --output $@
+
+ALL_TARGETS.$(cts_files_metadata).META_LIC:=$(module_license_metadata)
+$(call dist-for-goals, cts-api-coverage, $(cts_files_metadata))
+
 # For producing CTS coverage reports.
 # Run "make cts-test-coverage" in the $ANDROID_BUILD_TOP directory.
 
@@ -296,12 +310,6 @@ cts-combined-api-map-xml : $(cts-combined-api-map-xml-report)
 .PHONY: cts-combined-api-inherit-xml
 cts-combined-api-inherit-xml : $(cts-combined-api-inherit-xml-report)
 
-.PHONY: cts-api-map-all
-
-# Put the test coverage report in the dist dir if "cts-api-coverage" is among the build goals.
-$(call dist-for-goals, cts-api-coverage, $(cts-system-api-xml-coverage-report):cts-system-api-coverage-report.xml)
-$(call dist-for-goals, cts-api-coverage, $(cts-combined-xml-coverage-report):cts-combined-coverage-report.xml)
-
 ALL_TARGETS.$(cts-test-coverage-report).META_LIC:=$(module_license_metadata)
 ALL_TARGETS.$(cts-system-api-coverage-report).META_LIC:=$(module_license_metadata)
 ALL_TARGETS.$(cts-system-api-xml-coverage-report).META_LIC:=$(module_license_metadata)
@@ -309,9 +317,9 @@ ALL_TARGETS.$(cts-verifier-coverage-report).META_LIC:=$(module_license_metadata)
 ALL_TARGETS.$(cts-combined-coverage-report).META_LIC:=$(module_license_metadata)
 ALL_TARGETS.$(cts-combined-xml-coverage-report).META_LIC:=$(module_license_metadata)
 
-# Put the test api map report in the dist dir if "cts-api-map-all" is among the build goals.
-$(call dist-for-goals, cts-api-map-all, $(cts-combined-api-map-xml-report):cts-api-map-report.xml)
-$(call dist-for-goals, cts-api-map-all, $(cts-combined-api-inherit-xml-report):cts-api-inherit-report.xml)
+# Put the test api map report in the dist dir if "cts-api-coverage" is among the build goals.
+$(call dist-for-goals, cts-api-coverage, $(cts-combined-api-map-xml-report):cts-api-map-report.xml)
+$(call dist-for-goals, cts-api-coverage, $(cts-combined-api-inherit-xml-report):cts-api-inherit-report.xml)
 
 ALL_TARGETS.$(cts-api-map-xml-report).META_LIC:=$(module_license_metadata)
 ALL_TARGETS.$(cts-v-host-api-map-xml-report).META_LIC:=$(module_license_metadata)
@@ -387,3 +395,6 @@ verifier-dir :=
 verifier-zip-name :=
 verifier-zip :=
 cts-v-host-zip :=
+cts_files_metadata :=
+file_metadata_generation_tool :=
+aapt2_tool :=

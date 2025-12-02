@@ -37,7 +37,7 @@ my_general_tests_shared_lib_files := \
   $(filter-out $(COMPATIBILITY.device-tests.HOST_SHARED_LIBRARY.FILES),\
 	 $(COMPATIBILITY.general-tests.HOST_SHARED_LIBRARY.FILES))
 
-my_host_shared_lib_for_general_tests += $(call copy-many-files,$(my_general_tests_shared_lib_files))
+my_host_shared_lib_for_general_tests += $(foreach p,$(my_general_tests_shared_lib_files),$(call word-colon,2,$(p)))
 
 my_host_shared_lib_symlinks := \
     $(filter $(COMPATIBILITY.host-unit-tests.SYMLINKS),\

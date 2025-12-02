@@ -61,7 +61,6 @@ function _export_metrics_uploader() {
 # This function sets RBE specific environment variables needed for the build to
 # executed by RBE. This file should be sourced once per checkout of Android code.
 function _set_rbe_vars() {
-  unset USE_GOMA
   export USE_RBE="true"
   export RBE_CXX_EXEC_STRATEGY="racing"
   export RBE_JAVAC_EXEC_STRATEGY="racing"

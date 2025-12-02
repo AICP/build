@@ -198,26 +198,32 @@ class GeneralTestsOptimizerTest(fake_filesystem_unittest.TestCase):
     self._verify_soong_zip_commands(package_commands, ['module_1'])
 
   @mock.patch('subprocess.run')
-  def test_get_soong_dumpvars_fails_raises(self, subprocess_run):
+  def test_get_soong_dumpvars_fails_fallback(self, subprocess_run):
     subprocess_run.return_value = self._get_soong_vars_output(return_code=-1)
     optimizer = self._create_general_tests_optimizer()
     self._set_up_build_outputs(['test_mapping_module'])
 
-    with self.assertRaisesRegex(RuntimeError, 'Soong dumpvars failed!'):
-      targets = optimizer.get_build_targets()
+    targets = optimizer.get_build_targets()
+
+    expected_build_targets = set()
+    expected_build_targets.add('general-tests')
+    # When a failure happens, we return the target itself
+    self.assertSetEqual(targets, expected_build_targets)
 
   @mock.patch('subprocess.run')
-  def test_get_soong_dumpvars_bad_output_raises(self, subprocess_run):
+  def test_get_soong_dumpvars_bad_output_fallback(self, subprocess_run):
     subprocess_run.return_value = self._get_soong_vars_output(
         stdout='This output is bad'
     )
     optimizer = self._create_general_tests_optimizer()
     self._set_up_build_outputs(['test_mapping_module'])
 
-    with self.assertRaisesRegex(
-        RuntimeError, 'Error parsing soong dumpvars output'
-    ):
-      targets = optimizer.get_build_targets()
+    targets = optimizer.get_build_targets()
+
+    expected_build_targets = set()
+    expected_build_targets.add('general-tests')
+    # When a failure happens, we return the target itself
+    self.assertSetEqual(targets, expected_build_targets)
 
   def _create_general_tests_optimizer(self, build_context: BuildContext = None):
     if not build_context:

@@ -56,11 +56,13 @@ class MergeCompatibilityChecksTest(test_utils.ReleaseToolsTestCase):
           <kernel-sepolicy-version>30</kernel-sepolicy-version>
         </sepolicy>
       </compatibility-matrix>""")
-    write_temp_file('vendor/etc/selinux/plat_sepolicy_vers.txt', '30.0')
+    write_temp_file('vendor/etc/selinux/plat_sepolicy_vers.txt', '202504')
+    write_temp_file('vendor/etc/selinux/genfs_labels_version.txt', '202504')
 
     write_temp_file('system/etc/selinux/plat_sepolicy.cil')
-    write_temp_file('system/etc/selinux/mapping/30.0.cil')
-    write_temp_file('product/etc/selinux/mapping/30.0.cil')
+    write_temp_file('system/etc/selinux/mapping/202504.cil')
+    write_temp_file('system/etc/selinux/plat_sepolicy_genfs_202504.cil')
+    write_temp_file('product/etc/selinux/mapping/202504.cil')
     write_temp_file('vendor/etc/selinux/vendor_sepolicy.cil')
     write_temp_file('vendor/etc/selinux/plat_pub_versioned.cil')
 
@@ -70,10 +72,11 @@ class MergeCompatibilityChecksTest(test_utils.ReleaseToolsTestCase):
                      ('secilc -m -M true -G -N -c 30 '
                       '-o {OTP}/META/combined_sepolicy -f /dev/null '
                       '{OTP}/system/etc/selinux/plat_sepolicy.cil '
-                      '{OTP}/system/etc/selinux/mapping/30.0.cil '
+                      '{OTP}/system/etc/selinux/mapping/202504.cil '
                       '{OTP}/vendor/etc/selinux/vendor_sepolicy.cil '
                       '{OTP}/vendor/etc/selinux/plat_pub_versioned.cil '
-                      '{OTP}/product/etc/selinux/mapping/30.0.cil').format(
+                      '{OTP}/product/etc/selinux/mapping/202504.cil',
+                      '{OTP}/system/etc/selinux/plat_sepolicy_genfs_202504.cil').format(
                           OTP=product_out_dir))
 
   def _copy_apex(self, source, output_dir, partition):

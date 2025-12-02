@@ -127,15 +127,17 @@ public class DependencyMapper {
         combinedClassDependencies.forEach((className, dependencies) -> {
             String sourceFile = mClassToSourceMap.get(className);
             if (sourceFile == null) {
-                throw new IllegalArgumentException("Class '" + className
+                System.err.println("Class '" + className
                         + "' does not have a corresponding source file.");
+                return;
             }
             mFileDependencies.computeIfAbsent(sourceFile, k -> new HashSet<>());
             dependencies.forEach(dependency -> {
                 String dependencySource = mClassToSourceMap.get(dependency);
                 if (dependencySource == null) {
-                    throw new IllegalArgumentException("Dependency '" + dependency
+                    System.err.println("Dependency '" + dependency
                             + "' does not have a corresponding source file.");
+                    return;
                 }
                 mFileDependencies.get(sourceFile).add(dependencySource);
             });
@@ -145,7 +147,7 @@ public class DependencyMapper {
     private void buildSourceToClassMap() {
         mClassToSourceMap.forEach((className, sourceFile) ->
                 mSourceToClasses.computeIfAbsent(sourceFile, k ->
-                        new HashSet<>()).add(className));
+                        new HashSet<>()).add(Utils.convertClassToFileBasedPath(className)));
     }
 
     private DependencyProto.FileDependencyList createFileDependencies() {

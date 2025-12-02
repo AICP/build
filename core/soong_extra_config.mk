@@ -14,7 +14,6 @@ $(call add_json_str, SecondaryDex2oatInstructionSetFeatures, $($(TARGET_2ND_ARCH
 $(call add_json_str, BoardPlatform,          $(TARGET_BOARD_PLATFORM))
 $(call add_json_str, BoardShippingApiLevel,  $(BOARD_SHIPPING_API_LEVEL))
 $(call add_json_str, ShippingApiLevel,       $(PRODUCT_SHIPPING_API_LEVEL))
-$(call add_json_str, ShippingVendorApiLevel, $(PRODUCT_SHIPPING_VENDOR_API_LEVEL))
 
 $(call add_json_str, ProductModel,                      $(PRODUCT_MODEL))
 $(call add_json_str, ProductModelForAttestation,        $(PRODUCT_MODEL_FOR_ATTESTATION))
@@ -67,10 +66,6 @@ endif
 
 ifdef PRODUCT_USE_DYNAMIC_PARTITIONS
 $(call add_json_bool, UseDynamicPartitions, $(filter true,$(PRODUCT_USE_DYNAMIC_PARTITIONS)))
-endif
-
-ifdef PRODUCT_RETROFIT_DYNAMIC_PARTITIONS
-$(call add_json_bool, RetrofitDynamicPartitions, $(filter true,$(PRODUCT_RETROFIT_DYNAMIC_PARTITIONS)))
 endif
 
 $(call add_json_bool, DontUseVabcOta, $(filter true,$(BOARD_DONT_USE_VABC_OTA)))

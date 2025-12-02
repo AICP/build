@@ -67,6 +67,7 @@ _board_strip_readonly_list += TARGET_ARCH_SUITE
 _board_strip_readonly_list += BOARD_FLASH_BLOCK_SIZE
 _board_strip_readonly_list += BOARD_BOOTIMAGE_PARTITION_SIZE
 _board_strip_readonly_list += BOARD_INIT_BOOT_IMAGE_PARTITION_SIZE
+_board_strip_readonly_list += BOARD_INIT_BOOT_IMAGE_PAGESIZE
 _board_strip_readonly_list += BOARD_RECOVERYIMAGE_PARTITION_SIZE
 _board_strip_readonly_list += BOARD_SYSTEMIMAGE_PARTITION_SIZE
 _board_strip_readonly_list += BOARD_SYSTEMIMAGE_FILE_SYSTEM_TYPE
@@ -186,7 +187,6 @@ _build_broken_var_list := \
   BUILD_BROKEN_VENDOR_PROPERTY_NAMESPACE \
   BUILD_BROKEN_VINTF_PRODUCT_COPY_FILES \
   BUILD_BROKEN_INCORRECT_PARTITION_IMAGES \
-  BUILD_BROKEN_GENRULE_SANDBOXING \
   BUILD_BROKEN_DONT_CHECK_SYSTEMSDK \
 
 _build_broken_var_list += \
@@ -221,14 +221,14 @@ ifdef TARGET_DEVICE_DIR
   board_config_mk := $(TARGET_DEVICE_DIR)/BoardConfig.mk
 else
   board_config_mk := \
-    $(strip $(sort $(wildcard \
+    $(sort $(wildcard \
       $(SRC_TARGET_DIR)/board/$(TARGET_DEVICE)/BoardConfig.mk \
       device/generic/goldfish/board/$(TARGET_DEVICE)/BoardConfig.mk \
       device/google/cuttlefish/board/$(TARGET_DEVICE)/BoardConfig.mk \
       vendor/google/products/cuttlefish/pixel_watch/board/$(TARGET_DEVICE)/BoardConfig.mk \
       $(shell test -d device && find -L device -maxdepth 4 -path '*/$(TARGET_DEVICE)/BoardConfig.mk') \
       $(shell test -d vendor && find -L vendor -maxdepth 4 -path '*/$(TARGET_DEVICE)/BoardConfig.mk') \
-    )))
+    ))
   ifeq ($(board_config_mk),)
     $(error No config file found for TARGET_DEVICE $(TARGET_DEVICE))
   endif
@@ -295,7 +295,6 @@ include $(BUILD_SYSTEM)/board_config_wifi.mk
 
 # Set up soong config for "soong_config_value_variable".
 -include hardware/interfaces/configstore/1.1/default/surfaceflinger.mk
--include vendor/google/build/soong/soong_config_namespace/camera.mk
 
 # Default *_CPU_VARIANT_RUNTIME to CPU_VARIANT if unspecified.
 TARGET_CPU_VARIANT_RUNTIME := $(or $(TARGET_CPU_VARIANT_RUNTIME),$(TARGET_CPU_VARIANT))
@@ -933,6 +932,12 @@ ifeq ($(PRODUCT_BUILD_DESKTOP_RECOVERY_IMAGE),true)
   BOARD_USES_DESKTOP_RECOVERY_IMAGE := true
 endif
 .KATI_READONLY := BOARD_USES_DESKTOP_RECOVERY_IMAGE
+
+BOARD_USES_DESKTOP_RECOVERY_SWAP_KERNEL :=
+ifeq ($(PRODUCT_USES_DESKTOP_RECOVERY_SWAP_KERNEL),true)
+  BOARD_USES_DESKTOP_RECOVERY_SWAP_KERNEL := true
+endif
+.KATI_READONLY := BOARD_USES_DESKTOP_RECOVERY_SWAP_KERNEL
 
 BOARD_USES_DESKTOP_UPDATE_IMAGE :=
 ifeq ($(PRODUCT_BUILD_DESKTOP_UPDATE_IMAGE),true)

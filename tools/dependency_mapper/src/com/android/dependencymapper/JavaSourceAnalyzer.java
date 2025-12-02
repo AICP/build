@@ -19,7 +19,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -33,19 +32,29 @@ public class JavaSourceAnalyzer {
 
     // Regex that matches against "package abc.xyz.lmn;" declarations in a java file.
     private static final String PACKAGE_REGEX = "^package\\s+([a-zA-Z_][a-zA-Z0-9_.]*);";
+    // Match either a single-quoted string, OR a sequence of non-whitespace characters.
+    private static final String FILE_PATH_REGEX = "'([^']*)'|(\\S+)";
 
     public static List<JavaSourceData> analyze(Path srcRspFile) {
         List<JavaSourceData> javaSourceDataList = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(srcRspFile.toFile()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // Split the line by spaces, tabs, multiple java files can be on a single line.
-                String[] files = line.trim().split("\\s+");
+                List<String> files = new ArrayList<>();
+                Pattern pattern = Pattern.compile(FILE_PATH_REGEX);
+                Matcher matcher = pattern.matcher(line);
+                while (matcher.find()) {
+                    if (matcher.group(1) != null) {
+                        // Group 1: Single-quoted string (without the quotes)
+                        files.add(matcher.group(1));
+                    } else {
+                        // Group 2: Non-whitespace sequence
+                        files.add(matcher.group(2));
+                    }
+                }
                 for (String file : files) {
-                    Path p = Paths.get("", file);
-                    System.out.println(p.toAbsolutePath().toString());
-                    javaSourceDataList
-                            .add(new JavaSourceData(file, constructPackagePrependedFileName(file)));
+                    javaSourceDataList.add(new JavaSourceData(file,
+                            constructPackagePrependedFileName(file)));
                 }
             }
         } catch (IOException e) {
