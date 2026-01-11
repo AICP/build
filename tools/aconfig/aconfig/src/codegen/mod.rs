@@ -28,7 +28,7 @@ use std::collections::HashMap;
 pub fn create_device_config_ident(package: &str, flag_name: &str) -> Result<String> {
     ensure!(is_valid_package_ident(package), "bad package");
     ensure!(is_valid_name_ident(flag_name), "bad flag name");
-    Ok(format!("{}.{}", package, flag_name))
+    Ok(format!("{package}.{flag_name}"))
 }
 
 pub(crate) fn get_flag_offset_in_storage_file(
@@ -98,7 +98,7 @@ mod tests {
         pf.set_permission(ProtoFlagPermission::READ_ONLY);
         let error = get_flag_offset_in_storage_file(&flag_ids, pf).unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "flag com.android.aconfig.test.disabled_rw should not have an assigned flag id in new storage file"
         );
 
@@ -108,7 +108,7 @@ mod tests {
         pf.set_permission(ProtoFlagPermission::READ_WRITE);
         let error = get_flag_offset_in_storage_file(&flag_ids, pf).unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "flag com.android.aconfig.test.enabled_rw should have an assigned flag id in new storage file"
         );
     }

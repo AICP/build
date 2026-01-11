@@ -222,10 +222,11 @@ endif
 # LOCAL_SOONG_PROVIDER_TEST_SUITES (new, via TestSuiteInfoProvider instead of AndroidMk stuff),
 # modulo "null-sute", "mts", and "mcts". mts/mcts are automatically added if there's a different
 # suite starting with "m(c)ts-". null-suite seems useless and is sometimes automatically added
-# if no other suites are added.
+# if no other suites are added. host-unit-tests is added automatically  when the test is unit
+# test and host test.
 ifneq (,$(LOCAL_IS_SOONG_MODULE))
-  a := $(filter-out null-suite mts mcts,$(sort $(LOCAL_COMPATIBILITY_SUITE)))
-  b := $(filter-out null-suite mts mcts,$(sort $(LOCAL_SOONG_PROVIDER_TEST_SUITES)))
+  a := $(filter-out null-suite mts mcts host-unit-tests,$(sort $(LOCAL_COMPATIBILITY_SUITE)))
+  b := $(filter-out null-suite mts mcts host-unit-tests,$(sort $(LOCAL_SOONG_PROVIDER_TEST_SUITES)))
   ifneq ($(a),$(b))
     $(error $(LOCAL_MODULE): LOCAL_COMPATIBILITY_SUITE did not match LOCAL_SOONG_PROVIDER_TEST_SUITES$(newline)  LOCAL_COMPATIBILITY_SUITE: $(a)$(newline)  LOCAL_SOONG_PROVIDER_TEST_SUITES: $(b)$(newline))
   endif

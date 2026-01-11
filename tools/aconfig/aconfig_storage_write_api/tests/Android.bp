@@ -12,8 +12,7 @@ rust_test {
         "libtempfile",
     ],
     data: [
-        "flag.val",
-        "flag.info",
+        ":test_storage_files",
     ],
     test_suites: ["general-tests"],
 }

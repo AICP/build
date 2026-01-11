@@ -14,3 +14,6 @@ tempfile = "3.9.0"
 thiserror = "1.0.56"
 aconfig_storage_file = { path = "../aconfig_storage_file" }
 aconfig_storage_read_api = { path = "../aconfig_storage_read_api" }
+
+[dev-dependencies]
+aconfig_storage_file = { path = "../aconfig_storage_file", features = ["test_utils"] }

@@ -1,4 +1,4 @@
-DEX_PREOPT_CONFIG := $(SOONG_OUT_DIR)/dexpreopt${COVERAGE_SUFFIX}.config
+DEX_PREOPT_CONFIG := $(SOONG_OUT_DIR)/dexpreopt-${TARGET_PRODUCT}${COVERAGE_SUFFIX}.config
 
 ENABLE_PREOPT := true
 ENABLE_PREOPT_BOOT_IMAGES := true
@@ -124,6 +124,7 @@ ifeq ($(WRITE_SOONG_VARIABLES),true)
   $(call add_json_str,  EmptyDirectory,                          $(OUT_DIR)/empty)
   $(call add_json_str,  EnableUffdGc,                            $(ENABLE_UFFD_GC))
   $(call add_json_str,  PlatformSdkVersion,                      $(PLATFORM_SDK_VERSION))
+  $(call add_json_bool, AllowProfileCode,                        $(ALLOW_PROFILE_CODE))
 
 ifdef TARGET_ARCH
   $(call add_json_map,  CpuVariant)

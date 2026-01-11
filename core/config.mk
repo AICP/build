@@ -755,9 +755,6 @@ PROFMAN := $(HOST_OUT_EXECUTABLES)/profman
 
 GEN_SBOM := $(HOST_OUT_EXECUTABLES)/generate-sbom
 
-FINDBUGS_DIR := external/owasp/sanitizer/tools/findbugs/bin
-FINDBUGS := $(FINDBUGS_DIR)/findbugs
-
 JETIFIER := prebuilts/sdk/tools/jetifier/jetifier-standalone/bin/jetifier-standalone
 
 EXTRACT_KERNEL := build/make/tools/extract_kernel.py
@@ -787,7 +784,7 @@ PRODUCT_ENFORCE_VINTF_MANIFEST := true
     PRODUCT_TREBLE_LINKER_NAMESPACES \
     PRODUCT_ENFORCE_VINTF_MANIFEST \
 
-# TODO(b/114488870): remove all sets of these everwhere, and disallow them to be used
+# TODO(b/114488870): remove all sets of these everywhere, and disallow them to be used
 $(KATI_obsolete_var PRODUCT_TREBLE_LINKER_NAMESPACES_OVERRIDE,Deprecated.)
 $(KATI_obsolete_var PRODUCT_ENFORCE_VINTF_MANIFEST_OVERRIDE,Deprecated.)
 $(KATI_obsolete_var PRODUCT_FULL_TREBLE_OVERRIDE,Deprecated.)
@@ -862,6 +859,15 @@ else
   MAINLINE_SEPOLICY_DEV_CERTIFICATES := $(dir $(DEFAULT_SYSTEM_DEV_CERTIFICATE))
 endif
 .KATI_READONLY := MAINLINE_SEPOLICY_DEV_CERTIFICATES
+
+ifdef PRODUCT_MAINLINE_BLUETOOTH_SEPOLICY_DEV_CERTIFICATES
+  MAINLINE_BLUETOOTH_SEPOLICY_DEV_CERTIFICATES  := $(PRODUCT_MAINLINE_BLUETOOTH_SEPOLICY_DEV_CERTIFICATES)
+else ifneq (,$(filter com.google.android.bt,$(PRODUCT_PACKAGES)))
+  MAINLINE_BLUETOOTH_SEPOLICY_DEV_CERTIFICATES  := $(MAINLINE_SEPOLICY_DEV_CERTIFICATES)
+else
+  MAINLINE_BLUETOOTH_SEPOLICY_DEV_CERTIFICATES  := $(dir build/make/target/product/security/testkey)
+endif
+.KATI_READONLY := MAINLINE_BLUETOOTH_SEPOLICY_DEV_CERTIFICATES
 
 BUILD_NUMBER_FROM_FILE := $$(cat $(SOONG_OUT_DIR)/build_number.txt)
 BUILD_HOSTNAME_FROM_FILE := $$(cat $(SOONG_OUT_DIR)/build_hostname.txt)
@@ -1084,6 +1090,22 @@ $(foreach device,$(call to-upper,$(BOARD_SUPER_PARTITION_BLOCK_DEVICES)), \
     $(eval .KATI_READONLY := BOARD_SUPER_PARTITION_$(device)_DEVICE_SIZE))
 
 endif # PRODUCT_USE_DYNAMIC_PARTITIONS
+
+ifneq ($(BOARD_KERNEL_MODULES_16K),)
+# BOARD_KERNEL_MODULES_16K might contain duplicate modules under different path.
+# for example, foo/bar/wifi.ko and foo/wifi.ko . To avoid build issues, de-dup
+# module list on basename first.
+BOARD_KERNEL_MODULES_16K := $(foreach \
+  pattern,\
+  $(sort $(foreach \
+    path,\
+    $(BOARD_KERNEL_MODULES_16K),\
+    %/$(notdir $(path)))\
+  ),\
+  $(firstword $(filter $(pattern),$(BOARD_KERNEL_MODULES_16K))) \
+)
+endif # BOARD_KERNEL_MODULES_16K
+
 
 # By default, we build the hidden API csv files from source. You can use
 # prebuilt hiddenapi files by setting BOARD_PREBUILT_HIDDENAPI_DIR to the name
@@ -1358,7 +1380,8 @@ ifeq (,$(strip $(BUILD_FINGERPRINT)))
   BUILD_FINGERPRINT := $(PRODUCT_BRAND)/$(TARGET_PRODUCT)/$(TARGET_DEVICE):$(PLATFORM_VERSION)/$(BUILD_ID)/$(BUILD_NUMBER_FROM_FILE):$(TARGET_BUILD_VARIANT)/$(BUILD_VERSION_TAGS)
 endif
 
-BUILD_FINGERPRINT_FILE := $(PRODUCT_OUT)/build_fingerprint.txt
+# In order to allow product-config to be run in parallel for multiple lunch targets, the build_fingerprint file is product-specific.
+BUILD_FINGERPRINT_FILE := $(PRODUCT_OUT)/build_fingerprint-$(TARGET_PRODUCT).txt
 ifneq (,$(shell mkdir -p $(PRODUCT_OUT) && echo $(BUILD_FINGERPRINT) >$(BUILD_FINGERPRINT_FILE).tmp && (if ! cmp -s $(BUILD_FINGERPRINT_FILE).tmp $(BUILD_FINGERPRINT_FILE); then mv $(BUILD_FINGERPRINT_FILE).tmp $(BUILD_FINGERPRINT_FILE); else rm $(BUILD_FINGERPRINT_FILE).tmp; fi) && grep " " $(BUILD_FINGERPRINT_FILE)))
   $(error BUILD_FINGERPRINT cannot contain spaces: "$(file <$(BUILD_FINGERPRINT_FILE))")
 endif
@@ -1372,7 +1395,8 @@ ifeq (,$(strip $(BUILD_THUMBPRINT)))
   BUILD_THUMBPRINT := $(PLATFORM_VERSION)/$(BUILD_ID)/$(BUILD_NUMBER_FROM_FILE):$(TARGET_BUILD_VARIANT)/$(BUILD_VERSION_TAGS)
 endif
 
-BUILD_THUMBPRINT_FILE := $(PRODUCT_OUT)/build_thumbprint.txt
+# In order to allow product-config to be run in parallel for multiple lunch targets, the build_thumbprint file is product-specific.
+BUILD_THUMBPRINT_FILE := $(PRODUCT_OUT)/build_thumbprint-$(TARGET_PRODUCT).txt
 ifeq ($(strip $(HAS_BUILD_NUMBER)),true)
 $(BUILD_THUMBPRINT_FILE): $(BUILD_NUMBER_FILE)
 endif

@@ -80,9 +80,9 @@ fn write_output_to_file_or_stdout(path: &str, data: &[u8]) -> Result<()> {
         io::stdout().write_all(data).context("failed to write to stdout")?;
     } else {
         fs::File::create(path)
-            .with_context(|| format!("failed to open {}", path))?
+            .with_context(|| format!("failed to open {path}"))?
             .write_all(data)
-            .with_context(|| format!("failed to write to {}", path))?;
+            .with_context(|| format!("failed to write to {path}"))?;
     }
     Ok(())
 }

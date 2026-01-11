@@ -45,10 +45,6 @@ ifdef LOCAL_SOONG_CLASSES_JAR
       $(eval $(call copy-one-file,$(full_classes_jar),$(full_classes_header_jar)))
     endif
   endif # TURBINE_ENABLED != false
-
-  javac-check : $(full_classes_jar)
-  javac-check-$(LOCAL_MODULE) : $(full_classes_jar)
-  .PHONY: javac-check-$(LOCAL_MODULE)
 endif
 
 ifdef LOCAL_SOONG_DEXPREOPT_CONFIG
@@ -57,32 +53,7 @@ ifdef LOCAL_SOONG_DEXPREOPT_CONFIG
   $(LOCAL_BUILT_MODULE): $(my_dexpreopt_config)
 endif
 
-
-
-# Run veridex on product, system_ext and vendor modules.
-# We skip it for unbundled app builds where we cannot build veridex.
-module_run_appcompat :=
-ifeq (true,$(non_system_module))
-ifeq (,$(TARGET_BUILD_APPS))  # not unbundled app build
-ifeq (,$(filter sdk,$(MAKECMDGOALS))) # not sdk build (which is another form of unbundled build)
-ifneq ($(UNSAFE_DISABLE_HIDDENAPI_FLAGS),true)
-  module_run_appcompat := true
-endif
-endif
-endif
-endif
-
-ifeq ($(module_run_appcompat),true)
-  $(LOCAL_BUILT_MODULE): $(appcompat-files)
-  $(LOCAL_BUILT_MODULE): PRIVATE_INSTALLED_MODULE := $(LOCAL_INSTALLED_MODULE)
-  $(LOCAL_BUILT_MODULE): $(LOCAL_PREBUILT_MODULE_FILE)
-	@echo "Copy: $@"
-	$(copy-file-to-target)
-	$(appcompat-header)
-	$(run-appcompat)
-else
-  $(eval $(call copy-one-file,$(LOCAL_PREBUILT_MODULE_FILE),$(LOCAL_BUILT_MODULE)))
-endif
+$(eval $(call copy-one-file,$(LOCAL_PREBUILT_MODULE_FILE),$(LOCAL_BUILT_MODULE)))
 
 ifdef LOCAL_SOONG_JACOCO_REPORT_CLASSES_JAR
   ALL_MODULES.$(my_register_name).JACOCO_REPORT_FILES := $(LOCAL_SOONG_JACOCO_REPORT_CLASSES_JAR)

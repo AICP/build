@@ -39,10 +39,6 @@
     //   "name": "aconfig.exported_mode.test.rust"
     // },
     {
-      // aflags CLI unit tests
-      "name": "aflags.test"
-    },
-    {
       // aconfig_protos unit tests
       "name": "aconfig_protos.test"
     },

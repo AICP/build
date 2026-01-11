@@ -103,7 +103,7 @@ android_filesystem_defaults {
         "SystemUI",
 
         // Allowlist for handheld packages
-        "preinstalled_packages_handheld_system_ext.xml",
+        "preinstalled-packages-handheld-system-ext.xml",
 
         // telephony packages
         "CarrierConfig",
@@ -121,7 +121,6 @@ android_filesystem_defaults {
         ///////////////////////////////////////////
         // VNDK
         ///////////////////////////////////////////
-        "com.android.vndk.v30",
         "com.android.vndk.v31",
         "com.android.vndk.v32",
         "com.android.vndk.v33",
@@ -145,7 +144,6 @@ android_filesystem_defaults {
                 // AVF
                 ///////////////////////////////////////////
                 "com.android.compos",
-                "features_com.android.virt.xml",
             ],
         },
         both: {

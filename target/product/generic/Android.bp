@@ -735,6 +735,7 @@ system_image_defaults {
             "layertracegenerator",
             "logpersist.start",
             "logtagd.rc",
+            "lpmodify",
             "ot-cli-ftd",
             "ot-ctl",
             "overlay_remounter",
@@ -770,6 +771,11 @@ system_image_defaults {
         default: [
             "uprobestats", // base_system internal
         ],
+    }) + select(release_flag("RELEASE_NATIVE_FRAMEWORK_PROTOTYPE"), {
+        true: [
+            "zygote_next", // base_system (RELEASE_NATIVE_FRAMEWORK_PROTOTYPE)
+        ],
+        default: [],
     }),
     multilib: {
         common: {
@@ -909,7 +915,29 @@ system_image_defaults {
                 default: [],
             }) + select(release_flag("RELEASE_TELEPHONY_MODULE"), {
                 true: [
-                    "com.android.telephony2", // base_system (RELEASE_TELEPHONY_MODULE)
+                    "com.android.telephonycore", // base_system (RELEASE_TELEPHONY_MODULE)
+                ],
+                default: [
+                    "framework-platformtelephony",
+                ],
+            }) + select(release_flag("RELEASE_ACONFIG_INCLUDE_CONTACTS_PICKER_APP"), {
+                true: [
+                    "ContactsPicker", // handheld_system (RELEASE_ACONFIG_INCLUDE_CONTACTS_PICKER_APP)
+                ],
+                default: [],
+            }) + select(release_flag("RELEASE_PACKAGE_COMPUTER_CONTROL"), {
+                true: [
+                    "VirtualDeviceManager", // media_system (RELEASE_PACKAGE_COMPUTER_CONTROL)
+                ],
+                default: [],
+            }) + select(release_flag("RELEASE_CROSS_DEVICE_SYNC"), {
+                true: [
+                    "CrossDeviceSync", // base_system (RELEASE_CROSS_DEVICE_SYNC)
+                ],
+                default: [],
+            }) + select(release_flag("RELEASE_ACONFIG_INCLUDE_EYE_DROPPER_APP"), {
+                true: [
+                    "EyeDropper", // handheld_system (RELEASE_ACONFIG_INCLUDE_EYE_DROPPER_APP)
                 ],
                 default: [],
             }),

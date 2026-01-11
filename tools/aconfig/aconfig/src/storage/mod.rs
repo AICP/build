@@ -98,7 +98,9 @@ where
             p.fingerprint = fingerprint;
         }
 
-        // TODO - b/377311211: Set redact_exported_reads if the build flag is enabled.
+        if version >= 3 {
+            p.redact_exported_reads = cfg!(feature = "default_exported_reads_to_disabled");
+        }
     }
 
     packages
@@ -177,11 +179,11 @@ mod tests {
                     pkg,
                     "system",
                     vec![Input {
-                        source: format!("tests/{}", aconfig_file).to_string(),
+                        source: format!("tests/{aconfig_file}").to_string(),
                         reader: Box::new(aconfig_content),
                     }],
                     vec![Input {
-                        source: format!("tests/{}", value_file).to_string(),
+                        source: format!("tests/{value_file}").to_string(),
                         reader: Box::new(value_content),
                     }],
                     None,
@@ -279,5 +281,101 @@ mod tests {
         assert!(packages[2].flag_names.contains("enabled_fixed_ro"));
         assert_eq!(packages[2].boolean_start_index, 6);
         assert_eq!(packages[2].fingerprint, 16233229917711622375u64);
+    }
+
+    // Storage file v3.
+    #[cfg(feature = "default_exported_reads_to_disabled")]
+    #[test]
+    fn test_flag_package_with_redaction_on() {
+        let caches = parse_all_test_flags();
+        let packages = group_flags_by_package(caches.iter(), 3);
+
+        for pkg in packages.iter() {
+            let pkg_name = pkg.package_name;
+            assert_eq!(pkg.flag_names.len(), pkg.boolean_flags.len());
+            for pf in pkg.boolean_flags.iter() {
+                assert!(pkg.flag_names.contains(pf.name()));
+                assert_eq!(pf.package(), pkg_name);
+            }
+        }
+
+        assert_eq!(packages.len(), 3);
+
+        assert_eq!(packages[0].package_name, "com.android.aconfig.storage.test_1");
+        assert_eq!(packages[0].package_id, 0);
+        assert_eq!(packages[0].flag_names.len(), 3);
+        assert!(packages[0].flag_names.contains("enabled_rw"));
+        assert!(packages[0].flag_names.contains("disabled_rw"));
+        assert!(packages[0].flag_names.contains("enabled_ro"));
+        assert_eq!(packages[0].boolean_start_index, 0);
+        assert_eq!(packages[0].fingerprint, 15248948510590158086u64);
+        assert!(packages[0].redact_exported_reads);
+
+        assert_eq!(packages[1].package_name, "com.android.aconfig.storage.test_2");
+        assert_eq!(packages[1].package_id, 1);
+        assert_eq!(packages[1].flag_names.len(), 3);
+        assert!(packages[1].flag_names.contains("enabled_ro"));
+        assert!(packages[1].flag_names.contains("disabled_rw"));
+        assert!(packages[1].flag_names.contains("enabled_fixed_ro"));
+        assert_eq!(packages[1].boolean_start_index, 3);
+        assert_eq!(packages[1].fingerprint, 4431940502274857964u64);
+        assert!(packages[1].redact_exported_reads);
+
+        assert_eq!(packages[2].package_name, "com.android.aconfig.storage.test_4");
+        assert_eq!(packages[2].package_id, 2);
+        assert_eq!(packages[2].flag_names.len(), 2);
+        assert!(packages[2].flag_names.contains("enabled_rw"));
+        assert!(packages[2].flag_names.contains("enabled_fixed_ro"));
+        assert_eq!(packages[2].boolean_start_index, 6);
+        assert_eq!(packages[2].fingerprint, 16233229917711622375u64);
+        assert!(packages[2].redact_exported_reads);
+    }
+
+    // Storage file v3.
+    #[cfg(not(feature = "default_exported_reads_to_disabled"))]
+    #[test]
+    fn test_flag_package_with_redaction_off() {
+        let caches = parse_all_test_flags();
+        let packages = group_flags_by_package(caches.iter(), 3);
+
+        for pkg in packages.iter() {
+            let pkg_name = pkg.package_name;
+            assert_eq!(pkg.flag_names.len(), pkg.boolean_flags.len());
+            for pf in pkg.boolean_flags.iter() {
+                assert!(pkg.flag_names.contains(pf.name()));
+                assert_eq!(pf.package(), pkg_name);
+            }
+        }
+
+        assert_eq!(packages.len(), 3);
+
+        assert_eq!(packages[0].package_name, "com.android.aconfig.storage.test_1");
+        assert_eq!(packages[0].package_id, 0);
+        assert_eq!(packages[0].flag_names.len(), 3);
+        assert!(packages[0].flag_names.contains("enabled_rw"));
+        assert!(packages[0].flag_names.contains("disabled_rw"));
+        assert!(packages[0].flag_names.contains("enabled_ro"));
+        assert_eq!(packages[0].boolean_start_index, 0);
+        assert_eq!(packages[0].fingerprint, 15248948510590158086u64);
+        assert!(!packages[0].redact_exported_reads);
+
+        assert_eq!(packages[1].package_name, "com.android.aconfig.storage.test_2");
+        assert_eq!(packages[1].package_id, 1);
+        assert_eq!(packages[1].flag_names.len(), 3);
+        assert!(packages[1].flag_names.contains("enabled_ro"));
+        assert!(packages[1].flag_names.contains("disabled_rw"));
+        assert!(packages[1].flag_names.contains("enabled_fixed_ro"));
+        assert_eq!(packages[1].boolean_start_index, 3);
+        assert_eq!(packages[1].fingerprint, 4431940502274857964u64);
+        assert!(!packages[1].redact_exported_reads);
+
+        assert_eq!(packages[2].package_name, "com.android.aconfig.storage.test_4");
+        assert_eq!(packages[2].package_id, 2);
+        assert_eq!(packages[2].flag_names.len(), 2);
+        assert!(packages[2].flag_names.contains("enabled_rw"));
+        assert!(packages[2].flag_names.contains("enabled_fixed_ro"));
+        assert_eq!(packages[2].boolean_start_index, 6);
+        assert_eq!(packages[2].fingerprint, 16233229917711622375u64);
+        assert!(!packages[2].redact_exported_reads);
     }
 }

@@ -37,9 +37,12 @@ pub const FLAGS_WE_CARE_ABOUT: [&str; 5] = [
 pub type BuildFlagMap = HashMap<String, HashMap<String, String>>;
 
 #[allow(dead_code)]
+pub type AliasMap = HashMap<String, String>;
+
+#[allow(dead_code)]
 pub struct ReleaseConfigs {
     pub flags: BuildFlagMap,
-    pub next: String,
+    pub aliases: AliasMap,
 }
 
 impl ReleaseConfigs {
@@ -51,26 +54,26 @@ impl ReleaseConfigs {
             .expect("failed to parse protobuf as ReleaseConfigArtifact");
 
         let mut flags = HashMap::new();
-        let mut next: Option<String> = None;
+        let mut aliases = HashMap::new();
 
         // parse currently active release config
-        parse_release_config(&mut flags, &all_release_configs.release_config);
+        parse_release_config(&all_release_configs.release_config, &mut flags, &mut aliases);
 
         // parse the other release configs
         for release_config in all_release_configs.other_release_configs {
-            parse_release_config(&mut flags, &release_config);
-            if release_config.other_names.contains(&"next".to_string()) {
-                assert!(next.is_none(), "next: multiple aliases");
-                next = Some(release_config.name().to_string());
-            }
+            parse_release_config(&release_config, &mut flags, &mut aliases);
         }
 
-        ReleaseConfigs { flags, next: next.expect("next: missing alias") }
+        ReleaseConfigs { flags, aliases }
     }
 }
 
-fn parse_release_config(build_flag_map: &mut BuildFlagMap, release_config: &ReleaseConfigArtifact) {
-    let x: HashMap<String, String> = release_config
+fn parse_release_config(
+    release_config: &ReleaseConfigArtifact,
+    build_flag_map: &mut BuildFlagMap,
+    aliases: &mut AliasMap,
+) {
+    let flags: HashMap<String, String> = release_config
         .flags
         .iter()
         .filter(|flag| FLAGS_WE_CARE_ABOUT.contains(&flag.flag_declaration.name()))
@@ -92,5 +95,8 @@ fn parse_release_config(build_flag_map: &mut BuildFlagMap, release_config: &Rele
             (flag.flag_declaration.name().to_string(), value)
         })
         .collect();
-    build_flag_map.insert(release_config.name().to_string(), x);
+    build_flag_map.insert(release_config.name().to_string(), flags);
+    for alias in release_config.other_names.clone() {
+        aliases.insert(alias, release_config.name().to_string());
+    }
 }

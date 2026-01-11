@@ -608,7 +608,6 @@ mod tests {
             .into_iter()
             .filter(should_include_flag)
             .map(|flag| flag.name.unwrap())
-            .map(String::from)
             .collect::<Vec<_>>();
         let result_from_names = compute_flags_fingerprint(&mut flag_names_vec);
 
@@ -751,7 +750,7 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "failed to parse memory: expected package com.argument.package, got com.declaration.package"
         );
     }
@@ -788,7 +787,7 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "failed to parse memory: expected container argument.container, got declaration.container"
         );
     }
@@ -822,7 +821,7 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "flag first has permission READ_WRITE, but allow_read_write is false"
         );
     }
@@ -869,7 +868,7 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "flag first has permission READ_WRITE, but allow_read_write is false"
         );
     }
@@ -1064,7 +1063,7 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "failed to set permission of flag first, since this flag is fixed read only flag"
         );
     }
@@ -1302,7 +1301,7 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "Creating com.android.tethering container flag in namespace com_android_networkstack is not allowed"
         );
 
@@ -1327,7 +1326,7 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "Creating exported flag com.first.first in namespace com_android_networkstack is not allowed"
         );
     }
@@ -1370,7 +1369,7 @@ mod tests {
             "com.android.aconfig.test.enabled_ro_exported",
             "com.android.aconfig.test.enabled_rw",
         ];
-        assert_eq!(expected_flag_list.map(|s| format!("{}\n", s)).join(""), text);
+        assert_eq!(expected_flag_list.map(|s| format!("{s}\n")).join(""), text);
     }
 
     #[test]
@@ -1432,7 +1431,7 @@ mod tests {
         parsed_flags.parsed_flag.retain(|pf| !pf.is_exported());
         let error =
             modify_parsed_flags_based_on_mode(parsed_flags, CodegenMode::Exported).unwrap_err();
-        assert_eq!("exported library contains no exported flags", format!("{:?}", error));
+        assert_eq!("exported library contains no exported flags", format!("{error:?}"));
     }
 
     #[test]
@@ -1498,7 +1497,7 @@ mod tests {
             .unwrap_err();
         assert_eq!(
             "force-read-only library contains no force-read-only flags",
-            format!("{:?}", error)
+            format!("{error:?}")
         );
     }
 }

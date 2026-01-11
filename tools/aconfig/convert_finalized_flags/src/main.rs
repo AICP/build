@@ -52,6 +52,6 @@ fn main() -> Result<()> {
     let finalized_flags_map = read_files_to_map_using_path(cli.flag_file_path)?;
 
     let json_str = serde_json::to_string(&finalized_flags_map)?;
-    println!("{}", json_str);
+    println!("{json_str}");
     Ok(())
 }

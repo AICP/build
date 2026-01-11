@@ -303,6 +303,11 @@ PRODUCT_PACKAGES += \
     wifi.rc \
     wm \
 
+ifeq ($(RELEASE_CROSS_DEVICE_SYNC),true)
+  PRODUCT_PACKAGES += \
+        CrossDeviceSync
+endif
+
 # Once Telecom is APEX, we will consolidate all deps
 ifeq ($(RELEASE_TELECOM_MAINLINE_MODULE),true)
   PRODUCT_PACKAGES += \
@@ -389,7 +394,11 @@ endif
 
 ifeq ($(RELEASE_TELEPHONY_MODULE),true)
     PRODUCT_PACKAGES += \
-       com.android.telephony2
+       com.android.telephonycore
+
+else
+    PRODUCT_PACKAGES += \
+        framework-platformtelephony
 endif
 
 ifeq ($(RELEASE_MEMORY_MANAGEMENT_DAEMON),true)
@@ -505,11 +514,15 @@ PRODUCT_PACKAGES += init.usb.rc init.usb.configfs.rc
 PRODUCT_PACKAGES += etc_hosts
 
 PRODUCT_PACKAGES += init.zygote32.rc
-PRODUCT_VENDOR_PROPERTIES += ro.zygote?=zygote32
 
 PRODUCT_SYSTEM_PROPERTIES += debug.atrace.tags.enableflags=0
 PRODUCT_SYSTEM_PROPERTIES += persist.traced.enable=1
 PRODUCT_SYSTEM_PROPERTIES += ro.surface_flinger.game_default_frame_rate_override=60
+
+# When the flag RELEASE_ADBD_OPEN_VSOCK_PORT is enabled, open adbd on vsock port 8382 as default.
+ifneq ($(RELEASE_ADBD_OPEN_VSOCK_PORT),)
+PRODUCT_SYSTEM_PROPERTIES += service.adb.listen_addrs?=vsock:8382
+endif
 
 # Include kernel configs.
 PRODUCT_PACKAGES += \
@@ -531,6 +544,7 @@ PRODUCT_PACKAGES_DEBUG := \
     libclang_rt.ubsan_standalone \
     logpersist.start \
     logtagd.rc \
+    lpmodify \
     ot-cli-ftd \
     ot-ctl \
     overlay_remounter \
@@ -579,6 +593,11 @@ PRODUCT_PACKAGES += dirty-image-objects
 # Enable go/perfetto-persistent-tracing for eng builds
 ifneq (,$(filter eng, $(TARGET_BUILD_VARIANT)))
     PRODUCT_PRODUCT_PROPERTIES += persist.debug.perfetto.persistent_sysui_tracing_for_bugreport=1
+endif
+
+ifneq (,$(RELEASE_NATIVE_FRAMEWORK_PROTOTYPE))
+    PRODUCT_PACKAGES += \
+        zygote_next
 endif
 
 $(call inherit-product, $(SRC_TARGET_DIR)/product/runtime_libart.mk)

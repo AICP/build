@@ -146,12 +146,6 @@ ifdef LOCAL_SOONG_DEXPREOPT_CONFIG
   $(LOCAL_BUILT_MODULE): $(my_dexpreopt_config)
 endif
 
-ifdef LOCAL_SOONG_CLASSES_JAR
-javac-check : $(full_classes_jar)
-javac-check-$(LOCAL_MODULE) : $(full_classes_jar)
-endif
-.PHONY: javac-check-$(LOCAL_MODULE)
-
 ifndef LOCAL_IS_HOST_MODULE
 ifeq ($(LOCAL_SDK_VERSION),system_current)
 my_link_type := java:system

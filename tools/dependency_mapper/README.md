@@ -19,18 +19,20 @@ files by utilizing byte-code and java file analysis.
 # Getting Started
 
 ## Inputs
-* rsp file, containing list of java files separated by whitespace.
-* jar file, containing class files generated after compiling the contents of rsp file.
+* src-path: .rsp file, containing list of java files separated by whitespace.
+* jar-path: .jar file, containing class files generated after compiling the contents of java sources.
+* cross-module-jar-list: .rsp file, containing list of jar files compiled alongside java sources (i.e. from kotlin sources) 
 
 ## Output
-* proto file, representing the list of dependencies for each java file present in input rsp file,
+* dependency-map-path: .proto file, representing the list of dependencies for each java file present in input rsp file,
 represented by [proto/dependency.proto]
 
 ## Usage
 ```
-dependency-mapper --src-path [src-list.rsp] --jar-path [classes.jar] --usage-map-path [usage-map.proto]
+dependency-mapper --src-path <src-list.rsp> --jar-path <classes.jar>  --cross-module-jar-list <jar-list.rsp> --dependency-map-path <usage-map.proto>
 ```
 
 # Notes
-## Dependencies enlisted are only within the java files present in input.
-## To ensure dependencies are listed correctly classes jar should contain every class files generated from each source file.
+* Dependencies enlisted are only within the java files present in input.
+* To ensure dependencies are listed correctly classes jar should contain every class files generated from each source file.
+* Run `m dependency-mapper-test-data` when adding new testfiles, then copy the output jar to tests/res/testfiles location.

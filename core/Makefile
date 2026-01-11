@@ -1061,6 +1061,7 @@ $(INSTALLED_DTBOIMAGE_TARGET): $(BOARD_PREBUILT_DTBOIMAGE) $(AVBTOOL) $(BOARD_AV
 	$(AVBTOOL) add_hash_footer \
 	    --image $@ \
 	    $(call get-partition-size-argument,$(BOARD_DTBOIMG_PARTITION_SIZE)) \
+	    $(if $(RELEASE_DTBO_DETERMINISTIC_AVB_SALT), --salt $$(sha256sum $(BUILD_NUMBER_FILE) $(BUILD_DATETIME_FILE) | cut -d " " -f 1 | tr -d '\n') ) \
 	    --partition_name dtbo $(INTERNAL_AVB_DTBO_SIGNING_ARGS) \
 	    $(BOARD_AVB_DTBO_ADD_HASH_FOOTER_ARGS)
 
@@ -1126,18 +1127,6 @@ SYSTEM_DLKM_MODULE_PATTERNS := $(foreach path,$(BOARD_SYSTEM_KERNEL_MODULES),%/$
 
 endif
 
-# BOARD_KERNEL_MODULES_16K might contain duplicate modules under different path.
-# for example, foo/bar/wifi.ko and foo/wifi.ko . To avoid build issues, de-dup
-# module list on basename first.
-BOARD_KERNEL_MODULES_16K := $(foreach \
-  pattern,\
-  $(sort $(foreach \
-    path,\
-    $(BOARD_KERNEL_MODULES_16K),\
-    %/$(notdir $(path)))\
-  ),\
-  $(firstword $(filter $(pattern),$(BOARD_KERNEL_MODULES_16K))) \
-)
 # For non-GKI modules, strip them before install. As debug symbols take up
 # significant space.
 $(foreach \
@@ -1204,6 +1193,7 @@ $(INSTALLED_DTBOIMAGE_16KB_TARGET): $(BOARD_PREBUILT_DTBOIMAGE_16KB) $(AVBTOOL) 
 	$(AVBTOOL) add_hash_footer \
 	    --image $@ \
 	    $(call get-partition-size-argument,$(BOARD_DTBOIMG_PARTITION_SIZE)) \
+	    $(if $(RELEASE_DTBO_DETERMINISTIC_AVB_SALT), --salt $$(sha256sum $(BUILD_NUMBER_FILE) $(BUILD_DATETIME_FILE) | cut -d " " -f 1 | tr -d '\n') ) \
 	    --partition_name dtbo $(INTERNAL_AVB_DTBO_SIGNING_ARGS) \
 	    $(BOARD_AVB_DTBO_ADD_HASH_FOOTER_ARGS)
 
@@ -1766,7 +1756,7 @@ ifeq ($(BOARD_AVB_ENABLE),true)
 $(INSTALLED_VENDOR_BOOTIMAGE_TARGET): $(AVBTOOL) $(BOARD_AVB_VENDOR_BOOTIMAGE_KEY_PATH)
 	$(call pretty,"Target vendor_boot image: $@")
 	$(MKBOOTIMG) $(INTERNAL_VENDOR_BOOTIMAGE_ARGS) $(BOARD_MKBOOTIMG_ARGS) --vendor_ramdisk $(INTERNAL_VENDOR_RAMDISK_TARGET) $(INTERNAL_VENDOR_RAMDISK_FRAGMENT_ARGS) --vendor_boot $@
-	$(call assert-max-image-size,$@,$(BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE))
+	$(call assert-max-image-size,$@,$(call get-hash-image-max-size,$(BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE)))
 	$(AVBTOOL) add_hash_footer \
            --image $@ \
 	   $(call get-partition-size-argument,$(BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE)) \
@@ -1863,6 +1853,7 @@ $(INSTALLED_VENDOR_KERNEL_BOOTIMAGE_TARGET): $(AVBTOOL) $(BOARD_AVB_VENDOR_KERNE
 	    --image $@ \
 	   $(call get-partition-size-argument,$(BOARD_VENDOR_KERNEL_BOOTIMAGE_PARTITION_SIZE)) \
 	   --partition_name vendor_kernel_boot $(INTERNAL_AVB_VENDOR_KERNEL_BOOT_SIGNING_ARGS) \
+	   --salt $$(sha256sum $(BUILD_NUMBER_FILE) $(BUILD_DATETIME_FILE) | cut -d " " -f 1 | tr -d '\n') \
 	   $(BOARD_AVB_VENDOR_KERNEL_BOOT_ADD_HASH_FOOTER_ARGS)
 else
 $(INSTALLED_VENDOR_KERNEL_BOOTIMAGE_TARGET):
@@ -1882,34 +1873,7 @@ endif # BUILDING_VENDOR_KERNEL_BOOT_IMAGE
 
 # -----------------------------------------------------------------
 # NOTICE files
-#
-# We are required to publish the licenses for all code under BSD, GPL and
-# Apache licenses (and possibly other more exotic ones as well). We err on the
-# side of caution, so the licenses for other third-party code are included here
-# too.
-#
-# This needs to be before the systemimage rules, because it adds to
-# ALL_DEFAULT_INSTALLED_MODULES, which those use to pick which files
-# go into the systemimage.
-
 .PHONY: notice_files
-
-# Convert license metadata into xml notice file.
-# $(1) - Output target notice filename
-# $(2) - Product name
-# $(3) - File title
-# $(4) - License metadata file roots
-# $(5) - Prefixes to strip
-#
-define xml-notice-rule
-$(1): PRIVATE_PRODUCT := $(2)
-$(1): PRIVATE_MESSAGE := $(3)
-$(1): PRIVATE_DEPS := $(call corresponding-license-metadata,$(4))
-$(1): $(call corresponding-license-metadata,$(4)) $(XMLNOTICE) $(BUILD_SYSTEM)/Makefile
-	OUT_DIR=$(OUT_DIR) $(XMLNOTICE) -o $$@ -product=$$(PRIVATE_PRODUCT) -title=$$(PRIVATE_MESSAGE) $(foreach prefix, $(5), -strip_prefix=$(prefix)) $$(PRIVATE_DEPS)
-
-notice_files: $(1)
-endef
 
 # Convert license metadata into text notice file.
 # $(1) - Output target notice filename
@@ -1943,7 +1907,7 @@ $(1): $(call corresponding-license-metadata,$(4)) $(HTMLNOTICE) $(BUILD_SYSTEM)/
 notice_files: $(1)
 endef
 
-$(KATI_obsolete_var combine-notice-files, To create notice files use xml-notice-rule, html-notice-rule, or text-notice-rule.)
+$(KATI_obsolete_var combine-notice-files, To create notice files use html-notice-rule, or text-notice-rule.)
 
 # Notice file logic isn't relevant for TARGET_BUILD_APPS
 ifndef TARGET_BUILD_APPS
@@ -2002,22 +1966,6 @@ else
   installed_odm_dlkm_notice_xml_gz :=
   installed_system_dlkm_notice_xml_gz :=
 endif
-
-ALL_INSTALLED_NOTICE_FILES := \
-  $(installed_notice_html_or_xml_gz) \
-  $(installed_vendor_notice_xml_gz) \
-  $(installed_product_notice_xml_gz) \
-  $(installed_system_ext_notice_xml_gz) \
-  $(installed_odm_notice_xml_gz) \
-  $(installed_vendor_dlkm_notice_xml_gz) \
-  $(installed_odm_dlkm_notice_xml_gz) \
-  $(installed_system_dlkm_notice_xml_gz) \
-
-# $1 installed file path, e.g. out/target/product/vsoc_x86_64/system_ext/etc/NOTICE.xml.gz
-define is-notice-file
-$(if $(filter true,$(PRODUCT_USE_SOONG_NOTICE_XML)),, \
-  $(if $(findstring $1,$(ALL_INSTALLED_NOTICE_FILES)),Y))
-endef
 
 # Notice files are copied to TARGET_OUT_NOTICE_FILES as a side-effect of their module
 # being built. A notice xml file must depend on all modules that could potentially
@@ -3152,30 +3100,38 @@ VENDOR_NOTICE_DEPS += $(INSTALLED_VENDOR_DEBUG_RAMDISK_TARGET)
 INSTALLED_VENDOR_DEBUG_BOOTIMAGE_TARGET := $(PRODUCT_OUT)/vendor_boot-debug.img
 
 # The util to sign vendor_boot-debug.img with a test key.
+ifeq ($(BOARD_AVB_ENABLE),true)
+ifeq ($(BOARD_AVB_VENDOR_BOOT_KEY_PATH),)
+# Add a plain hash footer if we don't have a vendor_boot signing key.
+INTERNAL_AVB_VENDOR_BOOT_TEST_SIGNING_ARGS :=
+else
 BOARD_AVB_VENDOR_BOOT_TEST_KEY_PATH := external/avb/test/data/testkey_rsa2048.pem
 INTERNAL_AVB_VENDOR_BOOT_TEST_SIGNING_ARGS := --algorithm SHA256_RSA2048 --key $(BOARD_AVB_VENDOR_BOOT_TEST_KEY_PATH)
+$(INSTALLED_VENDOR_DEBUG_BOOTIMAGE_TARGET): $(BOARD_AVB_VENDOR_BOOT_TEST_KEY_PATH)
+endif # BOARD_AVB_VENDOR_BOOT_KEY_PATH
+
 # $(1): the vendor bootimage to sign
 define test-key-sign-vendor-bootimage
 $(call assert-max-image-size,$(1),$(call get-hash-image-max-size,$(BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE)))
 $(AVBTOOL) add_hash_footer \
   --image $(1) \
   $(call get-partition-size-argument,$(BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE)) \
+  --salt $$(sha256sum $(BUILD_NUMBER_FILE) $(BUILD_DATETIME_FILE) | cut -d " " -f 1 | tr -d '\n') \
   --partition_name vendor_boot $(INTERNAL_AVB_VENDOR_BOOT_TEST_SIGNING_ARGS) \
   $(BOARD_AVB_VENDOR_BOOT_ADD_HASH_FOOTER_ARGS)
-$(call assert-max-image-size,$(1),$(BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE))
 endef
-
-ifneq ($(BOARD_AVB_VENDOR_BOOT_KEY_PATH),)
-$(INSTALLED_VENDOR_DEBUG_BOOTIMAGE_TARGET): $(AVBTOOL) $(BOARD_AVB_VENDOR_BOOT_TEST_KEY_PATH)
-endif
+$(INSTALLED_VENDOR_DEBUG_BOOTIMAGE_TARGET): $(AVBTOOL)
+endif # BOARD_AVB_ENABLE
 
 # Depends on vendor_boot.img and vendor-ramdisk-debug.cpio.gz to build the new vendor_boot-debug.img
 $(INSTALLED_VENDOR_DEBUG_BOOTIMAGE_TARGET): $(MKBOOTIMG) $(INSTALLED_VENDOR_BOOTIMAGE_TARGET) $(INTERNAL_VENDOR_DEBUG_RAMDISK_TARGET)
 $(INSTALLED_VENDOR_DEBUG_BOOTIMAGE_TARGET): $(INTERNAL_VENDOR_RAMDISK_FRAGMENT_TARGETS)
 	$(call pretty,"Target vendor_boot debug image: $@")
 	$(MKBOOTIMG) $(INTERNAL_VENDOR_BOOTIMAGE_ARGS) $(BOARD_MKBOOTIMG_ARGS) --vendor_ramdisk $(INTERNAL_VENDOR_DEBUG_RAMDISK_TARGET) $(INTERNAL_VENDOR_RAMDISK_FRAGMENT_ARGS) --vendor_boot $@
-	$(call assert-max-image-size,$@,$(BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE))
-	$(if $(BOARD_AVB_VENDOR_BOOT_KEY_PATH),$(call test-key-sign-vendor-bootimage,$@))
+	$(call assert-max-image-size,$@,$(call get-hash-image-max-size,$(BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE)))
+ifeq ($(BOARD_AVB_ENABLE),true)
+	$(call test-key-sign-vendor-bootimage,$@)
+endif
 
 $(call declare-1p-container,$(INSTALLED_VENDOR_DEBUG_BOOTIMAGE_TARGET),)
 $(call declare-container-license-deps,$(INSTALLED_VENDOR_DEBUG_BOOTIMAGE_TARGET),$(INTERNAL_VENDOR_DEBUG_RAMDISK_TARGET),$(PRODUCT_OUT)/:/)
@@ -3184,24 +3140,8 @@ VENDOR_NOTICE_DEPS += $(INSTALLED_VENDOR_DEBUG_BOOTIMAGE_TARGET)
 
 endif # BUILDING_DEBUG_VENDOR_BOOT_IMAGE
 
-# Appends a few test harness specific properties into the adb_debug.prop.
-ADDITIONAL_TEST_HARNESS_PROPERTIES := ro.audio.silent=1
-ADDITIONAL_TEST_HARNESS_PROPERTIES += ro.test_harness=1
-
 INTERNAL_DEBUG_RAMDISK_ADB_DEBUG_PROP_TARGET := $(strip $(filter $(TARGET_DEBUG_RAMDISK_OUT)/adb_debug.prop,$(INTERNAL_DEBUG_RAMDISK_FILES)))
 INTERNAL_TEST_HARNESS_RAMDISK_ADB_DEBUG_PROP_TARGET := $(TARGET_TEST_HARNESS_RAMDISK_OUT)/adb_debug.prop
-$(INTERNAL_TEST_HARNESS_RAMDISK_ADB_DEBUG_PROP_TARGET): $(INTERNAL_DEBUG_RAMDISK_ADB_DEBUG_PROP_TARGET)
-	$(hide) rm -f $@
-	$(hide) mkdir -p $(dir $@)
-ifdef INTERNAL_DEBUG_RAMDISK_ADB_DEBUG_PROP_TARGET
-	$(hide) cp $(INTERNAL_DEBUG_RAMDISK_ADB_DEBUG_PROP_TARGET) $@
-endif
-	$(hide) echo "" >> $@
-	$(hide) echo "#" >> $@
-	$(hide) echo "# ADDITIONAL TEST HARNESS PROPERTIES" >> $@
-	$(hide) echo "#" >> $@
-	$(hide) $(foreach line,$(ADDITIONAL_TEST_HARNESS_PROPERTIES), \
-	          echo "$(line)" >> $@;)
 
 $(call declare-1p-target,$(INTERNAL_TEST_HARNESS_RAMDISK_ADB_DEBUG_PROP_TARGET))
 
@@ -3466,14 +3406,30 @@ endif  # PRODUCT_FSVERITY_GENERATE_METADATA
 
 
 # Treble Labeling Test
-platform-preinstalled-apps-patterns := \
+platform-preinstalled-apps-patterns :=
+platform-seapp-contexts-patterns :=
+vendor-preinstalled-apps-patterns :=
+vendor-seapp-contexts-patterns :=
+vendor-file-contexts-patterns :=
+sepolicy-binary-patterns :=
+
+ifdef BUILDING_SYSTEM_IMAGE
+platform-preinstalled-apps-patterns += \
   $(TARGET_OUT)/priv-app/%.apk \
   $(TARGET_OUT)/app/%.apk \
+
+platform-seapp-contexts-patterns += \
+  $(TARGET_OUT)/etc/selinux/plat_seapp_contexts \
+
+endif
 
 ifdef BUILDING_SYSTEM_EXT_IMAGE
 platform-preinstalled-apps-patterns += \
   $(TARGET_OUT_SYSTEM_EXT)/priv-app/%.apk \
   $(TARGET_OUT_SYSTEM_EXT)/app/%.apk \
+
+platform-seapp-contexts-patterns += \
+  $(TARGET_OUT_SYSTEM_EXT)/etc/selinux/system_ext_seapp_contexts \
 
 endif
 
@@ -3482,55 +3438,97 @@ platform-preinstalled-apps-patterns += \
   $(TARGET_OUT_PRODUCT)/priv-app/%.apk \
   $(TARGET_OUT_PRODUCT)/app/%.apk \
 
+platform-seapp-contexts-patterns += \
+  $(TARGET_OUT_PRODUCT)/etc/selinux/product_seapp_contexts \
+
 endif
 
-platform-preinstalled-apps := $(sort $(filter \
-  $(platform-preinstalled-apps-patterns), \
-  $(ALL_DEFAULT_INSTALLED_MODULES)))
-
-
-vendor-preinstalled-apps-patterns := \
+ifdef BUILDING_VENDOR_IMAGE
+vendor-preinstalled-apps-patterns += \
   $(TARGET_OUT_VENDOR)/priv-app/%.apk \
   $(TARGET_OUT_VENDOR)/app/%.apk \
+
+vendor-seapp-contexts-patterns += \
+  $(TARGET_OUT_VENDOR)/etc/selinux/vendor_seapp_contexts
+
+vendor-file-contexts-patterns += \
+  $(TARGET_OUT_VENDOR)/etc/selinux/vendor_file_contexts
+
+sepolicy-binary-patterns += \
+  $(TARGET_OUT_VENDOR)/etc/selinux/precompiled_sepolicy \
+
+endif
 
 ifdef BUILDING_ODM_IMAGE
 vendor-preinstalled-apps-patterns += \
   $(TARGET_OUT_ODM)/priv-app/%.apk \
   $(TARGET_OUT_ODM)/app/%.apk \
 
+vendor-seapp-contexts-patterns += \
+  $(TARGET_OUT_ODM)/etc/selinux/odm_seapp_contexts
+
+vendor-file-contexts-patterns += \
+  $(TARGET_OUT_ODM)/etc/selinux/odm_file_contexts
+
+sepolicy-binary-patterns += \
+  $(TARGET_OUT_ODM)/etc/selinux/precompiled_sepolicy \
+
 endif
+
+platform-preinstalled-apps := $(sort $(filter \
+  $(platform-preinstalled-apps-patterns), \
+  $(ALL_DEFAULT_INSTALLED_MODULES)))
+
+platform-seapp-contexts := $(sort $(filter \
+  $(platform-seapp-contexts-patterns), \
+  $(ALL_DEFAULT_INSTALLED_MODULES)))
 
 vendor-preinstalled-apps := $(sort $(filter \
   $(vendor-preinstalled-apps-patterns), \
   $(ALL_DEFAULT_INSTALLED_MODULES)))
 
+vendor-seapp-contexts := $(sort $(filter \
+  $(vendor-seapp-contexts-patterns), \
+  $(ALL_DEFAULT_INSTALLED_MODULES)))
+
+vendor-file-contexts := $(sort $(filter \
+  $(vendor-file-contexts-patterns), \
+  $(ALL_DEFAULT_INSTALLED_MODULES)))
+
+sepolicy-binary := $(sort $(filter \
+  $(sepolicy-binary-patterns), \
+  $(ALL_DEFAULT_INSTALLED_MODULES)))
+
 sepolicy-binary-without-vendor := $(call intermediates-dir-for,ETC,precompiled_sepolicy_without_vendor)/precompiled_sepolicy_without_vendor
-sepolicy-binary := $(call intermediates-dir-for,ETC,precompiled_sepolicy)/precompiled_sepolicy
-
-platform-seapp-contexts := $(call intermediates-dir-for,ETC,plat_seapp_contexts)/plat_seapp_contexts
-
-ifdef BUILDING_SYSTEM_EXT_IMAGE
-platform-seapp-contexts += $(call intermediates-dir-for,ETC,system_ext_seapp_contexts)/system_ext_seapp_contexts
-endif
-
-ifdef BUILDING_PRODUCT_IMAGE
-platform-seapp-contexts += $(call intermediates-dir-for,ETC,product_seapp_contexts)/product_seapp_contexts
-endif
-
-vendor-seapp-contexts := $(call intermediates-dir-for,ETC,vendor_seapp_contexts)/vendor_seapp_contexts
-
-ifdef BUILDING_ODM_IMAGE
-vendor-seapp-contexts += $(call intermediates-dir-for,ETC,odm_seapp_contexts)/odm_seapp_contexts
-endif
-
-vendor-file-contexts := $(call intermediates-dir-for,ETC,vendor_file_contexts)/vendor_file_contexts
-
-ifdef BUILDING_ODM_IMAGE
-vendor-file-contexts += $(call intermediates-dir-for,ETC,odm_file_contexts)/odm_file_contexts
-endif
 
 check-selinux-treble-labeling.timestamp := $(call intermediates-dir-for,PACKAGING,check-selinux-treble-labeling)/check-selinux-treble-labeling.timestamp
 
+ifeq ($(call math_gt,$(words $(sepolicy-binary)),1),true)
+$(check-selinux-treble-labeling.timestamp): PRIVATE_SEPOLICY := $(sepolicy-binary)
+$(check-selinux-treble-labeling.timestamp):
+	@echo "Error: number of precompiled_sepolicy must not be greater than one but was \"$(PRIVATE_SEPOLICY)\"" >&2
+	@exit 1
+else ifeq ($(and \
+  $(strip $(platform-seapp-contexts)), \
+  $(strip $(vendor-seapp-contexts)), \
+  $(strip $(vendor-file-contexts)), \
+  $(strip $(sepolicy-binary-without-vendor)), \
+  $(strip $(sepolicy-binary))),)
+$(check-selinux-treble-labeling.timestamp): PRIVATE_SEPOLICY := $(sepolicy-binary)
+$(check-selinux-treble-labeling.timestamp): PRIVATE_PLATFORM_SEAPP_CONTEXTS := $(platform-seapp-contexts)
+$(check-selinux-treble-labeling.timestamp): PRIVATE_VENDOR_SEAPP_CONTEXTS := $(vendor-seapp-contexts)
+$(check-selinux-treble-labeling.timestamp): PRIVATE_VENDOR_FILE_CONTEXTS := $(vendor-file-contexts)
+$(check-selinux-treble-labeling.timestamp): PRIVATE_SEPOLICY_WITHOUT_VENDOR := $(sepolicy-binary-without-vendor)
+$(check-selinux-treble-labeling.timestamp): PRIVATE_SEPOLICY := $(sepolicy-binary)
+$(check-selinux-treble-labeling.timestamp):
+	@rm -rf $@
+	@echo "cannot find necessary artifacts. skipping tests." > $@
+	@echo "platformSeappContexts: \"$(PRIVATE_PLATFORM_SEAPP_CONTEXTS)\"" >> $@
+	@echo "vendorSeappContexts: \"$(PRIVATE_VENDOR_SEAPP_CONTEXTS)\"" >> $@
+	@echo "vendorFileContexts: \"$(PRIVATE_VENDOR_FILE_CONTEXTS)\"" >> $@
+	@echo "precompiledSepolicies: \"$(PRIVATE_SEPOLICY)\"" >> $@
+	@echo "precompiled_sepolicy_without_vendor: \"$(PRIVATE_SEPOLICY_WITHOUT_VENDOR)\"" >> $@
+else
 $(check-selinux-treble-labeling.timestamp): PRIVATE_PLATFORM_APPS := $(platform-preinstalled-apps)
 $(check-selinux-treble-labeling.timestamp): PRIVATE_VENDOR_APPS := $(vendor-preinstalled-apps)
 $(check-selinux-treble-labeling.timestamp): PRIVATE_SEPOLICY_WITHOUT_VENDOR := $(sepolicy-binary-without-vendor)
@@ -3543,7 +3541,7 @@ $(check-selinux-treble-labeling.timestamp): PRIVATE_TREAT_AS_WARNINGS := $(if $(
 $(check-selinux-treble-labeling.timestamp): PRIVATE_DEBUGGABLE := $(if $(filter user,$(TARGET_BUILD_VARIANT)),,--debuggable)
 $(check-selinux-treble-labeling.timestamp): $(HOST_OUT_EXECUTABLES)/treble_labeling_tests \
     $(platform-preinstalled-apps) $(vendor-preinstalled-apps) \
-    $(platform-sepolicy-binary) $(sepolicy-binary) $(sepolicy-binary-without-vendor) \
+    $(sepolicy-binary) $(sepolicy-binary-without-vendor) \
     $(platform-seapp-contexts) $(vendor-seapp-contexts) $(vendor-file-contexts) \
     $(PRODUCT_SELINUX_TREBLE_LABELING_TRACKING_LIST_FILE) $(AAPT2)
 	@rm -rf $@
@@ -3558,6 +3556,7 @@ $(check-selinux-treble-labeling.timestamp): $(HOST_OUT_EXECUTABLES)/treble_label
     $(if $(PRIVATE_TRACKING_LIST_FILE),--tracking_list_file $(PRIVATE_TRACKING_LIST_FILE)) \
     $(PRIVATE_TREAT_AS_WARNINGS) $(PRIVATE_DEBUGGABLE) \
     --aapt2_path $(AAPT2) > $@
+endif
 
 .PHONY: check-selinux-treble-labeling
 check-selinux-treble-labeling: $(check-selinux-treble-labeling.timestamp)
@@ -3572,10 +3571,15 @@ platform-preinstalled-apps :=
 vendor-preinstalled-apps-patterns :=
 vendor-preinstalled-apps :=
 check-selinux-treble-labeling.timestamp :=
-platform-sepolicy-binary :=
+sepolicy-binary-without-vendor :=
+sepolicy-binary-patterns :=
 sepolicy-binary :=
+platform-seapp-contexts-patterns :=
 platform-seapp-contexts :=
+vendor-seapp-contexts-patterns :=
 vendor-seapp-contexts :=
+vendor-file-contexts-patterns :=
+vendor-file-contexts :=
 
 # -----------------------------------------------------------------
 # system image
@@ -4622,25 +4626,6 @@ INTERNAL_PVMFWIMAGE_FILES := $(call module-target-built-files,pvmfw_img)
 INTERNAL_PVMFW_EMBEDDED_AVBKEY := $(call module-target-built-files,pvmfw_embedded_key_pub_bin)
 INTERNAL_PVMFW_SYMBOL := $(TARGET_OUT_EXECUTABLES_UNSTRIPPED)/pvmfw
 
-# If pvmfw target is not available and there is a prebuilt available use prebuilt
-# NOTE: This is only a temporary feature for x86_64 and is not meant to be supported for long.
-# TODO(b/391333413): Don't allow use of pvmfw prebuilts as soon as it is possible
-ifeq ($(INTERNAL_PVMFWIMAGE_FILES),)
-ifneq ($(PRODUCT_PVMFW_IMAGE_PREBUILT),)
-INTERNAL_PVMFWIMAGE_FILES := $(call module-target-built-files,$(PRODUCT_PVMFW_IMAGE_PREBUILT))
-INTERNAL_PVMFW_SYMBOL :=
-
-ifneq ($(PRODUCT_PVMFW_BIN_PREBUILT),)
-INSTALLED_PVMFW_BINARY_TARGET := $(call module-target-built-files,$(PRODUCT_PVMFW_BIN_PREBUILT))
-endif # PRODUCT_PVMFW_BIN_PREBUILT
-
-ifneq ($(PRODUCT_PVMFW_EMBEDDED_AVBKEY_PREBUILT),)
-INTERNAL_PVMFW_EMBEDDED_AVBKEY := $(call module-target-built-files,$(PRODUCT_PVMFW_EMBEDDED_AVBKEY_PREBUILT))
-endif # PRODUCT_PVMFW_EMBEDDED_AVBKEY_PREBUILT
-
-endif # PRODUCT_PVMFW_IMAGE_PREBUILT
-endif # INTERNAL_PVMFWIMAGE_FILES
-
 $(call declare-1p-container,$(INSTALLED_PVMFWIMAGE_TARGET),)
 $(call declare-container-license-deps,$(INSTALLED_PVMFWIMAGE_TARGET),$(INTERNAL_PVMFWIMAGE_FILES),$(PRODUCT_OUT)/:/)
 
@@ -4849,10 +4834,10 @@ BOARD_AVB_INIT_BOOT_ADD_HASH_FOOTER_ARGS += \
     --prop com.android.build.init_boot.fingerprint:$(BUILD_FINGERPRINT_FROM_FILE)
 
 BOARD_AVB_VENDOR_BOOT_ADD_HASH_FOOTER_ARGS += \
-    --prop com.android.build.vendor_boot.fingerprint:$(BUILD_FINGERPRINT_FROM_FILE) \
+    --prop com.android.build.vendor_boot.fingerprint:$(BUILD_FINGERPRINT_FROM_FILE)
 
 BOARD_AVB_VENDOR_KERNEL_BOOT_ADD_HASH_FOOTER_ARGS += \
-    --prop com.android.build.vendor_kernel_boot.fingerprint:$(BUILD_FINGERPRINT_FROM_FILE) \
+    --prop com.android.build.vendor_kernel_boot.fingerprint:$(BUILD_FINGERPRINT_FROM_FILE)
 
 BOARD_AVB_RECOVERY_ADD_HASH_FOOTER_ARGS += \
     --prop com.android.build.recovery.fingerprint:$(BUILD_FINGERPRINT_FROM_FILE)
@@ -5264,6 +5249,7 @@ $(foreach partition,\
           $(eval $(call declare-custom-vbmeta-target,$(partition))))
 endif
 
+# $(1): output file
 define build-vbmetaimage-target
   $(call pretty,"Target vbmeta image: $(INSTALLED_VBMETAIMAGE_TARGET)")
   $(hide) mkdir -p $(AVB_CHAIN_KEY_DIR)
@@ -5272,7 +5258,7 @@ define build-vbmetaimage-target
     $(INTERNAL_AVB_MAKE_VBMETA_IMAGE_ARGS) \
     $(PRIVATE_AVB_VBMETA_SIGNING_ARGS) \
     $(BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS) \
-    --output $@
+    --output $(1)
     # libavb expects to be able to read the maximum vbmeta size, so we must provide a partition
     # which matches this or the read will fail.
     # See external/avb/libavb/avb_slot_verify.c#VBMETA_MAX_SIZE
@@ -5311,17 +5297,17 @@ $(INSTALLED_VBMETAIMAGE_TARGET): \
 	    $(BOARD_AVB_VBMETA_VENDOR_KEY_PATH) \
       $(foreach partition,$(call to-upper,$(BOARD_AVB_VBMETA_CUSTOM_PARTITIONS)),$(BOARD_AVB_VBMETA_$(partition)_KEY_PATH)) \
 	    $(BOARD_AVB_KEY_PATH)
-	$(build-vbmetaimage-target)
+	$(call build-vbmetaimage-target,$(@))
 
 $(call declare-1p-container,$(INSTALLED_VBMETAIMAGE_TARGET),)
 
 UNMOUNTED_NOTICE_DEPS += $(INSTALLED_VBMETAIMAGE_TARGET)
 
-.PHONY: vbmetaimage-nodeps
-vbmetaimage-nodeps: PRIVATE_AVB_VBMETA_SIGNING_ARGS := \
+.PHONY: vbmetaimage-nodeps vbmetanod
+vbmetaimage-nodeps vbmetanod: PRIVATE_AVB_VBMETA_SIGNING_ARGS := \
     --algorithm $(BOARD_AVB_ALGORITHM) --key $(BOARD_AVB_KEY_PATH)
-vbmetaimage-nodeps:
-	$(build-vbmetaimage-target)
+vbmetaimage-nodeps vbmetanod:
+	$(call build-vbmetaimage-target,$(INSTALLED_VBMETAIMAGE_TARGET))
 endif # BUILDING_VBMETA_IMAGE
 
 endif # BOARD_AVB_ENABLE
@@ -6480,6 +6466,13 @@ define copy-image-and-generate-map
   )
 endef
 
+HAS_ANY_EROFS_PARTITION :=
+$(foreach image_type,INIT_BOOT BOOT VENDOR_BOOT VENDOR_KERNEL_BOOT SYSTEM VENDOR CACHE USERDATA PRODUCT SYSTEM_EXT OEM ODM VENDOR_DLKM ODM_DLKM SYSTEM_DLKM VBMETA VBMETA_SYSTEM VBMETA_VENDOR VBMETA_SYSTEM_DLKM VBMETA_VENDOR_DLKM, \
+  $(if $(BUILDING_$(image_type)_IMAGE), \
+    $(if $(filter erofs,$(BOARD_$(image_type)IMAGE_FILE_SYSTEM_TYPE)), \
+      $(eval HAS_ANY_EROFS_PARTITION := true))))
+.KATI_READONLY := HAS_ANY_EROFS_PARTITION
+
 # By conditionally including the dependency of the target files package on the
 # full system image deps, we speed up builds that do not build the system
 # image.
@@ -6619,6 +6612,14 @@ $(BUILT_TARGET_FILES_DIR): $(INSTALLED_BOOTLOADER_MODULE)
 droidcore-unbundled: $(INSTALLED_BOOTLOADER_MODULE)
 endif
 
+# Add a dependency for the signed desktop firmware. We need it included in the
+# target_files.zip so that the unsigned firmware can be swapped with the signed
+# firmware when the target files are signed.
+DESKTOP_SIGNED_FW_ZIP := $(call module-built-files,desktop-firmware-zip-signed)
+ifneq ($(DESKTOP_SIGNED_FW_ZIP),)
+  $(BUILT_TARGET_FILES_DIR): $(DESKTOP_SIGNED_FW_ZIP)
+endif
+
 # Depending on the various images guarantees that the underlying
 # directories are up-to-date.
 $(BUILT_TARGET_FILES_DIR): \
@@ -6721,9 +6722,6 @@ endif # not (BUILDING_VENDOR_BOOT_IMAGE and BOARD_USES_RECOVERY_AS_BOOT)
 endif # INSTALLED_RECOVERYIMAGE_TARGET defined or BOARD_USES_RECOVERY_AS_BOOT is true
 	@# Components of the boot image
 	$(hide) mkdir -p $(zip_root)/BOOT
-	$(hide) mkdir -p $(zip_root)/ROOT
-	$(hide) $(call package_files-copy-root, \
-	    $(TARGET_ROOT_OUT),$(zip_root)/ROOT)
 	@# If we are using recovery as boot, this is already done when processing recovery.
 ifneq ($(BOARD_USES_RECOVERY_AS_BOOT),true)
 	$(hide) $(call package_files-copy-root, \
@@ -6813,6 +6811,10 @@ else
 	$(hide) $(call package_files-copy-root, \
 	    $(SYSTEMIMAGE_SOURCE_DIR),$(zip_root)/SYSTEM)
 endif
+	@# Content of the root folder
+	$(hide) mkdir -p $(zip_root)/ROOT
+	$(hide) $(call package_files-copy-root, \
+	    $(TARGET_ROOT_OUT),$(zip_root)/ROOT)
 else ifdef INSTALLED_BUILD_PROP_TARGET
 	@# Copy the system build.prop even if not building a system image
 	@# because add_img_to_target_files may need it to build other partition
@@ -7026,6 +7028,10 @@ ifeq ($(BOARD_USES_PVMFWIMAGE),true)
 	$(hide) mkdir -p $(zip_root)/PVMFW
 	$(hide) cp $(INSTALLED_PVMFW_BINARY_TARGET) $(zip_root)/PVMFW/
 endif
+ifneq ($(DESKTOP_SIGNED_FW_ZIP),)
+	$(hide) mkdir -p $(zip_root)/SIGNED_PREBUILTS
+	$(hide) cp $(DESKTOP_SIGNED_FW_ZIP) $(zip_root)/SIGNED_PREBUILTS/ap-ec-fw-signed.zip
+endif
 ifdef BOARD_PREBUILT_BOOTLOADER
 	$(hide) mkdir -p $(zip_root)/IMAGES
 	$(hide) cp $(INSTALLED_BOOTLOADER_MODULE) $(zip_root)/IMAGES/
@@ -7045,6 +7051,8 @@ endif # BOARD_CUSTOMIMAGES_PARTITION_LIST
 ifdef BUILDING_SYSTEM_IMAGE
 	$(hide) $(call copy-image-and-generate-map,$(BUILT_SYSTEMIMAGE),$(zip_root)/IMAGES,system)
 	$(hide) $(call fs_config,$(zip_root)/SYSTEM,system/) > $(zip_root)/META/filesystem_config.txt
+	@# ROOT always contains the files for the root under normal boot.
+	$(hide) $(call fs_config,$(zip_root)/ROOT,) > $(zip_root)/META/root_filesystem_config.txt
 endif
 ifdef BUILDING_VENDOR_IMAGE
 	$(hide) $(call copy-image-and-generate-map,$(BUILT_VENDORIMAGE_TARGET),$(zip_root)/IMAGES,vendor)
@@ -7074,8 +7082,6 @@ ifdef BUILDING_SYSTEM_DLKM_IMAGE
 	$(hide) $(call copy-image-and-generate-map,$(BUILT_SYSTEM_DLKMIMAGE_TARGET),$(zip_root)/IMAGES,system_dlkm)
 	$(hide) $(call fs_config,$(zip_root)/SYSTEM_DLKM,system_dlkm/) > $(zip_root)/META/system_dlkm_filesystem_config.txt
 endif
-	@# ROOT always contains the files for the root under normal boot.
-	$(hide) $(call fs_config,$(zip_root)/ROOT,) > $(zip_root)/META/root_filesystem_config.txt
 	@# BOOT/RAMDISK contains the first stage and recovery ramdisk.
 	$(hide) $(call fs_config,$(zip_root)/BOOT/RAMDISK,) > $(zip_root)/META/boot_filesystem_config.txt
 ifdef BUILDING_INIT_BOOT_IMAGE
@@ -7086,8 +7092,10 @@ ifdef BOARD_KERNEL_PAGESIZE
 	$(hide) echo "$(BOARD_KERNEL_PAGESIZE)" > $(zip_root)/INIT_BOOT/pagesize
 endif # BOARD_KERNEL_PAGESIZE
 endif # BUILDING_INIT_BOOT_IMAGE
+ifdef HAS_ANY_EROFS_PARTITION
 ifdef BOARD_EROFS_COMPRESS_HINTS
 	$(hide) cp $(BOARD_EROFS_COMPRESS_HINTS) $(zip_root)/META/erofs_default_compress_hints.txt
+endif
 endif
 ifdef BOARD_SYSTEMIMAGE_EROFS_COMPRESS_HINTS
 	$(hide) cp $(BOARD_SYSTEMIMAGE_EROFS_COMPRESS_HINTS) $(zip_root)/META/system_erofs_compress_hints.txt
@@ -7300,26 +7308,6 @@ endif # BOARD_PARTIAL_OTA_UPDATE_PARTITIONS_LIST
 
 endif    # build_ota_package
 
-# -----------------------------------------------------------------
-# A zip of the appcompat directory containing logs
-APPCOMPAT_ZIP := $(PRODUCT_OUT)/appcompat.zip
-# For apps_only build we'll establish the dependency later in build/make/core/main.mk.
-ifeq (,$(TARGET_BUILD_UNBUNDLED))
-$(APPCOMPAT_ZIP): $(FULL_SYSTEMIMAGE_DEPS) \
-	    $(INTERNAL_RAMDISK_FILES) \
-	    $(INTERNAL_USERDATAIMAGE_FILES) \
-	    $(INTERNAL_VENDORIMAGE_FILES) \
-	    $(INTERNAL_PRODUCTIMAGE_FILES) \
-	    $(INTERNAL_SYSTEM_EXTIMAGE_FILES)
-endif
-$(APPCOMPAT_ZIP): PRIVATE_LIST_FILE := $(call intermediates-dir-for,PACKAGING,appcompat)/filelist
-$(APPCOMPAT_ZIP): $(SOONG_ZIP)
-	@echo "appcompat logs: $@"
-	$(hide) rm -rf $@ $(PRIVATE_LIST_FILE)
-	$(hide) mkdir -p $(dir $@) $(PRODUCT_OUT)/appcompat $(dir $(PRIVATE_LIST_FILE))
-	$(hide) find $(PRODUCT_OUT)/appcompat | sort >$(PRIVATE_LIST_FILE)
-	$(hide) $(SOONG_ZIP) -d -o $@ -C $(PRODUCT_OUT)/appcompat -l $(PRIVATE_LIST_FILE)
-
 DEXPREOPT_CONFIG_ZIP := $(PRODUCT_OUT)/dexpreopt_config.zip
 
 $(DEXPREOPT_CONFIG_ZIP): $(INSTALLED_SYSTEMIMAGE_TARGET) \
@@ -7351,12 +7339,6 @@ $(DEXPREOPT_CONFIG_ZIP): $(SOONG_ZIP)
 dexpreopt_config_zip: $(DEXPREOPT_CONFIG_ZIP)
 
 $(call declare-1p-target,$(DEXPREOPT_CONFIG_ZIP),)
-
-# -----------------------------------------------------------------
-# Zips of the symbols directory per test suites
-#
-
-$(foreach suite,$(ALL_COMPATIBILITY_SUITES),$(eval $(call create-suite-symbols-map,$(suite))))
 
 # -----------------------------------------------------------------
 # A zip of the symbols directory.  Keep the full paths to make it
@@ -7688,7 +7670,7 @@ endif # BOARD_BUILD_SUPER_IMAGE_BY_DEFAULT
 # Build $(PRODUCT_OUT)/super.img without dependencies.
 .PHONY: superimage-nodeps supernod
 superimage-nodeps supernod: intermediates :=
-superimage-nodeps supernod: | $(INSTALLED_SUPERIMAGE_DEPENDENCIES)
+superimage-nodeps supernod: | $(LPMAKE) $(BUILD_SUPER_IMAGE)
 	$(call pretty,"make $(INSTALLED_SUPERIMAGE_TARGET): ignoring dependencies")
 	$(call build-superimage-target,$(INSTALLED_SUPERIMAGE_TARGET),\
 	  $(call intermediates-dir-for,PACKAGING,superimage-nodeps)/misc_info.txt)
@@ -7962,7 +7944,7 @@ $(SDK_METADATA): $(TARGET_OUT_COMMON_INTERMEDIATES)/PACKAGING/framework-doc-stub
 framework-doc-stubs: $(SDK_METADATA)
 
 deps := \
-	$(OUT_DOCS)/offline-sdk-timestamp \
+	$(OUT_DOCS)/offline-sdk-docs-docs.zip \
 	$(SDK_METADATA_FILES) \
   $(INSTALLED_SDK_BUILD_PROP_TARGET) \
 	$(ATREE_FILES) \
@@ -7993,7 +7975,7 @@ $(INTERNAL_SDK_TARGET): PRIVATE_PLATFORM_NAME := $(sdk_platform_dir_name)
 #
 #SDK_GNU_ERROR := true
 
-$(INTERNAL_SDK_TARGET): $(deps)
+$(INTERNAL_SDK_TARGET): $(deps) | $(BUILD_NUMBER_FILE)
 	@echo "Package SDK: $@"
 	$(hide) rm -rf $(PRIVATE_DIR) $@
 	$(hide) for f in $(strip $(target_gnu_MODULES)); do \
@@ -8023,6 +8005,10 @@ $(INTERNAL_SDK_TARGET): $(deps)
 	        -o $(PRIVATE_DIR) && \
 	    HOST_OUT_EXECUTABLES=$(HOST_OUT_EXECUTABLES) HOST_OS=$(HOST_OS) \
 	        development/build/tools/sdk_clean.sh $(PRIVATE_DIR) && \
+	    if [ "$(TARGET_BUILD_VARIANT)" != "user" ] && \
+	       { [ "$(PRODUCT_NAME)" = "sdk" ] || [ "$(PRODUCT_NAME)" = "sdk_with_runtime_apis" ]; }; then \
+	        sed -e "s/{BUILD_NUMBER}/`cat $(BUILD_NUMBER_FILE)`/" -e "s/{PRODUCT_EXPORT_RUNTIME_APIS}/$(PRODUCT_EXPORT_RUNTIME_APIS)/" build/make/core/build_properties_template.xml > $(PRIVATE_DIR)/build_properties.xml; \
+	    fi && \
 	    chmod -R ug+rwX $(PRIVATE_DIR) && \
 	    cd $(dir $@) && zip -rqX $(notdir $@) $(PRIVATE_NAME) \
 	) || ( rm -rf $(PRIVATE_DIR) $@ && exit 44 )
@@ -8031,22 +8017,6 @@ MAIN_SDK_DIR  := $(sdk_dir)
 MAIN_SDK_ZIP  := $(INTERNAL_SDK_TARGET)
 
 endif # sdk in MAKECMDGOALS
-
-# -----------------------------------------------------------------
-# Findbugs
-INTERNAL_FINDBUGS_XML_TARGET := $(PRODUCT_OUT)/findbugs.xml
-INTERNAL_FINDBUGS_HTML_TARGET := $(PRODUCT_OUT)/findbugs.html
-$(INTERNAL_FINDBUGS_XML_TARGET): $(ALL_FINDBUGS_FILES)
-	@echo UnionBugs: $@
-	$(hide) $(FINDBUGS_DIR)/unionBugs $(ALL_FINDBUGS_FILES) \
-	> $@
-$(INTERNAL_FINDBUGS_HTML_TARGET): $(INTERNAL_FINDBUGS_XML_TARGET)
-	@echo ConvertXmlToText: $@
-	$(hide) $(FINDBUGS_DIR)/convertXmlToText -html:fancy.xsl \
-	$(INTERNAL_FINDBUGS_XML_TARGET) > $@
-
-# -----------------------------------------------------------------
-# Findbugs
 
 # -----------------------------------------------------------------
 # These are some additional build tasks that need to be run.
@@ -8105,12 +8075,16 @@ endif # PACK_DESKTOP_ESP_IMAGE
 # This artifact is used in two places:
 # 1. Packed into the recovery image.
 # 2. Added into DIST_DIR so that lab provisioning can download the firmware.
-TARGET_PRODUCT_FW_IMAGE_PACKAGE := gen-$(TARGET_PRODUCT)-firmware-image
-GENERATED_FW_IMAGE := $(call module-built-files,$(TARGET_PRODUCT_FW_IMAGE_PACKAGE))
+GENERATED_FW_IMAGE := $(call module-built-files,desktop-firmware-squashfs)
 
+# The lab provisioning script expects the format BOARD-firmware.img.
 ifneq (,$(GENERATED_FW_IMAGE))
 $(call dist-for-goals,dist_files,$(GENERATED_FW_IMAGE):${TARGET_PRODUCT}-firmware.img)
 endif
+
+# -----------------------------------------------------------------
+# Desktop generated partition image.
+GENERATED_PARTITION_IMAGE := $(call module-built-files,gen-partition-image)
 
 # -----------------------------------------------------------------
 # Desktop pack image hook.
@@ -8136,13 +8110,13 @@ endif # PACK_DESKTOP_FILESYSTEM_IMAGES
 # Desktop pack recovery image hook.
 ifeq ($(BOARD_USES_DESKTOP_RECOVERY_IMAGE),true)
 PACK_RECOVERY_IMAGE_TARGET := $(PRODUCT_OUT)/android-desktop_recovery_image.bin
-PACK_RECOVERY_IMAGE_ARGS := --noarchive --recovery --firmware $(GENERATED_FW_IMAGE)
+PACK_RECOVERY_IMAGE_ARGS := --noarchive --recovery --firmware $(GENERATED_FW_IMAGE) --partition-image $(GENERATED_PARTITION_IMAGE)
 
 ifneq (,$(strip $(PACK_RECOVERY_IMAGE_EXPERIMENTAL)))
 PACK_RECOVERY_IMAGE_ARGS += --experimental
 endif # PACK_RECOVERY_IMAGE_EXPERIMENTAL
 
-$(PACK_RECOVERY_IMAGE_TARGET): $(PACK_IMAGE_DEPS) $(PRODUCT_OUT)/recovery-kernel $(GENERATED_FW_IMAGE)
+$(PACK_RECOVERY_IMAGE_TARGET): $(PACK_IMAGE_DEPS) $(PRODUCT_OUT)/recovery-kernel $(GENERATED_FW_IMAGE) $(GENERATED_PARTITION_IMAGE)
 	$(PACK_IMAGE_SCRIPT) --out_dir $(PRODUCT_OUT) $(PACK_RECOVERY_IMAGE_ARGS)
 
 PACKED_RECOVERY_IMAGE_ARCHIVE_TARGET := $(PACK_RECOVERY_IMAGE_TARGET).zst
@@ -8186,13 +8160,13 @@ endif # BOARD_USES_DESKTOP_RECOVERY_IMAGE
 # Desktop pack update image hook.
 ifeq ($(BOARD_USES_DESKTOP_UPDATE_IMAGE),true)
 PACK_UPDATE_IMAGE_TARGET := $(PRODUCT_OUT)/android-desktop_update_image.bin
-PACK_UPDATE_IMAGE_ARGS := --noarchive --update --firmware $(GENERATED_FW_IMAGE)
+PACK_UPDATE_IMAGE_ARGS := --noarchive --update --firmware $(GENERATED_FW_IMAGE) --partition-image $(GENERATED_PARTITION_IMAGE)
 
 ifneq (,$(strip $(PACK_UPDATE_IMAGE_EXPERIMENTAL)))
 PACK_UPDATE_IMAGE_ARGS += --experimental
 endif # PACK_UPDATE_IMAGE_EXPERIMENTAL
 
-$(PACK_UPDATE_IMAGE_TARGET): $(PACK_IMAGE_DEPS) $(PRODUCT_OUT)/update-kernel $(GENERATED_FW_IMAGE)
+$(PACK_UPDATE_IMAGE_TARGET): $(PACK_IMAGE_DEPS) $(PRODUCT_OUT)/update-kernel $(GENERATED_FW_IMAGE) $(GENERATED_PARTITION_IMAGE)
 	$(PACK_IMAGE_SCRIPT) --out_dir $(PRODUCT_OUT) $(PACK_UPDATE_IMAGE_ARGS)
 
 PACKED_UPDATE_IMAGE_ARCHIVE_TARGET := $(PACK_UPDATE_IMAGE_TARGET).zst

@@ -43,6 +43,7 @@ function use_rbe() {
   RBE_use_application_default_credentials="true" \
   RBE_reproxy_wait_seconds="20" \
   RBE_CXX_EXEC_STRATEGY="remote_local_fallback" \
+  RBE_RUST_EXEC_STRATEGY="remote_local_fallback" \
   RBE_cpp_dependency_scanner_plugin="${RBE_BINARIES_DIR}/dependency_scanner_go_plugin.so" \
   RBE_DIR=${RBE_BINARIES_DIR} \
   RBE_re_proxy="${RBE_BINARIES_DIR}/reproxy" \
@@ -63,6 +64,7 @@ function _export_metrics_uploader() {
 function _set_rbe_vars() {
   export USE_RBE="true"
   export RBE_CXX_EXEC_STRATEGY="racing"
+  export RBE_RUST_EXEC_STRATEGY="racing"
   export RBE_JAVAC_EXEC_STRATEGY="racing"
   export RBE_R8_EXEC_STRATEGY="racing"
   export RBE_D8_EXEC_STRATEGY="racing"

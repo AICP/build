@@ -22,6 +22,7 @@ use crate::{AconfigStorageError, StorageFileType, StoredFlagType};
 
 use anyhow::anyhow;
 use std::io::Write;
+use std::path::PathBuf;
 use tempfile::NamedTempFile;
 
 pub fn create_test_package_table(version: u32) -> PackageTable {
@@ -196,4 +197,30 @@ pub fn write_bytes_to_temp_file(bytes: &[u8]) -> Result<NamedTempFile, AconfigSt
     })?;
     let _ = file.write_all(&bytes);
     Ok(file)
+}
+
+pub fn get_test_data_path(file_type: StorageFileType, version: u32) -> PathBuf {
+    let relative_path = get_source_file_name(file_type, version);
+    if let Ok(manifest_dir) = std::env::var("CARGO_MANIFEST_DIR") {
+        // Running with cargo, construct the path to the data files
+        // relative to aconfig_storage_read_api's manifest.
+        let mut path = PathBuf::from(manifest_dir);
+        path.pop(); // .../aconfig
+        path.push("aconfig_storage_file");
+        path.push("tests");
+        path.push(relative_path);
+        path
+    } else {
+        // Running with atest, test data is in the current directory
+        PathBuf::from(relative_path)
+    }
+}
+
+fn get_source_file_name(file_type: StorageFileType, version: u32) -> String {
+    return match file_type {
+        StorageFileType::PackageMap => format!("data/v{version}/package_v{version}.map"),
+        StorageFileType::FlagMap => format!("data/v{version}/flag_v{version}.map"),
+        StorageFileType::FlagVal => format!("data/v{version}/flag_v{version}.val"),
+        StorageFileType::FlagInfo => format!("data/v{version}/flag_v{version}.info"),
+    };
 }

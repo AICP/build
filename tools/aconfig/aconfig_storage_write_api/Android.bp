@@ -35,8 +35,7 @@ rust_test_host {
     test_suites: ["general-tests"],
     defaults: ["aconfig_storage_write_api.defaults"],
     data: [
-        "tests/flag.val",
-        "tests/flag.info",
+        ":test_storage_files",
     ],
     rustlibs: [
         "libaconfig_storage_read_api_with_test_utils",

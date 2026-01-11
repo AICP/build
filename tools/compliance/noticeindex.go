@@ -263,6 +263,29 @@ func (ni *NoticeIndex) HashLibInstalls(h hash, libName string) []string {
 	return installs
 }
 
+// ContainsInstall returns if the given hash has a file installed by any lib that is present in
+// filter
+func (ni *NoticeIndex) ContainsInstall(h hash, filter map[string]struct{}) bool {
+	for libName := range ni.hashLibInstall[h] {
+		for installPath := range ni.hashLibInstall[h][libName] {
+			if _, ok := filter[installPath]; ok {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// ContainsInstallForLib returns if the given lib from the given hash has any file present in filter
+func (ni *NoticeIndex) ContainsInstallForLib(h hash, libName string, filter map[string]struct{}) bool {
+	for installPath := range ni.hashLibInstall[h][libName] {
+		if _, ok := filter[installPath]; ok {
+			return true
+		}
+	}
+	return false
+}
+
 // InstallPaths returns the ordered channel of indexed install paths.
 func (ni *NoticeIndex) InstallPaths() chan string {
 	c := make(chan string)

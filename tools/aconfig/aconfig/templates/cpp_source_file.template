@@ -50,21 +50,23 @@ namespace {cpp_namespace} \{
             , package_exists_in_storage_(true) \{
             {{ -endif }}{#- end of use_package_fingerprint #}
 
-            auto package_map_file = aconfig_storage::get_mapped_file(
+// Storage files are only available on Android, not on host.
+#ifndef __ANDROID__
+            package_exists_in_storage_ = false;
+            return;
+#endif
+            auto package_map_file_ret = aconfig_storage::get_mapped_file(
                  "{container}",
                  aconfig_storage::StorageFileType::package_map);
 
-            if (!package_map_file.ok()) \{
-// Host doesn't have the package map file.
-#ifdef __ANDROID__
-                ALOGE("error: failed to get package map file: %s", package_map_file.error().c_str());
-#endif
+            if (!package_map_file_ret.ok()) \{
+                ALOGE("error: failed to get package map file: %s", package_map_file_ret.error().c_str());
                 package_exists_in_storage_ = false;
                 return;
             }
-
+            std::unique_ptr<aconfig_storage::MappedStorageFile> package_map_file(*package_map_file_ret);
             auto context = aconfig_storage::get_package_read_context(
-                **package_map_file, "{package}");
+                *package_map_file, "{package}");
 
             if (!context.ok()) \{
                 ALOGE("error: failed to get package read context: %s", context.error().c_str());
@@ -87,9 +89,6 @@ namespace {cpp_namespace} \{
 
             // cache package boolean flag start index
             boolean_start_index_ = context->boolean_start_index;
-
-            // unmap package map file and free memory
-            delete *package_map_file;
 
             auto flag_value_file = aconfig_storage::get_mapped_file(
                 "{container}",
@@ -119,7 +118,6 @@ namespace {cpp_namespace} \{
             } else \{
                 {{ if item.readwrite- }}
                 if (!package_exists_in_storage_) \{
-                    ALOGE("error: package does not exist, returning flag default value.");
                     return {item.default_value};
                 }
                 {{ if use_package_fingerprint- }}
@@ -176,20 +174,22 @@ namespace {cpp_namespace} \{
                 cache_[i] = -1;
             }
 
-            auto package_map_file = aconfig_storage::get_mapped_file(
+// Storage files are only available on Android, not on host.
+#ifndef __ANDROID__
+            package_exists_in_storage_ = false;
+            return;
+#endif
+            auto package_map_file_ret = aconfig_storage::get_mapped_file(
                  "{container}",
                  aconfig_storage::StorageFileType::package_map);
-            if (!package_map_file.ok()) \{
-// Host doesn't have the package map file.
-#ifdef __ANDROID__
-                ALOGE("error: failed to get package map file: %s", package_map_file.error().c_str());
-#endif
+            if (!package_map_file_ret.ok()) \{
+                ALOGE("error: failed to get package map file: %s", package_map_file_ret.error().c_str());
                 package_exists_in_storage_ = false;
                 return;
             }
-
+            std::unique_ptr<aconfig_storage::MappedStorageFile> package_map_file(*package_map_file_ret);
             auto context = aconfig_storage::get_package_read_context(
-                **package_map_file, "{package}");
+                *package_map_file, "{package}");
             if (!context.ok()) \{
                 ALOGE("error: failed to get package read context: %s", context.error().c_str());
                 package_exists_in_storage_ = false;
@@ -212,9 +212,6 @@ namespace {cpp_namespace} \{
             // cache package boolean flag start index
             boolean_start_index_ = context->boolean_start_index;
 
-            // unmap package map file and free memory
-            delete *package_map_file;
-
             auto flag_value_file = aconfig_storage::get_mapped_file(
                 "{container}",
                 aconfig_storage::StorageFileType::flag_val);
@@ -236,7 +233,6 @@ namespace {cpp_namespace} \{
             {{ -if item.readwrite }}
             if (cache_[{item.readwrite_idx}].load(std::memory_order_relaxed) == -1) \{
                 if (!package_exists_in_storage_) \{
-                    ALOGE("error: package does not exist, returning flag default value.");
                     return {item.default_value};
                 }
                 {{ if use_package_fingerprint- }}
@@ -288,8 +284,12 @@ namespace {cpp_namespace} \{
 
 {{ -endif }}
 
-std::unique_ptr<flag_provider_interface> provider_ =
-    std::make_unique<flag_provider>();
+    static flag_provider_interface* get_provider_instance() \{
+        static flag_provider* instance_ = new flag_provider();
+        return instance_;
+    }
+
+    std::unique_ptr<flag_provider_interface> provider_(get_provider_instance());
 }
 
 {{ for item in class_elements }}

@@ -118,7 +118,7 @@ mod tests {
 
     #[test]
     fn test_set_boolean_flag_value() {
-        let flag_value_file = copy_to_temp_file("./tests/flag.val", false).unwrap();
+        let flag_value_file = copy_to_temp_file("data/v1/flag_v1.val", false).unwrap();
         let flag_value_path = flag_value_file.path().display().to_string();
 
         // SAFETY:
@@ -147,7 +147,7 @@ mod tests {
 
     #[test]
     fn test_set_flag_has_server_override() {
-        let flag_info_file = copy_to_temp_file("./tests/flag.info", false).unwrap();
+        let flag_info_file = copy_to_temp_file("data/v1/flag_v1.info", false).unwrap();
         let flag_info_path = flag_info_file.path().display().to_string();
 
         // SAFETY:
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn test_set_flag_has_local_override() {
-        let flag_info_file = copy_to_temp_file("./tests/flag.info", false).unwrap();
+        let flag_info_file = copy_to_temp_file("data/v1/flag_v1.info", false).unwrap();
         let flag_info_path = flag_info_file.path().display().to_string();
 
         // SAFETY:

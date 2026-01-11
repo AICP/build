@@ -66,6 +66,7 @@ endif
 $(call soong_config_set_bool,ANDROID,ASAN_ENABLED,$(if $(filter address,$(SANITIZE_TARGET)),true,false))
 $(call soong_config_set_bool,ANDROID,HWASAN_ENABLED,$(if $(filter hwaddress,$(SANITIZE_TARGET)),true,false))
 $(call soong_config_set_bool,ANDROID,SANITIZE_TARGET_SYSTEM_ENABLED,$(if $(filter true,$(SANITIZE_TARGET_SYSTEM)),true,false))
+$(call soong_config_set_bool,ANDROID,HAS_SANITIZE_HOST,$(if $(SANITIZE_HOST),true,false))
 
 # For init.environ.rc
 $(call soong_config_set_bool,ANDROID,GCOV_COVERAGE,$(NATIVE_COVERAGE))
@@ -84,6 +85,15 @@ $(call soong_config_set,art_module,art_debug_opt_flag,$(ART_DEBUG_OPT_FLAG))
 endif
 # The default value of ART_BUILD_HOST_DEBUG is true
 $(call soong_config_set_bool,art_module,art_build_host_debug,$(if $(filter false,$(ART_BUILD_HOST_DEBUG)),false,true))
+
+# For ART_BUILD_TARGET in art/build/Android.common_build.mk
+# Sets 'art_module_build_target' to true unless both NDEBUG and DEBUG variables are explicitly 'false'.
+$(call soong_config_set_bool,art_module,art_build_target, \
+  $(if $(filter-out false_marker,$(ART_BUILD_TARGET_NDEBUG)_marker $(ART_BUILD_TARGET_DEBUG)_marker),true,false))
+# For ART_BUILD_HOST in art/build/Android.common_build.mk
+# Sets 'art_module_build_host' to true unless both NDEBUG and DEBUG variables are explicitly 'false'.
+$(call soong_config_set_bool,art_module,art_build_host, \
+  $(if $(filter-out false_marker,$(ART_BUILD_HOST_NDEBUG)_marker $(ART_BUILD_HOST_DEBUG)_marker),true,false))
 
 # For chre
 $(call soong_config_set_bool,chre,chre_daemon_load_into_sensorspd,$(if $(filter true,$(CHRE_DAEMON_LOAD_INTO_SENSORSPD)),true,false))
@@ -262,6 +272,10 @@ endif
 $(call soong_config_set,ANDROID,release_package_profiling_module,$(RELEASE_PACKAGE_PROFILING_MODULE))
 $(call soong_config_set,bootclasspath,release_package_profiling_module,$(RELEASE_PACKAGE_PROFILING_MODULE))
 
+# Enable anomaly detector inside the Profiling module. Also used by platform_bootclasspath.
+$(call soong_config_set,ANDROID,release_anomaly_detector,$(RELEASE_ANOMALY_DETECTOR))
+$(call soong_config_set,bootclasspath,release_anomaly_detector,$(RELEASE_ANOMALY_DETECTOR))
+
 # Move VCN from platform to the Tethering module; used by both platform and module
 $(call soong_config_set,ANDROID,is_vcn_in_mainline,$(RELEASE_MOVE_VCN_TO_MAINLINE))
 
@@ -411,6 +425,7 @@ $(call soong_config_set_bool,qcom_bluetooth,TARGET_BLUETOOTH_HCI_V1_1,$(if $(fil
 $(call soong_config_set_bool,qcom_bluetooth,TARGET_BLUETOOTH_SUPPORT_QMI_ADDRESS,$(if $(filter true,$(TARGET_BLUETOOTH_SUPPORT_QMI_ADDRESS)),true,false))
 $(call soong_config_set_bool,qcom_bluetooth,TARGET_DROP_BYTES_BEFORE_SSR_DUMP,$(if $(filter true,$(TARGET_DROP_BYTES_BEFORE_SSR_DUMP)),true,false))
 $(call soong_config_set_bool,qcom_bluetooth,TARGET_USE_QTI_BT_CHANNEL_AVOIDANCE,$(if $(filter true,$(TARGET_USE_QTI_BT_CHANNEL_AVOIDANCE)),true,false))
+$(call soong_config_set_bool,qcom_bluetooth,TARGET_USE_QTI_BT_EXT,$(if $(filter true,$(TARGET_USE_QTI_BT_EXT)),true,false))
 $(call soong_config_set_bool,qcom_bluetooth,TARGET_USE_QTI_BT_CONFIGSTORE,$(if $(filter true,$(TARGET_USE_QTI_BT_CONFIGSTORE)),true,false))
 $(call soong_config_set_bool,qcom_bluetooth,TARGET_USE_QTI_BT_IBS,$(if $(filter true,$(TARGET_USE_QTI_BT_IBS)),true,false))
 $(call soong_config_set_bool,qcom_bluetooth,TARGET_USE_QTI_BT_OBS,$(if $(filter true,$(TARGET_USE_QTI_BT_OBS)),true,false))
@@ -459,7 +474,21 @@ $(call soong_config_set_bool,fp_hal_feature,FPC_CONFIG_TRUSTY_SC,$(if $(filter 1
 $(call soong_config_set_bool,fp_hal_feature,GOOGLE_CONFIG_PERFORMANCE,$(if $(filter 1,$(GOOGLE_CONFIG_PERFORMANCE)),true,false))
 $(call soong_config_set_bool,fp_hal_feature,GOOGLE_CONFIG_TOUCH_TO_UNLOCK_ANYTIME,$(if $(filter 1,$(GOOGLE_CONFIG_TOUCH_TO_UNLOCK_ANYTIME)),true,false))
 
+# Flag for building static_apexer_tools
+$(call soong_config_set_bool,ANDROID,BUILD_HOST_static,$(if $(filter true 1,$(BUILD_HOST_static)),true,false))
+
 # Flags for CLOCKWORK
 $(call soong_config_set_bool,CLOCKWORK,CLOCKWORK_EMULATOR_PRODUCT,$(if $(filter true,$(CLOCKWORK_EMULATOR_PRODUCT)),true,false))
 $(call soong_config_set_bool,CLOCKWORK,CLOCKWORK_ENABLE_HEALTH_SERVICES_HAL,$(if $(filter true,$(CLOCKWORK_ENABLE_HEALTH_SERVICES_HAL)),true,false))
 $(call soong_config_set_bool,CLOCKWORK,CLOCKWORK_G3_BUILD,$(if $(filter true,$(CLOCKWORK_G3_BUILD)),true,false))
+
+# Flag for using SetupWizardCar certificate
+$(call soong_config_set_bool,AUTO,USE_AUTOMTIVE_SETUPWIZARD_TEST_CERTIFICATE,$(if $(filter true,$(USE_AUTOMTIVE_SETUPWIZARD_TEST_CERTIFICATE)),true,false))
+
+# This flag is used to control to use tools/tradefederation/core or
+# tools/tradefederation/prebuilts for tradefederation.
+ifeq (,$(wildcard tools/tradefederation/core))
+$(call soong_config_set_bool,tradefed,use_prebuilt,true)
+else
+$(call soong_config_set_bool,tradefed,use_prebuilt,false)
+endif

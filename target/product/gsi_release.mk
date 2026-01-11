@@ -65,7 +65,6 @@ endif
 
 # Support additional VNDK snapshots
 PRODUCT_EXTRA_VNDK_VERSIONS := \
-    30 \
     31 \
     32 \
     33 \

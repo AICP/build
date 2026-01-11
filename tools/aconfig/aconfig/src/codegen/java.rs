@@ -518,6 +518,7 @@ mod tests {
     public class FakeFeatureFlagsImpl extends CustomFeatureFlags {
         private final Map<String, Boolean> mFlagMap = new HashMap<>();
         private final FeatureFlags mDefaults;
+        private final boolean IS_EXPORTED = {};
 
         public FakeFeatureFlagsImpl() {
             this(null);
@@ -545,7 +546,7 @@ mod tests {
         }
 
         public void setFlag(String flagName, boolean value) {
-            if (!this.mFlagMap.containsKey(flagName)) {
+            if (!this.mFlagMap.containsKey(flagName) && !IS_EXPORTED) {
                 throw new IllegalArgumentException("no such flag " + flagName);
             }
             this.mFlagMap.put(flagName, value);
@@ -783,6 +784,7 @@ mod tests {
             + r#"
             private static FeatureFlags FEATURE_FLAGS = new FeatureFlagsImpl();
         }"#;
+        let expect_fake_feature_impl = EXPECTED_FAKEFEATUREFLAGSIMPL_CONTENT.replace("{}", "false");
 
         let mut file_set = HashMap::from([
             ("com/android/aconfig/test/Flags.java", expect_flags_content.as_str()),
@@ -795,23 +797,19 @@ mod tests {
                 "com/android/aconfig/test/CustomFeatureFlags.java",
                 EXPECTED_CUSTOMFEATUREFLAGS_CONTENT,
             ),
-            (
-                "com/android/aconfig/test/FakeFeatureFlagsImpl.java",
-                EXPECTED_FAKEFEATUREFLAGSIMPL_CONTENT,
-            ),
+            ("com/android/aconfig/test/FakeFeatureFlagsImpl.java", &expect_fake_feature_impl),
         ]);
 
         for file in generated_files {
             let file_path = file.path.to_str().unwrap();
-            assert!(file_set.contains_key(file_path), "Cannot find {}", file_path);
+            assert!(file_set.contains_key(file_path), "Cannot find {file_path}");
             assert_eq!(
                 None,
                 crate::test::first_significant_code_diff(
                     file_set.get(file_path).unwrap(),
                     &String::from_utf8(file.contents).unwrap()
                 ),
-                "File {} content is not correct",
-                file_path
+                "File {file_path} content is not correct"
             );
             file_set.remove(file_path);
         }
@@ -856,6 +854,7 @@ mod tests {
             private static FeatureFlags FEATURE_FLAGS = new FeatureFlagsImpl();
         }"#;
 
+        let expect_fake_feature_impl = EXPECTED_FAKEFEATUREFLAGSIMPL_CONTENT.replace("{}", "false");
         let mut file_set = HashMap::from([
             ("com/android/aconfig/test/Flags.java", expect_flags_content.as_str()),
             (
@@ -867,15 +866,12 @@ mod tests {
                 "com/android/aconfig/test/CustomFeatureFlags.java",
                 EXPECTED_CUSTOMFEATUREFLAGS_CONTENT,
             ),
-            (
-                "com/android/aconfig/test/FakeFeatureFlagsImpl.java",
-                EXPECTED_FAKEFEATUREFLAGSIMPL_CONTENT,
-            ),
+            ("com/android/aconfig/test/FakeFeatureFlagsImpl.java", &expect_fake_feature_impl),
         ]);
 
         for file in generated_files {
             let file_path = file.path.to_str().unwrap();
-            assert!(file_set.contains_key(file_path), "Cannot find {}", file_path);
+            assert!(file_set.contains_key(file_path), "Cannot find {file_path}");
             crate::test::assert_no_significant_code_diff(
                 file_set.get(file_path).unwrap(),
                 &String::from_utf8(file.contents).unwrap(),
@@ -1064,6 +1060,7 @@ mod tests {
             }
         }
     "#;
+        let expect_fake_feature_impl = EXPECTED_FAKEFEATUREFLAGSIMPL_CONTENT.replace("{}", "true");
 
         let mut file_set = HashMap::from([
             ("com/android/aconfig/test/Flags.java", expect_flags_content),
@@ -1073,23 +1070,19 @@ mod tests {
                 "com/android/aconfig/test/CustomFeatureFlags.java",
                 expect_custom_feature_flags_content,
             ),
-            (
-                "com/android/aconfig/test/FakeFeatureFlagsImpl.java",
-                EXPECTED_FAKEFEATUREFLAGSIMPL_CONTENT,
-            ),
+            ("com/android/aconfig/test/FakeFeatureFlagsImpl.java", &expect_fake_feature_impl),
         ]);
 
         for file in generated_files {
             let file_path = file.path.to_str().unwrap();
-            assert!(file_set.contains_key(file_path), "Cannot find {}", file_path);
+            assert!(file_set.contains_key(file_path), "Cannot find {file_path}");
             assert_eq!(
                 None,
                 crate::test::first_significant_code_diff(
                     file_set.get(file_path).unwrap(),
                     &String::from_utf8(file.contents).unwrap()
                 ),
-                "File {} content is not correct",
-                file_path
+                "File {file_path} content is not correct"
             );
             file_set.remove(file_path);
         }
@@ -1287,7 +1280,7 @@ mod tests {
             }
         }
     "#;
-
+        let expect_fake_feature_impl = EXPECTED_FAKEFEATUREFLAGSIMPL_CONTENT.replace("{}", "true");
         let mut file_set = HashMap::from([
             ("com/android/aconfig/test/Flags.java", expect_flags_content),
             ("com/android/aconfig/test/FeatureFlags.java", expect_feature_flags_content),
@@ -1296,23 +1289,19 @@ mod tests {
                 "com/android/aconfig/test/CustomFeatureFlags.java",
                 expect_custom_feature_flags_content,
             ),
-            (
-                "com/android/aconfig/test/FakeFeatureFlagsImpl.java",
-                EXPECTED_FAKEFEATUREFLAGSIMPL_CONTENT,
-            ),
+            ("com/android/aconfig/test/FakeFeatureFlagsImpl.java", &expect_fake_feature_impl),
         ]);
 
         for file in generated_files {
             let file_path = file.path.to_str().unwrap();
-            assert!(file_set.contains_key(file_path), "Cannot find {}", file_path);
+            assert!(file_set.contains_key(file_path), "Cannot find {file_path}");
             assert_eq!(
                 None,
                 crate::test::first_significant_code_diff(
                     file_set.get(file_path).unwrap(),
                     &String::from_utf8(file.contents).unwrap()
                 ),
-                "File {} content is not correct",
-                file_path
+                "File {file_path} content is not correct"
             );
             file_set.remove(file_path);
         }
@@ -1463,7 +1452,7 @@ mod tests {
             }
         }
         "#;
-
+        let expect_fake_feature_impl = EXPECTED_FAKEFEATUREFLAGSIMPL_CONTENT.replace("{}", "false");
         let mut file_set = HashMap::from([
             ("com/android/aconfig/test/Flags.java", expect_flags_content.as_str()),
             ("com/android/aconfig/test/FeatureFlags.java", EXPECTED_FEATUREFLAGS_COMMON_CONTENT),
@@ -1472,23 +1461,19 @@ mod tests {
                 "com/android/aconfig/test/CustomFeatureFlags.java",
                 EXPECTED_CUSTOMFEATUREFLAGS_CONTENT,
             ),
-            (
-                "com/android/aconfig/test/FakeFeatureFlagsImpl.java",
-                EXPECTED_FAKEFEATUREFLAGSIMPL_CONTENT,
-            ),
+            ("com/android/aconfig/test/FakeFeatureFlagsImpl.java", &expect_fake_feature_impl),
         ]);
 
         for file in generated_files {
             let file_path = file.path.to_str().unwrap();
-            assert!(file_set.contains_key(file_path), "Cannot find {}", file_path);
+            assert!(file_set.contains_key(file_path), "Cannot find {file_path}");
             assert_eq!(
                 None,
                 crate::test::first_significant_code_diff(
                     file_set.get(file_path).unwrap(),
                     &String::from_utf8(file.contents).unwrap()
                 ),
-                "File {} content is not correct",
-                file_path
+                "File {file_path} content is not correct"
             );
             file_set.remove(file_path);
         }
@@ -1720,28 +1705,25 @@ mod tests {
         }
         "#;
 
+        let expect_fake_feature_impl = EXPECTED_FAKEFEATUREFLAGSIMPL_CONTENT.replace("{}", "false");
         let mut file_set = HashMap::from([
             ("com/android/aconfig/test/Flags.java", expect_flags_content),
             ("com/android/aconfig/test/FeatureFlagsImpl.java", expect_featureflagsimpl_content),
             ("com/android/aconfig/test/FeatureFlags.java", expect_featureflags_content),
             ("com/android/aconfig/test/CustomFeatureFlags.java", expect_customfeatureflags_content),
-            (
-                "com/android/aconfig/test/FakeFeatureFlagsImpl.java",
-                EXPECTED_FAKEFEATUREFLAGSIMPL_CONTENT,
-            ),
+            ("com/android/aconfig/test/FakeFeatureFlagsImpl.java", &expect_fake_feature_impl),
         ]);
 
         for file in generated_files {
             let file_path = file.path.to_str().unwrap();
-            assert!(file_set.contains_key(file_path), "Cannot find {}", file_path);
+            assert!(file_set.contains_key(file_path), "Cannot find {file_path}");
             assert_eq!(
                 None,
                 crate::test::first_significant_code_diff(
                     file_set.get(file_path).unwrap(),
                     &String::from_utf8(file.contents).unwrap()
                 ),
-                "File {} content is not correct",
-                file_path
+                "File {file_path} content is not correct"
             );
             file_set.remove(file_path);
         }
@@ -1880,7 +1862,7 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "Package com.android.aconfig.test cannot contain both device_config and new storage stored flags",
         );
     }

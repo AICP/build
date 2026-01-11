@@ -167,7 +167,7 @@ pub enum ParsedCommand {
 fn build_cli() -> Command {
     Command::new("aconfig")
         .subcommand_required(true)
-        .about(format!("A tool trunk flags. Supports {}responsefile syntax.", RESPONSE_FILE_PREFIX))
+        .about(format!("A tool trunk flags. Supports {RESPONSE_FILE_PREFIX}responsefile syntax."))
         .subcommand(
             Command::new("create-cache")
                 .arg(Arg::new("package").long("package").required(true))
@@ -336,10 +336,10 @@ pub fn process_raw_args<R: ResponseFileReader>(
             );
             let reader = reader
                 .read_to_bufread(response_file_path)
-                .with_context(|| format!("Failed to open response file: {}", response_file_path))?;
+                .with_context(|| format!("Failed to open response file: {response_file_path}"))?;
             for line_result in reader.lines() {
                 let line = line_result.with_context(|| {
-                    format!("Failed to read line from response file reader: {}", response_file_path)
+                    format!("Failed to read line from response file reader: {response_file_path}")
                 })?;
                 let trimmed_line = line.trim();
                 if trimmed_line.is_empty() || trimmed_line.starts_with('#') {
@@ -611,8 +611,7 @@ mod tests {
              --cache cache1.pb \
              --cache cache2.pb \
              --out /storage/system.package.map \
-             --version {}",
-            version
+             --version {version}"
         );
         let input_args = create_os_command(&command_string);
         let parsed = parse_args(input_args)?;

@@ -56,6 +56,10 @@ ifdef TARGET_RECOVERY_PIXEL_FORMAT
 ADDITIONAL_VENDOR_PROPERTIES += \
     ro.minui.pixel_format=$(TARGET_RECOVERY_PIXEL_FORMAT)
 endif
+ifdef TARGET_RECOVERY_NO_INITIAL_MODSET_FLUSH
+ADDITIONAL_VENDOR_PROPERTIES += \
+    ro.minui.no_initial_modset_flush=$(TARGET_RECOVERY_NO_INITIAL_MODSET_FLUSH)
+endif
 
 ifdef PRODUCT_USE_DYNAMIC_PARTITIONS
 ADDITIONAL_VENDOR_PROPERTIES += \
@@ -119,13 +123,6 @@ endif
 ifeq ($(BOARD_DONT_USE_VABC_OTA),true)
 ADDITIONAL_VENDOR_PROPERTIES += \
     ro.vendor.build.dont_use_vabc=true
-endif
-
-# Set the flag in vendor. So VTS would know if the new fingerprint format is in use when
-# the system images are replaced by GSI.
-ifeq ($(BOARD_USE_VBMETA_DIGTEST_IN_FINGERPRINT),true)
-ADDITIONAL_VENDOR_PROPERTIES += \
-    ro.vendor.build.fingerprint_has_digest=1
 endif
 
 ADDITIONAL_VENDOR_PROPERTIES += \

@@ -175,17 +175,3 @@ java_library {
         "//apex_available:anyapex",
     ],
 }
-
-// storage file parse api java library for core library
-java_library {
-    name: "aconfig_storage_file_java_none",
-    srcs: [
-        "srcs/**/*.java",
-    ],
-    libs: [
-        "ravenwood-annotations-lib",
-    ],
-    sdk_version: "none",
-    system_modules: "core-all-system-modules",
-    host_supported: true,
-}

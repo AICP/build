@@ -11,6 +11,7 @@ rust_defaults {
     srcs: [
         ":finalized_flags_record.json",
         "templates/*.template",
+
     ],
     rustlibs: [
         "libaconfig_protos",
@@ -36,6 +37,10 @@ rust_defaults {
             true: ["enable_jarjar_flags_in_framwork"],
             default: [],
         }),
+    features: select(release_flag("RELEASE_ACONFIG_DEFAULT_EXPORTED_READS_TO_DISABLED"), {
+        true: ["default_exported_reads_to_disabled"],
+        default: [],
+    }),
 }
 
 rust_binary_host {
@@ -52,6 +57,10 @@ rust_test_host {
     rustlibs: [
         "libaconfig_storage_file_with_test_utils",
         "libitertools",
+    ],
+    srcs: [
+        "tests/*.aconfig",
+        "tests/*.values",
     ],
     test_suites: ["general-tests"],
     data: [

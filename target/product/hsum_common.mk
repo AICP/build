@@ -19,7 +19,7 @@
 # Should generally be inherited first as using an HSUM configuration can affect downstream choices
 # (such as ensuring that the HSUM-variants of packages are selected).
 
-PRODUCT_SYSTEM_DEFAULT_PROPERTIES += \
+PRODUCT_SYSTEM_EXT_PROPERTIES += \
     ro.fw.mu.headless_system_user=true
 
 # Experimental configuration sets a RAM limit for HSUM, primarily for testing its behavior

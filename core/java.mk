@@ -507,31 +507,6 @@ java-dex: $(built_dex)
 
 endif # !LOCAL_IS_STATIC_JAVA_LIBRARY
 
-findbugs_xml := $(intermediates.COMMON)/findbugs.xml
-$(findbugs_xml): PRIVATE_AUXCLASSPATH := $(addprefix -auxclasspath ,$(strip \
-    $(call normalize-path-list,$(filter %.jar,$(full_java_libs)))))
-$(findbugs_xml): PRIVATE_FINDBUGS_FLAGS := $(LOCAL_FINDBUGS_FLAGS)
-$(findbugs_xml) : $(full_classes_pre_proguard_jar) $(filter %.xml, $(LOCAL_FINDBUGS_FLAGS))
-	@echo Findbugs: $@
-	$(hide) $(FINDBUGS) -textui -effort:min -xml:withMessages \
-		$(PRIVATE_AUXCLASSPATH) $(PRIVATE_FINDBUGS_FLAGS) \
-		$< \
-		> $@
-
-ALL_FINDBUGS_FILES += $(findbugs_xml)
-
-findbugs_html := $(PRODUCT_OUT)/findbugs/$(LOCAL_MODULE).html
-$(findbugs_html) : PRIVATE_XML_FILE := $(findbugs_xml)
-$(LOCAL_MODULE)-findbugs : $(findbugs_html)
-.PHONY: $(LOCAL_MODULE)-findbugs
-$(findbugs_html) : $(findbugs_xml)
-	@mkdir -p $(dir $@)
-	@echo ConvertXmlToText: $@
-	$(hide) $(FINDBUGS_DIR)/convertXmlToText -html:fancy.xsl $(PRIVATE_XML_FILE) \
-	> $@
-
-$(LOCAL_MODULE)-findbugs : $(findbugs_html)
-
 endif  # full_classes_jar is defined
 
 $(LOCAL_INTERMEDIATE_TARGETS): PRIVATE_DEFAULT_APP_TARGET_SDK := $(call module-target-sdk-version)

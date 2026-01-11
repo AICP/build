@@ -72,24 +72,59 @@ $(foreach map,$(PRODUCT_RELEASE_CONFIG_MAPS), \
         $(eval _protobuf_map_files += $(map))) \
 )
 
-# The .textproto files are the canonical source of truth.
-_args := --guard=false $(foreach map,$(_protobuf_map_files), --map $(map) )
-_args += --allow-missing=true
+# Always generate the release config for ${TARGET_RELEASE} (and its dependencies).
+# Any others that are needed for build artifacts will be generated in Soong.
+_flags_dir:=$(OUT_DIR)/soong/release-config
+
+# $_maps_file) is the list of maps that are used for $(TARGET_PRODUCT).
+$(shell mkdir -p $(_flags_dir))
+_maps_file:=$(_flags_dir)/maps_list-$(TARGET_PRODUCT).txt
+$(file >$(_maps_file).tmp,$(foreach map,$(_protobuf_map_files),$(map)))
+
+_args:=
 ifneq (,$(TARGET_PRODUCT))
     _args += --product $(TARGET_PRODUCT)
 endif
-_flags_dir:=$(OUT_DIR)/soong/release-config
+ifneq (,$(TARGET_RELEASE))
+    _args += --release $(TARGET_RELEASE)
+endif
+ifneq (,$(TARGET_BUILD_VARIANT))
+    _args += --variant $(TARGET_BUILD_VARIANT)
+else
+    _args += --variant eng
+endif
+_args_file:=$(_flags_dir)/args-$(TARGET_PRODUCT).txt
+# Preserve arguments for the soong module to use when it re-runs release-config.
+$(KATI_file_no_rerun >$(_args_file).tmp,$(_args) --maps-file $(_maps_file))
+
+# $(_hashfile) will have changed if any of the inputs to release-config changed, triggering a rebuild of
+# those artifacts in the Soong modules.  This way, we can skip trying to duplicate the dependency tracking
+# with finder.
+_hashfile:=$(_flags_dir)/files_used-$(TARGET_PRODUCT).hash
+
+# Always use the generated _maps_file, but only update the saved file on the final pass.
+_args += --allow-missing=true --maps-file $(_maps_file).tmp --hashfile $(_hashfile).tmp
 _flags_file:=$(_flags_dir)/release_config-$(TARGET_PRODUCT)-$(TARGET_RELEASE).vars
+_active_flags:=$(_flags_dir)/release_config-$(TARGET_PRODUCT).vars
 # release-config generates $(_flags_varmk)
 _flags_varmk:=$(_flags_file:.vars=.varmk)
-$(shell $(OUT_DIR)/release-config $(_args) >$(OUT_DIR)/release-config.${TARGET_PRODUCT}.out && touch -t 200001010000 $(_flags_varmk))
+
+# Note: The lack of $(KATI_extra_file_deps) is intentional.  Since only the final build flag values for
+# *THIS* release config matter for analysis, we don't need to re-run Kati if there were input changes
+# that did not cause any changes in the final state of this release config.
+$(KATI_shell_no_rerun $(OUT_DIR)/release-config $(_args) >$(OUT_DIR)/release-config.${TARGET_PRODUCT}.out && touch -t 200001010000 $(_flags_varmk))
 $(if $(filter-out 0,$(.SHELLSTATUS)),$(error release-config failed to run))
 ifneq (,$(_final_product_config_pass))
     # Save the final version of the config.
     $(shell if ! cmp --quiet $(_flags_varmk) $(_flags_file); then cp $(_flags_varmk) $(_flags_file); fi)
-    # This will also set ALL_RELEASE_CONFIGS_FOR_PRODUCT and _used_files for us.
+    $(shell if ! cmp --quiet $(_flags_varmk) $(_active_flags); then cp $(_flags_varmk) $(_active_flags); fi)
+    # Save the final version of the maps file, so that Soong can produce the additional artifacts.
+    $(shell if ! cmp --quiet $(_maps_file).tmp $(_maps_file); then cp $(_maps_file).tmp $(_maps_file); fi)
+    $(shell if ! cmp --quiet $(_args_file).tmp $(_args_file); then cp $(_args_file).tmp $(_args_file); fi)
+    # Save the hash of all release config files so that Soong modules can use that to detect potential changes.
+    $(shell if ! cmp --quiet $(_hashfile).tmp $(_hashfile); then cp $(_hashfile).tmp $(_hashfile); fi)
+    # This will also set ALL_RELEASE_CONFIGS_FOR_PRODUCT.
     $(eval include $(_flags_file))
-    $(KATI_extra_file_deps $(OUT_DIR)/release-config $(_protobuf_map_files) $(_flags_file))
     ifneq (,$(_disallow_lunch_use))
         $(error Release config ${TARGET_RELEASE} is disallowed for build.  Please use one of: $(ALL_RELEASE_CONFIGS_FOR_PRODUCT))
     endif
@@ -101,7 +136,10 @@ _args:=
 _used_files:=
 _flags_dir:=
 _flags_file:=
+_active_flags:=
 _flags_varmk:=
+_hashfile:=
+_maps_file:=
 
 ifeq ($(TARGET_RELEASE),)
     # We allow some internal paths to explicitly set TARGET_RELEASE to the

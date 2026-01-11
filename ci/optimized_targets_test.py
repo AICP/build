@@ -55,6 +55,8 @@ class GeneralTestsOptimizerTest(fake_filesystem_unittest.TestCase):
     self._soong_host_out.mkdir(parents=True)
     self._host_out = pathlib.Path('/tmp/top/host_out')
     self._host_out.mkdir(parents=True)
+    self._out = pathlib.Path('/tmp/top/out')
+    self._out.mkdir(parents=True)
     self._write_general_tests_files_outputs()
 
     self._dist_dir = pathlib.Path('/tmp/top/out/dist')
@@ -113,6 +115,7 @@ class GeneralTestsOptimizerTest(fake_filesystem_unittest.TestCase):
               echo PRODUCT_OUT='/tmp/top/product_out'
               echo SOONG_HOST_OUT='/tmp/top/soong_host_out'
               echo HOST_OUT='/tmp/top/host_out'
+              echo OUT_DIR='/tmp/top/out'
               """)
     os.chmod(os.path.join(soong_path, 'soong_ui.bash'), 0o666)
 
@@ -282,6 +285,7 @@ class GeneralTestsOptimizerTest(fake_filesystem_unittest.TestCase):
                                PRODUCT_OUT='{self._product_out}'
                                SOONG_HOST_OUT='{self._soong_host_out}'
                                HOST_OUT='{self._host_out}'
+                               OUT_DIR='{self._out}'
                                """)
 
     return_value.stdout = stdout

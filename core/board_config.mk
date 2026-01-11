@@ -649,24 +649,37 @@ ifeq ($(PRODUCT_BUILD_VBMETA_IMAGE),false)
 endif
 .KATI_READONLY := BUILDING_VBMETA_IMAGE
 
-# Are we building a super_empty image
+# Are we building a super_empty image, it should also respect PRODUCT_BUILD_SUPER_PARTITION
 BUILDING_SUPER_EMPTY_IMAGE :=
-ifeq ($(PRODUCT_BUILD_SUPER_EMPTY_IMAGE),)
-  ifeq (true,$(PRODUCT_USE_DYNAMIC_PARTITIONS))
-    ifneq ($(BOARD_SUPER_PARTITION_SIZE),)
-      BUILDING_SUPER_EMPTY_IMAGE := true
+ifeq (true,$(PRODUCT_BUILD_SUPER_PARTITION))
+  ifeq ($(PRODUCT_BUILD_SUPER_EMPTY_IMAGE),)
+    ifeq (true,$(PRODUCT_USE_DYNAMIC_PARTITIONS))
+      ifneq ($(BOARD_SUPER_PARTITION_SIZE),)
+        BUILDING_SUPER_EMPTY_IMAGE := true
+      endif
     endif
+  else ifeq ($(PRODUCT_BUILD_SUPER_EMPTY_IMAGE),true)
+    ifneq (true,$(PRODUCT_USE_DYNAMIC_PARTITIONS))
+      $(error PRODUCT_BUILD_SUPER_EMPTY_IMAGE set to true, but PRODUCT_USE_DYNAMIC_PARTITIONS is not true)
+    endif
+    ifeq ($(BOARD_SUPER_PARTITION_SIZE),)
+      $(error PRODUCT_BUILD_SUPER_EMPTY_IMAGE set to true, but BOARD_SUPER_PARTITION_SIZE is not defined)
+    endif
+    BUILDING_SUPER_EMPTY_IMAGE := true
   endif
 else ifeq ($(PRODUCT_BUILD_SUPER_EMPTY_IMAGE),true)
-  ifneq (true,$(PRODUCT_USE_DYNAMIC_PARTITIONS))
-    $(error PRODUCT_BUILD_SUPER_EMPTY_IMAGE set to true, but PRODUCT_USE_DYNAMIC_PARTITIONS is not true)
-  endif
-  ifeq ($(BOARD_SUPER_PARTITION_SIZE),)
-    $(error PRODUCT_BUILD_SUPER_EMPTY_IMAGE set to true, but BOARD_SUPER_PARTITION_SIZE is not defined)
-  endif
-  BUILDING_SUPER_EMPTY_IMAGE := true
+  $(error PRODUCT_BUILD_SUPER_PARTITION not set to true, but BUILDING_SUPER_EMPTY_IMAGE is true)
 endif
 .KATI_READONLY := BUILDING_SUPER_EMPTY_IMAGE
+
+# Allow the release config to override the board super partition error limit, setting
+# it to the full size of the superpartition.  This build flag is only enabled on eng builds.
+# See b/428178183.
+ifneq (,$(RELEASE_SUPER_PARTITION_ERROR_LIMIT_IS_SIZE))
+  ifneq (,$(BOARD_SUPER_PARTITION_ERROR_LIMIT))
+    BOARD_SUPER_PARTITION_ERROR_LIMIT:=$(BOARD_SUPER_PARTITION_SIZE)
+  endif
+endif
 
 ###########################################
 # Now we can substitute with the real value of TARGET_COPY_OUT_VENDOR

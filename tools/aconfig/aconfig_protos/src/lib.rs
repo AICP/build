@@ -100,7 +100,7 @@ pub fn is_valid_package_ident(s: &str) -> bool {
 
 /// Check if the container identifier is valid
 pub fn is_valid_container_ident(s: &str) -> bool {
-    s.split('.').all(is_valid_name_ident)
+    s.split('.').all(|s| is_valid_name_ident(&s.to_lowercase()))
 }
 
 fn try_from_text_proto<T>(s: &str) -> Result<T>
@@ -525,7 +525,7 @@ flag {
 "#,
         )
         .unwrap_err();
-        assert_eq!(format!("{:?}", error), "bad flag declarations: missing package");
+        assert_eq!(format!("{error:?}"), "bad flag declarations: missing package");
 
         // bad input: missing namespace in flag declaration
         let error = flag_declarations::try_from_text_proto(
@@ -544,7 +544,7 @@ flag {
 "#,
         )
         .unwrap_err();
-        assert_eq!(format!("{:?}", error), "bad flag declaration: missing namespace");
+        assert_eq!(format!("{error:?}"), "bad flag declaration: missing namespace");
 
         // bad input: bad package name in flag declarations
         let error = flag_declarations::try_from_text_proto(
@@ -564,7 +564,7 @@ flag {
 "#,
         )
         .unwrap_err();
-        assert!(format!("{:?}", error).contains("bad flag declarations: bad package"));
+        assert!(format!("{error:?}").contains("bad flag declarations: bad package"));
 
         // bad input: bad name in flag declaration
         let error = flag_declarations::try_from_text_proto(
@@ -584,7 +584,7 @@ flag {
 "#,
         )
         .unwrap_err();
-        assert!(format!("{:?}", error).contains("bad flag declaration: bad name"));
+        assert!(format!("{error:?}").contains("bad flag declaration: bad name"));
 
         // bad input: no bug entries in flag declaration
         let error = flag_declarations::try_from_text_proto(
@@ -599,7 +599,7 @@ flag {
 "#,
         )
         .unwrap_err();
-        assert!(format!("{:?}", error).contains("bad flag declaration: exactly one bug required"));
+        assert!(format!("{error:?}").contains("bad flag declaration: exactly one bug required"));
 
         // bad input: multiple bug entries in flag declaration
         let error = flag_declarations::try_from_text_proto(
@@ -616,7 +616,7 @@ flag {
 "#,
         )
         .unwrap_err();
-        assert!(format!("{:?}", error).contains("bad flag declaration: exactly one bug required"));
+        assert!(format!("{error:?}").contains("bad flag declaration: exactly one bug required"));
 
         // bad input: invalid container name in flag declaration
         let error = flag_declarations::try_from_text_proto(
@@ -633,7 +633,7 @@ flag {
 "#,
         )
         .unwrap_err();
-        assert!(format!("{:?}", error).contains("bad flag declarations: bad container"));
+        assert!(format!("{error:?}").contains("bad flag declarations: bad container"));
 
         // bad input: storage backend should not be explicitly set
         let error = flag_declarations::try_from_text_proto(
@@ -653,7 +653,7 @@ flag {
 "#,
         )
         .unwrap_err();
-        assert!(format!("{:?}", error).contains(
+        assert!(format!("{error:?}").contains(
             "bad flag declaration: storage in metadata should not be explicitly selected"
         ));
 
@@ -703,7 +703,7 @@ flag_value {
 "#,
         )
         .unwrap_err();
-        assert!(format!("{:?}", error).contains("bad flag value: bad package"));
+        assert!(format!("{error:?}").contains("bad flag value: bad package"));
 
         // bad input: bad name in flag value
         let error = flag_values::try_from_text_proto(
@@ -717,7 +717,7 @@ flag_value {
 "#,
         )
         .unwrap_err();
-        assert!(format!("{:?}", error).contains("bad flag value: bad name"));
+        assert!(format!("{error:?}").contains("bad flag value: bad name"));
 
         // bad input: missing state in flag value
         let error = flag_values::try_from_text_proto(
@@ -730,7 +730,7 @@ flag_value {
 "#,
         )
         .unwrap_err();
-        assert_eq!(format!("{:?}", error), "bad flag value: missing state");
+        assert_eq!(format!("{error:?}"), "bad flag value: missing state");
 
         // bad input: missing permission in flag value
         let error = flag_values::try_from_text_proto(
@@ -743,7 +743,7 @@ flag_value {
 "#,
         )
         .unwrap_err();
-        assert_eq!(format!("{:?}", error), "bad flag value: missing permission");
+        assert_eq!(format!("{error:?}"), "bad flag value: missing permission");
     }
 
     fn try_from_binary_proto_from_text_proto(text_proto: &str) -> Result<ProtoParsedFlags> {
@@ -838,7 +838,7 @@ parsed_flag {
 }
 "#;
         let error = try_from_binary_proto_from_text_proto(text_proto).unwrap_err();
-        assert_eq!(format!("{:?}", error), "bad parsed flag: empty trace");
+        assert_eq!(format!("{error:?}"), "bad parsed flag: empty trace");
 
         // bad input: missing namespace in parsed_flag
         let text_proto = r#"
@@ -857,7 +857,7 @@ parsed_flag {
 }
 "#;
         let error = try_from_binary_proto_from_text_proto(text_proto).unwrap_err();
-        assert_eq!(format!("{:?}", error), "bad parsed flag: missing namespace");
+        assert_eq!(format!("{error:?}"), "bad parsed flag: missing namespace");
 
         // bad input: parsed_flag not sorted by package
         let text_proto = r#"
@@ -900,7 +900,7 @@ parsed_flag {
 "#;
         let error = try_from_binary_proto_from_text_proto(text_proto).unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "bad parsed flags: not sorted: bbb.bbb.first comes before aaa.aaa.second"
         );
 
@@ -945,7 +945,7 @@ parsed_flag {
 "#;
         let error = try_from_binary_proto_from_text_proto(text_proto).unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "bad parsed flags: not sorted: com.foo.bbb comes before com.foo.aaa"
         );
 
@@ -989,7 +989,7 @@ parsed_flag {
 }
 "#;
         let error = try_from_binary_proto_from_text_proto(text_proto).unwrap_err();
-        assert_eq!(format!("{:?}", error), "bad parsed flags: duplicate flag com.foo.bar (defined in flags.declarations and flags.declarations)");
+        assert_eq!(format!("{error:?}"), "bad parsed flags: duplicate flag com.foo.bar (defined in flags.declarations and flags.declarations)");
 
         // bad input: wrong storage backend: not NONE
         let text_proto = r#"
@@ -1014,7 +1014,7 @@ parsed_flag {
 "#;
         let error = try_from_binary_proto_from_text_proto(text_proto).unwrap_err();
         assert_eq!(
-            format!("{:?}", error),
+            format!("{error:?}"),
             "bad parsed flag: storage backend is not NONE for a read only flag"
         );
 
@@ -1040,10 +1040,7 @@ parsed_flag {
 }
 "#;
         let error = try_from_binary_proto_from_text_proto(text_proto).unwrap_err();
-        assert_eq!(
-            format!("{:?}", error),
-            "bad parsed flag: storage backend cannot be UNSPECIFIED"
-        );
+        assert_eq!(format!("{error:?}"), "bad parsed flag: storage backend cannot be UNSPECIFIED");
     }
 
     #[test]
@@ -1189,17 +1186,17 @@ parsed_flag {
 
         // two of the same flag with dedup disabled
         let error = parsed_flags::merge(vec![first.clone(), first.clone()], false).unwrap_err();
-        assert_eq!(format!("{:?}", error), "bad parsed flags: duplicate flag com.first.first (defined in flags.declarations and flags.declarations)");
+        assert_eq!(format!("{error:?}"), "bad parsed flags: duplicate flag com.first.first (defined in flags.declarations and flags.declarations)");
 
         // two conflicting flags with dedup disabled
         let error =
             parsed_flags::merge(vec![second.clone(), second_duplicate.clone()], false).unwrap_err();
-        assert_eq!(format!("{:?}", error), "bad parsed flags: duplicate flag com.second.second (defined in flags.declarations and duplicate/flags.declarations)");
+        assert_eq!(format!("{error:?}"), "bad parsed flags: duplicate flag com.second.second (defined in flags.declarations and duplicate/flags.declarations)");
 
         // two conflicting flags with dedup enabled
         let error =
             parsed_flags::merge(vec![second.clone(), second_duplicate.clone()], true).unwrap_err();
-        assert_eq!(format!("{:?}", error), "bad parsed flags: duplicate flag com.second.second (defined in flags.declarations and duplicate/flags.declarations)");
+        assert_eq!(format!("{error:?}"), "bad parsed flags: duplicate flag com.second.second (defined in flags.declarations and duplicate/flags.declarations)");
 
         // valid cases
         assert!(parsed_flags::merge(vec![], false).unwrap().parsed_flag.is_empty());

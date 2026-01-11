@@ -56,10 +56,10 @@ prebuilt_etc {
 }
 
 prebuilt_etc {
-    name: "preinstalled_packages_handheld_system_ext.xml",
+    name: "preinstalled-packages-handheld-system-ext.xml",
     sub_dir: "sysconfig",
     system_ext_specific: true,
-    src: "preinstalled_packages_handheld_system_ext.xml",
+    src: "preinstalled-packages-handheld-system-ext.xml",
 }
 
 prebuilt_etc {

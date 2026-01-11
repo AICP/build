@@ -32,4 +32,4 @@ PRODUCT_PACKAGES += \
     WallpaperCropper \
 
 # Allowlist for system packages included in handheld_system_ext.mk
-PRODUCT_PACKAGES += preinstalled_packages_handheld_system_ext.xml
+PRODUCT_PACKAGES += preinstalled-packages-handheld-system-ext.xml

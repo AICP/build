@@ -188,10 +188,9 @@ pub fn read_files_to_map_using_path(flag_files: Vec<String>) -> Result<Finalized
         let file = fs::File::open(&flag_file)?;
 
         io::BufReader::new(file).lines().for_each(|flag| {
-            let flag =
-                flag.unwrap_or_else(|_| panic!("Failed to read line from file {}", flag_file));
+            let flag = flag.unwrap_or_else(|_| panic!("Failed to read line from file {flag_file}"));
             let finalized_flag = build_finalized_flag(&flag)
-                .unwrap_or_else(|_| panic!("cannot build finalized flag {}", flag));
+                .unwrap_or_else(|_| panic!("cannot build finalized flag {flag}"));
             data_map.insert_if_new(api_level.clone(), finalized_flag);
         });
     }
@@ -597,7 +596,7 @@ mod tests {
         let err = read_files_to_map_using_path(vec![file_path.to_string_lossy().to_string()])
             .unwrap_err();
         assert_eq!(
-            format!("{:?}", err),
+            format!("{err:?}"),
             "Provided incorrect file, must be finalized-flags.txt or extended_flags_list.txt"
         );
     }

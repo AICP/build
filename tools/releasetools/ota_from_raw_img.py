@@ -65,6 +65,8 @@ def UpdateDynamicPartitionInfo(contents, in_file):
 def WriteDynamicPartitionInfo(in_file, out_fp):
     keyvalues = {
         "virtual_ab": "true",
+        "virtual_ab_compression": "true",
+        "virtual_ab_compression_method": "none",
         "super_partition_groups": "",
     }
     if in_file is not None:

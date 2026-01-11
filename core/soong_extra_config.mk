@@ -28,13 +28,6 @@ $(call add_json_str, SystemManufacturer, $(PRODUCT_SYSTEM_MANUFACTURER))
 $(call add_json_str, SystemModel, $(PRODUCT_SYSTEM_MODEL))
 $(call add_json_str, SystemName, $(PRODUCT_SYSTEM_NAME))
 
-# Collapses ?= and = operators for system property variables. Also removes double quotes to prevent
-# malformed JSON. This change aligns with the existing behavior of sysprop.mk, which passes property
-# variables to the echo command, effectively discarding surrounding double quotes.
-define collapse-prop-pairs
-$(subst ",,$(call collapse-pairs,$(call collapse-pairs,$$($(1)),?=),=))
-endef
-
 $(call add_json_list, PRODUCT_SYSTEM_PROPERTIES,         $(call collapse-prop-pairs,PRODUCT_SYSTEM_PROPERTIES))
 $(call add_json_list, PRODUCT_SYSTEM_DEFAULT_PROPERTIES, $(call collapse-prop-pairs,PRODUCT_SYSTEM_DEFAULT_PROPERTIES))
 $(call add_json_list, PRODUCT_SYSTEM_EXT_PROPERTIES,     $(call collapse-prop-pairs,PRODUCT_SYSTEM_EXT_PROPERTIES))
@@ -58,6 +51,9 @@ $(call add_json_str, RecoveryDefaultRotation, $(TARGET_RECOVERY_DEFAULT_ROTATION
 $(call add_json_str, RecoveryDefaultTouchRotation, $(TARGET_RECOVERY_DEFAULT_TOUCH_ROTATION))
 $(call add_json_str, RecoveryOverscanPercent, $(TARGET_RECOVERY_OVERSCAN_PERCENT))
 $(call add_json_str, RecoveryPixelFormat, $(TARGET_RECOVERY_PIXEL_FORMAT))
+ifdef TARGET_RECOVERY_NO_INITIAL_MODSET_FLUSH
+$(call add_json_bool, RecoveryNoInitialModsetFlush, $(filter true,$(TARGET_RECOVERY_NO_INITIAL_MODSET_FLUSH)))
+endif
 
 ifdef AB_OTA_UPDATER
 $(call add_json_bool, AbOtaUpdater, $(filter true,$(AB_OTA_UPDATER)))

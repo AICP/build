@@ -67,12 +67,12 @@ where
 
     let files = [
         FileSpec {
-            name: &format!("{}.h", header),
+            name: &format!("{header}.h"),
             template: include_str!("../../templates/cpp_exported_header.template"),
             dir: "include",
         },
         FileSpec {
-            name: &format!("{}.cc", header),
+            name: &format!("{header}.cc"),
             template: include_str!("../../templates/cpp_source_file.template"),
             dir: "",
         },
@@ -563,20 +563,23 @@ namespace com::android::aconfig::test {
                     cache_[i] = -1;
                 }
 
-                auto package_map_file = aconfig_storage::get_mapped_file(
+// Storage files are only available on Android, not on host.
+#ifndef __ANDROID__
+                package_exists_in_storage_ = false;
+                return;
+#endif
+
+                auto package_map_file_ret = aconfig_storage::get_mapped_file(
                     "system",
                     aconfig_storage::StorageFileType::package_map);
-                if (!package_map_file.ok()) {
-// Host doesn't have the package map file.
-#ifdef __ANDROID__
-                    ALOGE("error: failed to get package map file: %s", package_map_file.error().c_str());
-#endif
+                if (!package_map_file_ret.ok()) {
+                    ALOGE("error: failed to get package map file: %s", package_map_file_ret.error().c_str());
                     package_exists_in_storage_ = false;
                     return;
                 }
-
+                std::unique_ptr<aconfig_storage::MappedStorageFile> package_map_file(*package_map_file_ret);
                 auto context = aconfig_storage::get_package_read_context(
-                    **package_map_file, "com.android.aconfig.test");
+                    *package_map_file, "com.android.aconfig.test");
                 if (!context.ok()) {
                     ALOGE("error: failed to get package read context: %s", context.error().c_str());
                     package_exists_in_storage_ = false;
@@ -590,9 +593,6 @@ namespace com::android::aconfig::test {
 
                 // cache package boolean flag start index
                 boolean_start_index_ = context->boolean_start_index;
-
-                // unmap package map file and free memory
-                delete *package_map_file;
 
                 auto flag_value_file = aconfig_storage::get_mapped_file(
                     "system",
@@ -617,7 +617,6 @@ namespace com::android::aconfig::test {
             virtual bool disabled_rw() override {
                 if (cache_[0].load(std::memory_order_relaxed) == -1) {
                     if (!package_exists_in_storage_) {
-                        ALOGE("error: package does not exist, returning flag default value.");
                         return false;
                     }
 
@@ -638,7 +637,6 @@ namespace com::android::aconfig::test {
             virtual bool disabled_rw_exported() override {
                 if (cache_[1].load(std::memory_order_relaxed) == -1) {
                     if (!package_exists_in_storage_) {
-                        ALOGE("error: package does not exist, returning flag default value.");
                         return false;
                     }
 
@@ -659,7 +657,6 @@ namespace com::android::aconfig::test {
             virtual bool disabled_rw_in_other_namespace() override {
                 if (cache_[2].load(std::memory_order_relaxed) == -1) {
                     if (!package_exists_in_storage_) {
-                        ALOGE("error: package does not exist, returning flag default value.");
                         return false;
                     }
 
@@ -696,7 +693,6 @@ namespace com::android::aconfig::test {
             virtual bool enabled_rw() override {
                 if (cache_[3].load(std::memory_order_relaxed) == -1) {
                     if (!package_exists_in_storage_) {
-                        ALOGE("error: package does not exist, returning flag default value.");
                         return true;
                     }
 
@@ -725,8 +721,12 @@ namespace com::android::aconfig::test {
 
     };
 
-    std::unique_ptr<flag_provider_interface> provider_ =
-        std::make_unique<flag_provider>();
+    static flag_provider_interface* get_provider_instance() {
+        static flag_provider* instance_ = new flag_provider();
+        return instance_;
+    }
+
+    std::unique_ptr<flag_provider_interface> provider_(get_provider_instance());
 }
 
 bool com_android_aconfig_test_disabled_ro() {
@@ -793,20 +793,23 @@ namespace com::android::aconfig::test {
                     cache_[i] = -1;
                 }
 
-                auto package_map_file = aconfig_storage::get_mapped_file(
+// Storage files are only available on Android, not on host.
+#ifndef __ANDROID__
+                package_exists_in_storage_ = false;
+                return;
+#endif
+
+                auto package_map_file_ret = aconfig_storage::get_mapped_file(
                     "system",
                     aconfig_storage::StorageFileType::package_map);
-                if (!package_map_file.ok()) {
-// Host doesn't have the package map file.
-#ifdef __ANDROID__
-                    ALOGE("error: failed to get package map file: %s", package_map_file.error().c_str());
-#endif
+                if (!package_map_file_ret.ok()) {
+                    ALOGE("error: failed to get package map file: %s", package_map_file_ret.error().c_str());
                     package_exists_in_storage_ = false;
                     return;
                 }
-
+                std::unique_ptr<aconfig_storage::MappedStorageFile> package_map_file(*package_map_file_ret);
                 auto context = aconfig_storage::get_package_read_context(
-                    **package_map_file, "com.android.aconfig.test");
+                    *package_map_file, "com.android.aconfig.test");
                 if (!context.ok()) {
                     ALOGE("error: failed to get package read context: %s", context.error().c_str());
                     package_exists_in_storage_ = false;
@@ -826,9 +829,6 @@ namespace com::android::aconfig::test {
 
                 // cache package boolean flag start index
                 boolean_start_index_ = context->boolean_start_index;
-
-                // unmap package map file and free memory
-                delete *package_map_file;
 
                 auto flag_value_file = aconfig_storage::get_mapped_file(
                     "system",
@@ -853,7 +853,6 @@ namespace com::android::aconfig::test {
             virtual bool disabled_rw() override {
                 if (cache_[0].load(std::memory_order_relaxed) == -1) {
                     if (!package_exists_in_storage_) {
-                        ALOGE("error: package does not exist, returning flag default value.");
                         return false;
                     }
 
@@ -879,7 +878,6 @@ namespace com::android::aconfig::test {
             virtual bool disabled_rw_exported() override {
                 if (cache_[1].load(std::memory_order_relaxed) == -1) {
                     if (!package_exists_in_storage_) {
-                        ALOGE("error: package does not exist, returning flag default value.");
                         return false;
                     }
 
@@ -906,7 +904,6 @@ namespace com::android::aconfig::test {
             virtual bool disabled_rw_in_other_namespace() override {
                 if (cache_[2].load(std::memory_order_relaxed) == -1) {
                     if (!package_exists_in_storage_) {
-                        ALOGE("error: package does not exist, returning flag default value.");
                         return false;
                     }
 
@@ -949,7 +946,6 @@ namespace com::android::aconfig::test {
             virtual bool enabled_rw() override {
                 if (cache_[3].load(std::memory_order_relaxed) == -1) {
                     if (!package_exists_in_storage_) {
-                        ALOGE("error: package does not exist, returning flag default value.");
                         return true;
                     }
 
@@ -985,8 +981,12 @@ namespace com::android::aconfig::test {
         bool fingerprint_matches_;
     };
 
-    std::unique_ptr<flag_provider_interface> provider_ =
-        std::make_unique<flag_provider>();
+    static flag_provider_interface* get_provider_instance() {
+        static flag_provider* instance_ = new flag_provider();
+        return instance_;
+    }
+
+    std::unique_ptr<flag_provider_interface> provider_(get_provider_instance());
 }
 
 bool com_android_aconfig_test_disabled_ro() {
@@ -1058,21 +1058,24 @@ namespace com::android::aconfig::test {
                 , flag_value_file_(nullptr)
                 , package_exists_in_storage_(true) {
 
-                auto package_map_file = aconfig_storage::get_mapped_file(
+// Storage files are only available on Android, not on host.
+#ifndef __ANDROID__
+                package_exists_in_storage_ = false;
+                return;
+#endif
+
+                auto package_map_file_ret = aconfig_storage::get_mapped_file(
                      "system",
                     aconfig_storage::StorageFileType::package_map);
 
-                if (!package_map_file.ok()) {
-// Host doesn't have the package map file.
-#ifdef __ANDROID__
-                    ALOGE("error: failed to get package map file: %s", package_map_file.error().c_str());
-#endif
+                if (!package_map_file_ret.ok()) {
+                    ALOGE("error: failed to get package map file: %s", package_map_file_ret.error().c_str());
                     package_exists_in_storage_ = false;
                     return;
                 }
-
+                std::unique_ptr<aconfig_storage::MappedStorageFile> package_map_file(*package_map_file_ret);
                 auto context = aconfig_storage::get_package_read_context(
-                    **package_map_file, "com.android.aconfig.test");
+                    *package_map_file, "com.android.aconfig.test");
 
                 if (!context.ok()) {
                     ALOGE("error: failed to get package read context: %s", context.error().c_str());
@@ -1087,9 +1090,6 @@ namespace com::android::aconfig::test {
 
                 // cache package boolean flag start index
                 boolean_start_index_ = context->boolean_start_index;
-
-                // unmap package map file and free memory
-                delete *package_map_file;
 
                 auto flag_value_file = aconfig_storage::get_mapped_file(
                     "system",
@@ -1125,7 +1125,6 @@ namespace com::android::aconfig::test {
                       return it->second;
                 } else {
                     if (!package_exists_in_storage_) {
-                        ALOGE("error: package does not exist, returning flag default value.");
                         return false;
                     }
 
@@ -1152,7 +1151,6 @@ namespace com::android::aconfig::test {
                       return it->second;
                 } else {
                     if (!package_exists_in_storage_) {
-                        ALOGE("error: package does not exist, returning flag default value.");
                         return false;
                     }
 
@@ -1179,7 +1177,6 @@ namespace com::android::aconfig::test {
                       return it->second;
                 } else {
                     if (!package_exists_in_storage_) {
-                        ALOGE("error: package does not exist, returning flag default value.");
                         return false;
                     }
 
@@ -1258,7 +1255,6 @@ namespace com::android::aconfig::test {
                       return it->second;
                 } else {
                     if (!package_exists_in_storage_) {
-                        ALOGE("error: package does not exist, returning flag default value.");
                         return true;
                     }
 
@@ -1284,8 +1280,12 @@ namespace com::android::aconfig::test {
             }
     };
 
-    std::unique_ptr<flag_provider_interface> provider_ =
-        std::make_unique<flag_provider>();
+    static flag_provider_interface* get_provider_instance() {
+        static flag_provider* instance_ = new flag_provider();
+        return instance_;
+    }
+
+    std::unique_ptr<flag_provider_interface> provider_(get_provider_instance());
 }
 
 bool com_android_aconfig_test_disabled_ro() {
@@ -1409,8 +1409,12 @@ namespace com::android::aconfig::test {
             }
     };
 
-    std::unique_ptr<flag_provider_interface> provider_ =
-        std::make_unique<flag_provider>();
+    static flag_provider_interface* get_provider_instance() {
+        static flag_provider* instance_ = new flag_provider();
+        return instance_;
+    }
+
+    std::unique_ptr<flag_provider_interface> provider_(get_provider_instance());
 }
 
 bool com_android_aconfig_test_disabled_ro() {
@@ -1533,8 +1537,12 @@ namespace com::android::aconfig::test {
             }
     };
 
-    std::unique_ptr<flag_provider_interface> provider_ =
-        std::make_unique<flag_provider>();
+    static flag_provider_interface* get_provider_instance() {
+        static flag_provider* instance_ = new flag_provider();
+        return instance_;
+    }
+
+    std::unique_ptr<flag_provider_interface> provider_(get_provider_instance());
 }
 
 bool com_android_aconfig_test_disabled_fixed_ro() {

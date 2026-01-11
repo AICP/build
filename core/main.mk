@@ -273,8 +273,12 @@ $(foreach mk,$(subdir_makefiles),$(info [$(call inc_and_print,include_makefiles_
 # Unfortunately build/tasks is included at a wrong time and the order is important (b/417070498)
 -include device/generic/goldfish/build/tasks.workaround/emu_img_zip.mk
 
+# Include art.mk here because build/core/tasks/art-host-tests.mk need it.
+-include art/art.mk
+
 # Build bootloader.img/radio.img, and unpack the partitions.
 -include vendor/google_devices/$(TARGET_SOC)/prebuilts/misc_bins/update_bootloader_radio_image.mk
+-include $(UPDATE_BOOTLOADER_RADIO_IMAGE_MAKEFILE)
 
 # For an unbundled image, we can skip blueprint_tools because unbundled image
 # aims to remove a large number framework projects from the manifest, the
@@ -1456,6 +1460,9 @@ else ifneq ($(TARGET_BUILD_APPS),)
   # If this build is just for apps, only build apps and not the full system by default.
   # The majority of this block has been converted to soong's unbundled_builder module.
 
+  apps_only_installed_files := $(foreach m,$(unbundled_build_modules),\
+    $(filter-out $(ALL_MODULES.$(m).INSTALLED_SYMLINKS),$(ALL_MODULES.$(m).INSTALLED)))
+
 apps_only: $(unbundled_build_modules)
 
 droid_targets: apps_only
@@ -1478,10 +1485,6 @@ else ifeq ($(TARGET_BUILD_UNBUNDLED),$(TARGET_BUILD_UNBUNDLED_IMAGE))
   # We dist the following targets only for droidcore full build. These items
   # can include java-related targets that would cause building framework java
   # sources in a droidcore full build.
-
-  $(call dist-for-goals, droidcore, \
-    $(APPCOMPAT_ZIP) \
-  )
 
   # We dist the following targets for droidcore-unbundled (and droidcore since
   # droidcore depends on droidcore-unbundled). The droidcore-unbundled target
@@ -1585,13 +1588,6 @@ else ifeq ($(TARGET_BUILD_UNBUNDLED),$(TARGET_BUILD_UNBUNDLED_IMAGE))
     $(call dist-for-goals, dist_files, $(JACOCO_REPORT_CLASSES_ALL))
   endif
 
-  ifdef CLANG_COVERAGE
-    $(foreach f,$(SOONG_NDK_API_XML), \
-        $(call dist-for-goals,droidcore,$(f):ndk_apis/$(notdir $(f))))
-    $(foreach f,$(SOONG_CC_API_XML), \
-        $(call dist-for-goals,droidcore,$(f):cc_apis/$(notdir $(f))))
-  endif
-
   # For full system build (whether unbundled or not), we configure
   # droid_targets to depend on droidcore-unbundled, which will set up the full
   # system dependencies and also dist the subset of targets that correspond to
@@ -1640,9 +1636,6 @@ tests : host-tests target-tests
 
 # Phony target to run all java compilations that use javac
 .PHONY: javac-check
-
-.PHONY: findbugs
-findbugs: $(INTERNAL_FINDBUGS_HTML_TARGET) $(INTERNAL_FINDBUGS_XML_TARGET)
 
 .PHONY: check-elf-files
 check-elf-files:
@@ -1791,8 +1784,8 @@ metadata_files := $(subst $(newline),$(space),$(file <$(metadata_list)))
 # Create metadata for compliance support in Soong
 .PHONY: make-compliance-metadata
 make-compliance-metadata: \
-    $(SOONG_OUT_DIR)/compliance-metadata/$(TARGET_PRODUCT)/make-metadata.csv \
-    $(SOONG_OUT_DIR)/compliance-metadata/$(TARGET_PRODUCT)/make-modules.csv
+    $(SOONG_OUT_DIR)/compliance-metadata/$(TARGET_PRODUCT)/make_metadata.csv \
+    $(SOONG_OUT_DIR)/compliance-metadata/$(TARGET_PRODUCT)/make_modules.csv
 
 
 # Precompute these as an optimization to not do $(findstring).
@@ -1833,7 +1826,7 @@ $(foreach f,$(ALL_ROOTDIR_SYMLINKS),\
 )
 $(foreach m,$(ALL_NON_MODULES),$(eval _is_non_module.$(m):=Y))
 
-$(SOONG_OUT_DIR)/compliance-metadata/$(TARGET_PRODUCT)/make-metadata.csv:
+$(SOONG_OUT_DIR)/compliance-metadata/$(TARGET_PRODUCT)/make_metadata.csv:
 	rm -f $@
 	echo 'installed_file,module_path,is_soong_module,is_prebuilt_make_module,product_copy_files,kernel_module_copy_files,is_platform_generated,static_libs,whole_static_libs,license_text' >> $@
 	$(foreach f,$(installed_files),\
@@ -1846,7 +1839,6 @@ $(SOONG_OUT_DIR)/compliance-metadata/$(TARGET_PRODUCT)/make-metadata.csv:
 	  $(eval _product_copy_files := $(sort $(filter %:$(_path_on_device),$(product_copy_files_without_owner)))) \
 	  $(eval _kernel_module_copy_files := $(sort $(filter %$(_path_on_device),$(KERNEL_MODULE_COPY_FILES)))) \
 	  $(eval _is_build_prop := $(call is-build-prop,$f)) \
-	  $(eval _is_notice_file := $(call is-notice-file,$f)) \
 	  $(eval _is_product_system_other_avbkey := $(_is_product_system_other_avbkey.$(f))) \
 	  $(eval _is_event_log_tags_file := $(_is_event_log_tags_file.$(f))) \
 	  $(eval _is_system_other_odex_marker := $(_is_system_other_odex_marker.$(f))) \
@@ -1856,7 +1848,7 @@ $(SOONG_OUT_DIR)/compliance-metadata/$(TARGET_PRODUCT)/make-metadata.csv:
 	  $(eval _is_partition_compat_symlink := $(_is_partition_compat_symlink.$(f))) \
 	  $(eval _is_flags_file := $(_is_flags_file.$(f))) \
 	  $(eval _is_rootdir_symlink := $(_is_rootdir_symlink.$(f))) \
-	  $(eval _is_platform_generated := $(if $(_is_soong_module),,$(_is_build_prop)$(_is_notice_file)$(_is_product_system_other_avbkey)$(_is_event_log_tags_file)$(_is_system_other_odex_marker)$(_is_kernel_modules_blocklist)$(_is_fsverity_build_manifest_apk)$(_is_linker_config)$(_is_partition_compat_symlink)$(_is_flags_file)$(_is_rootdir_symlink))) \
+	  $(eval _is_platform_generated := $(if $(_is_soong_module),,$(_is_build_prop)$(_is_product_system_other_avbkey)$(_is_event_log_tags_file)$(_is_system_other_odex_marker)$(_is_kernel_modules_blocklist)$(_is_fsverity_build_manifest_apk)$(_is_linker_config)$(_is_partition_compat_symlink)$(_is_flags_file)$(_is_rootdir_symlink))) \
 	  $(eval _static_libs := $(if $(_is_soong_module),,$(ALL_INSTALLED_FILES.$f.STATIC_LIBRARIES))) \
 	  $(eval _whole_static_libs := $(if $(_is_soong_module),,$(ALL_INSTALLED_FILES.$f.WHOLE_STATIC_LIBRARIES))) \
 	  $(eval _license_text := $(if $(_is_non_module.$(_build_output_path)),$(ALL_NON_MODULES.$(_build_output_path).NOTICES),\
@@ -1864,7 +1856,7 @@ $(SOONG_OUT_DIR)/compliance-metadata/$(TARGET_PRODUCT)/make-metadata.csv:
 	  echo '$(_build_output_path),$(_module_path),$(_is_soong_module),$(_is_prebuilt_make_module),$(_product_copy_files),$(_kernel_module_copy_files),$(_is_platform_generated),$(_static_libs),$(_whole_static_libs),$(_license_text)' >> $@; \
 	)
 
-$(SOONG_OUT_DIR)/compliance-metadata/$(TARGET_PRODUCT)/make-modules.csv:
+$(SOONG_OUT_DIR)/compliance-metadata/$(TARGET_PRODUCT)/make_modules.csv:
 	rm -f $@
 	echo 'name,module_path,module_class,module_type,static_libs,whole_static_libs,built_files,installed_files' >> $@
 	$(foreach m,$(ALL_MODULES), \
@@ -1889,53 +1881,6 @@ $(SOONG_OUT_DIR)/compliance-metadata/$(TARGET_PRODUCT)/installed_files.stamp: $(
 $(shell rm -f $(PRODUCT_OUT)/always_dirty_file.txt)
 $(PRODUCT_OUT)/always_dirty_file.txt:
 	touch $@
-
-.PHONY: sbom
-ifneq ($(TARGET_BUILD_APPS),)
-# Create build rules for generating SBOMs of unbundled APKs and APEXs
-# $1: sbom file
-# $2: sbom fragment file
-# $3: installed file
-# $4: sbom-metadata.csv file
-define generate-app-sbom
-$(eval _path_on_device := $(patsubst $(PRODUCT_OUT)/%,%,$(3)))
-$(eval _module_name := $(ALL_INSTALLED_FILES.$(3)))
-$(eval _module_path := $(strip $(sort $(ALL_MODULES.$(_module_name).PATH))))
-$(eval _soong_module_type := $(strip $(sort $(ALL_MODULES.$(_module_name).SOONG_MODULE_TYPE))))
-$(eval _dep_modules := $(filter %.$(_module_name),$(ALL_MODULES)) $(filter %.$(_module_name)$(TARGET_2ND_ARCH_MODULE_SUFFIX),$(ALL_MODULES)))
-$(eval _is_apex := $(filter %.apex,$(3)))
-
-$(4):
-	rm -rf $$@
-	echo installed_file,module_path,soong_module_type,is_prebuilt_make_module,product_copy_files,kernel_module_copy_files,is_platform_generated,build_output_path,static_libraries,whole_static_libraries,is_static_lib >> $$@
-	echo /$(_path_on_device),$(_module_path),$(_soong_module_type),,,,,$(3),,, >> $$@
-	$(if $(filter %.apex,$(3)),\
-	  $(foreach m,$(_dep_modules),\
-	    echo $(patsubst $(PRODUCT_OUT)/apex/$(_module_name)/%,%,$(ALL_MODULES.$m.INSTALLED)),$(sort $(ALL_MODULES.$m.PATH)),$(sort $(ALL_MODULES.$m.SOONG_MODULE_TYPE)),,,,,$(strip $(ALL_MODULES.$m.BUILT)),,, >> $$@;))
-
-$(2): $(1)
-$(1): $(4) $(3) $(GEN_SBOM) $(installed_files) $(metadata_list) $(metadata_files)
-	rm -rf $$@
-	$(GEN_SBOM) --output_file $$@ --metadata $(4) --build_version $$(BUILD_FINGERPRINT_FROM_FILE) --product_mfr "$(PRODUCT_MANUFACTURER)" --json $(if $(filter %.apk,$(3)),--unbundled_apk,--unbundled_apex)
-endef
-
-apps_only_sbom_files :=
-apps_only_fragment_files :=
-$(foreach f,$(filter %.apk %.apex,$(installed_files)), \
-  $(eval _metadata_csv_file := $(patsubst %,%-sbom-metadata.csv,$f)) \
-  $(eval _sbom_file := $(patsubst %,%.spdx.json,$f)) \
-  $(eval _fragment_file := $(patsubst %,%-fragment.spdx,$f)) \
-  $(eval apps_only_sbom_files += $(_sbom_file)) \
-  $(eval apps_only_fragment_files += $(_fragment_file)) \
-  $(eval $(call generate-app-sbom,$(_sbom_file),$(_fragment_file),$f,$(_metadata_csv_file))) \
-)
-
-sbom: $(apps_only_sbom_files)
-
-$(foreach f,$(apps_only_fragment_files),$(eval apps_only_fragment_dist_files += :sbom/$(notdir $f)))
-$(foreach f,$(apps_only_sbom_files),$(eval apps_only_sbom_dist_files += :sbom/$(notdir $f)))
-$(call dist-for-goals,apps_only,$(join $(apps_only_sbom_files),$(apps_only_sbom_dist_files)) $(join $(apps_only_fragment_files),$(apps_only_fragment_dist_files)))
-endif
 
 $(call dist-write-file,$(KATI_PACKAGE_MK_DIR)/dist.mk)
 

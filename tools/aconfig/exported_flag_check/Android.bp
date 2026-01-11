@@ -7,7 +7,12 @@ rust_defaults {
     edition: "2021",
     clippy_lints: "android",
     lints: "android",
-    srcs: ["src/main.rs"],
+    crate_root: "src/main.rs",
+    srcs: [
+        "non_api_flags_list.txt",
+        "non_api_flags_packages.txt",
+        "skip_api_filter_list.txt",
+    ],
     rustlibs: [
         "libaconfig_protos",
         "libanyhow",
@@ -26,4 +31,9 @@ rust_test_host {
     name: "exported-flag-check-test",
     defaults: ["exported-flag-check-defaults"],
     test_suites: ["general-tests"],
+    srcs: [
+        "tests/api-signature-file.txt",
+        "tests/finalized-flags.txt",
+        "tests/flags.textproto",
+    ],
 }
