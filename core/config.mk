@@ -475,7 +475,7 @@ endif
 FIND_LEAVES_EXCLUDES := $(addprefix --prune=, $(SCAN_EXCLUDE_DIRS) .repo .git)
 
 ifneq ($(AICP_BUILD),)
-include vendor/aicp/config/BoardConfigAicp.mk
+include vendor/aicp/config/BoardConfigLineage.mk
 endif
 
 # The build system exposes several variables for where to find the kernel
